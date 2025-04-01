@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "api.fullname" . }}-proxy
+  labels:
+    {{- include "api.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port.proxy }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.metrics.port.proxy }}
+      targetPort: metricshttp
+      protocol: TCP
+      name: metricshttp
+  {{- end }}
+  selector:
+    {{- include "api.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "api.fullname" . }}-grpc
+  labels:
+    {{- include "api.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port.grpc }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.metrics.port.grpc }}
+      targetPort: metricsgrpc
+      protocol: TCP
+      name: metricsgrpc
+  {{- end }}
+  selector:
+    {{- include "api.selectorLabels" . | nindent 4 }}
+---
+{{- if .Values.service.external.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "api.fullname" . }}-external
+  labels:
+    app: {{ template "api.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    {{- include "api.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  selector:
+    {{- include "api.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.external.port }}
+      nodePort: {{ .Values.service.external.nodePort }}
+      protocol: {{ .Values.service.external.protocol }}
+  {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.metrics.port.proxy }}
+      targetPort: metrics
+      nodePort: {{ .Values.metrics.external.nodePort }}
+      protocol: TCP
+      name: metrics
+  {{- end }}
+{{- end }}

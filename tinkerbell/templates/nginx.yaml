@@ -1,0 +1,218 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.stack.image.registry }}
+  {{- $registry = .Values.stack.image.registry -}}
+{{ end}}
+{{- if .Values.stack.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.stack.name}}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      {{- with .Values.stack.selector }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/nginx-configmap.yaml") . | sha256sum }}
+      labels:
+        {{- with .Values.stack.selector }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.traefikReverseProxy.enabled }}
+      {{- if not .Values.stack.service.enabled }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+      {{- end }}
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      {{- if .Values.tinkerbell_smee.dhcp.enabled }}
+      hostPID: true
+      {{- end }}
+      containers:
+      - name: {{ .Values.stack.name }}
+        image: "{{ .Values.stack.image.repository }}:{{ .Values.stack.image.tag }}"
+        imagePullPolicy: {{ .Values.stack.image.imagePullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        command: ["/bin/sh", "-xeuc"]
+        args:
+        - |
+          POD_NAMESERVER=$(awk '/nameserver/ {print $2}' /etc/resolv.conf) \
+            envsubst '$POD_NAMESERVER' \
+            </tmp-nginx/nginx.conf.template \
+            >/etc/nginx/nginx.conf
+
+          envsubst '$DOWNLOAD_URL $GRPC_AUTHORITY $TINK_WORKER_IMAGE $ADDITIONAL_KERNEL_ARGS' \
+            </tmp-boot-ipxe/boot.ipxe.template \
+            >/usr/share/nginx/html/boot.ipxe
+
+          exec nginx -g 'daemon off;'
+        env:
+          - name: DOWNLOAD_URL
+            {{ if .Values.traefikReverseProxy.enabled }}
+            value: {{  printf "https://%v/tink-stack" .Values.traefikReverseProxy.nginxDnsname | quote }}
+            {{ else }}
+            value: {{  printf "https://%v/tink-stack" .Values.loadBalancerIP | quote }}
+            {{ end }}
+          - name: GRPC_AUTHORITY
+            value: {{ printf "%s:%v" .Values.stack.tinkServer.ip .Values.stack.tinkServer.port | quote }}
+          - name: TINK_WORKER_IMAGE
+            value: {{ .Values.tinkerbell_smee.tinkWorker.image.repository | quote }}
+          - name: ADDITIONAL_KERNEL_ARGS
+            value: {{ .Values.tinkerbell_smee.additionalKernelArgs | join " " | quote }}
+        ports:
+        {{ if .Values.tinkerbell_hegel.enabled }}
+        - containerPort: {{ .Values.tinkerbell_hegel.deployment.port }}
+          protocol: TCP
+          name: {{ .Values.tinkerbell_hegel.deployment.portName }}
+        {{ end }}
+        - containerPort: {{ .Values.tinkerbell_tink.server.deployment.port }}
+          protocol: TCP
+          name: {{ .Values.tinkerbell_tink.server.deployment.portName }}
+        - containerPort: {{ .Values.stack.hook.port }}
+          protocol: TCP
+          name: hook-http
+        {{ if .Values.tinkerbell_smee.enabled }}
+        - containerPort: {{ .Values.tinkerbell_smee.http.port }}
+          protocol: TCP
+          name: {{ .Values.tinkerbell_smee.http.name }}
+        - containerPort: {{ .Values.tinkerbell_smee.tftp.port }}
+          protocol: UDP
+          name: {{ .Values.tinkerbell_smee.tftp.name }}
+        - containerPort: {{ .Values.tinkerbell_smee.syslog.port }}
+          protocol: UDP
+          name: {{ .Values.tinkerbell_smee.syslog.name }}
+        {{ end }}
+        livenessProbe:
+          httpGet:
+            port: {{ .Values.stack.hook.port }}
+            path: /boot.ipxe
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            port: {{ .Values.stack.hook.port }}
+            path: /boot.ipxe
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          limits:
+            cpu: {{ .Values.stack.resources.limits.cpu }}
+            memory: {{ .Values.stack.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.stack.resources.requests.cpu }}
+            memory: {{ .Values.stack.resources.requests.memory }}
+        volumeMounts:
+        - mountPath: /tmp-nginx
+          readOnly: true
+          name: nginx-conf
+        - mountPath: /tmp-boot-ipxe
+          readOnly: true
+          name: boot-ipxe
+        {{- if .Values.stack.hook.enabled }}
+        - mountPath: /usr/share/nginx/html
+          name: hook-artifacts
+        {{- else }}
+        - mountPath: /usr/share/nginx/html
+          name: {{ .Values.pvc.name }}
+        {{- end }}
+      volumes:
+      {{- if .Values.stack.hook.enabled }}
+      - name: hook-artifacts
+        hostPath:
+          path: {{ .Values.stack.hook.downloadsDest }}
+          type: DirectoryOrCreate
+      {{- else }}
+      - name: "{{ .Values.pvc.name }}"
+        persistentVolumeClaim:
+          claimName: "{{ .Values.pvc.claimName }}"
+      {{- end }}
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf.template
+      - name: boot-ipxe
+        configMap:
+          name: boot-ipxe
+          items:
+            - key: boot.ipxe
+              path: boot.ipxe.template
+---
+{{- if .Values.stack.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Values.stack.name }}
+  name: {{ .Values.stack.name }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  {{- if not .Values.traefikReverseProxy.enabled }}
+  type: {{ .Values.stack.service.type }}
+  {{- if eq .Values.stack.service.type "LoadBalancer" }}
+  {{- if .Values.stack.kubevip.enabled }}
+  loadBalancerClass: {{ .Values.stack.lbClass }}
+  {{- end }}
+  loadBalancerIP: {{ .Values.stack.loadBalancerIP }}
+  {{- end }}
+  externalTrafficPolicy: Local
+  {{- end }}
+  ports:
+  {{ if .Values.tinkerbell_hegel.enabled }}
+  - name: {{ .Values.tinkerbell_hegel.name }}
+    port: {{ .Values.tinkerbell_hegel.deployment.port }}
+    protocol: TCP
+  {{ end }}
+  - name: {{ .Values.tinkerbell_tink.server.name }}
+    port: {{ .Values.tinkerbell_tink.server.deployment.port }}
+    protocol: TCP
+  - name: {{ .Values.stack.hook.name }}
+    port: {{ .Values.stack.hook.port }}
+    protocol: TCP
+  {{ if .Values.tinkerbell_smee.enabled }}
+  - port: {{ .Values.tinkerbell_smee.http.port }}
+    protocol: TCP
+    name: {{ .Values.tinkerbell_smee.http.name }}
+  - port: {{ .Values.tinkerbell_smee.tftp.port }}
+    protocol: UDP
+    name: {{ .Values.tinkerbell_smee.tftp.name }}
+  - port: {{ .Values.tinkerbell_smee.syslog.port }}
+    protocol: UDP
+    name: {{ .Values.tinkerbell_smee.syslog.name }}
+  - port: 67
+    protocol: UDP
+    name: dhcp
+  {{ end }}
+  selector:
+    {{- with .Values.stack.selector }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

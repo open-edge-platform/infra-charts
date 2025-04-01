@@ -1,0 +1,161 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+# -- traefikReverseProxy defines params for external access to services in a cluster using Traefik reverse proxy.
+traefikReverseProxy:
+  host:
+    grpc:
+      name: ""
+
+  # -- enabled is a switch to turn on/off the Traefik reverse proxy resource; Traefik MUST be deployed to orch-gateway ns before enabling it here.
+  enabled: &traefikReverseProxy_enabled false
+  # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
+  gatewayNamespace: orch-gateway
+  tinkServerDnsname: # add tinkserver dnsname
+  nginxDnsname: &nginxDnsname # add nginx dnsname
+  # -- secretName is name of k8s secret containing TLS server cert.
+  secretName: tls-orch
+  # -- matchRoute defines routing rules (e.g. Host(`http.sample.com`))
+  matchRoute:
+  # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
+  tlsOption: gateway-tls
+
+stack:
+  enabled: true
+  name: tinkerbell
+  service:
+    enabled: true
+    type: LoadBalancer
+  selector:
+    app: tink-stack
+  clusterDomain: cluster.local
+  loadBalancerIP: &publicIP 127.0.0.1
+  lbClass: kube-vip.io/kube-vip-class
+  image:
+    repository: nginxinc/nginx-unprivileged
+    pullPolicy: IfNotPresent
+    tag: "alpine3.21"
+    # Image specific takes precedence
+    # registry:
+    #   name: null
+    #   imagePullSecrets:
+    #     - name: ""
+  resources:
+    # min memory below for nginx server stability
+    limits:
+      cpu: 1
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  hook:
+    enabled: false
+    name: tinkerbell-hook-files
+    port: 8080
+    image: ubuntu:22.04
+    downloadsDest: /opt/hook
+  kubevip:
+    enabled: false
+    name: kube-vip
+    image: ghcr.io/kube-vip/kube-vip:v0.7.2
+    roleName: kube-vip-role
+    roleBindingName: kube-vip-rolebinding
+    # Customize the interface KubeVIP advertises on. When unset, KubeVIP will autodetect the interface.
+    # interface: enp0s8
+  tinkServer:
+      # This should be the same as `stack.loadBalancerIP`.
+      ip: *publicIP
+      port: 42113
+
+# -- Overrides
+# The values defined here override those in the individual charts. Some of them require tweaking
+# before deployment as they are environment dependent; others are surfaced for convenience.
+#
+# See individual chart documentation for additional detail.
+
+tinkerbell_smee:
+  name: tinkerbell-smee
+  enabled: false
+  image:
+    repository: quay.io/tinkerbell/smee:v0.9.0
+    pullPolicy: IfNotPresent
+    tag: ""
+    # Image specific takes precedence
+    # registry:
+    #   name: null
+    #   imagePullSecrets:
+    #     - name: ""
+  tinkWorker:
+    image:
+      repository: quay.io/tinkerbell/tink-worker:v0.10.0
+      pullPolicy: IfNotPresent
+  http:
+    port: 8095
+    additionalKernelArgs: &kernelArgs
+      - "DEBUG=false"
+      - "TIMEOUT=120s"
+
+    # This will be the IP address that machines use to reach Boots (via unicast for DHCP) for netbooting. It should be a unused IP address in your network.
+    remoteIp: *publicIP
+    # Once the Kubernetes Gateway API is more stable, we will use that and be able to require only a single IP for all Tinkerbell services.
+    tinkServer:
+      # This should be the same as `stack.loadBalancerIP`.
+      ip: *publicIP
+  dhcp:
+    enabled: false
+  tftp:
+    enabled: false
+    name: smee-tftp
+    port: 69
+  syslog:
+    enabled: false
+    name: smee-syslog
+    port: 514
+  trustedProxies: &trustedProxies []
+  traefikReverseProxy:
+    enabled: *traefikReverseProxy_enabled
+    nginxDnsname: *nginxDnsname
+
+  additionalKernelArgs: *kernelArgs
+  publicIP: *publicIP
+
+tinkerbell_hegel:
+  name: tinkerbell-hegel
+  enabled: false
+  image:
+    repository: quay.io/tinkerbell/hegel:v0.12.0
+    pullPolicy: IfNotPresent
+  trustedProxies: *trustedProxies
+  service:
+    port: 5006
+
+tinkerbell_tink:
+  name: tinkerbell-tink
+  enabled: true
+  controller:
+    image:
+      repository: quay.io/tinkerbell/tink-controller:v0.10.0
+      pullPolicy: IfNotPresent
+  server:
+    name: tinkerbell-tink-server
+    image:
+      repository: quay.io/tinkerbell/tink:v0.10.0
+      pullPolicy: IfNotPresent
+    service:
+      port: 42113
+
+pvc:
+  name: disk-pvc
+  claimName: dkam-tink-shared-pvc
+  enabled: false
+  storageClassName: standard
+  storageSize: 3Gi

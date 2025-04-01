@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: infra-core
+description: Edge Infrastructure Manager Core Umbrella Chart
+type: application
+version: "2.6.4"
+appVersion: "2.6.4"
+annotations: {}
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team
+dependencies:
+  - name: api
+    condition: import.api.enabled
+    version: "1.27.3"
+    repository: "file://../api"
+  - name: apiv2
+    condition: import.apiv2.enabled
+    version: "0.0.1"
+    repository: "file://../apiv2"
+  - name: exporter
+    condition: import.exporter.enabled
+    version: "1.18.0"
+    repository: "file://../exporter"
+  - name: inventory
+    condition: import.inventory.enabled
+    version: "2.20.0"
+    repository: "file://../inventory"
+  - name: credentials
+    condition: import.credentials.enabled
+    version: "1.7.0"
+    repository: "file://../credentials"
+  - name: tenant-controller
+    condition: import.tenant-controller.enabled
+    version: "0.17.0"
+    repository: "file://../tenant-controller"

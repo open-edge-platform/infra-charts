@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for infra-managers.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+# This is to enable the dependencies.
+# All dependencies are enabled by default.
+import:
+  host-manager:
+    enabled: true
+  maintenance-manager:
+    enabled: true
+  networking-manager:
+    enabled: true
+  telemetry-manager:
+    enabled: true
+  os-resource-manager:
+    enabled: true
+  attestationstatus-manager:
+    enabled: true
+
+# Global values overrides
+# global:
+#   registry:
+#     name: [REGISTRY_URL]
+#     imagePullSecrets:
+#       - name: "[PULL_SECRET_NAME]"
+
+# Below are all sub-chart overrides
+# host-manager:
+
+# maintenance-manager:
+
+# networking-manager:
+
+# telemetry-manager:
+
+# os-resource-manager:

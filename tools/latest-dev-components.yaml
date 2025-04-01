@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# This is a values override for the infra-* Umbrella chart to use override the default
+# release container image tags with the latest development "main" tag.
+#
+# Usage: supply this file as a '-f' parameter after any other settings values.yaml on the
+#        helm install/update command line.
+#
+#  Example:
+#    helm install -f test-cfg.yaml -f tools/latest-dev-components.yaml infra-core ./infra-core
+---
+
+api:
+  image:
+    tag: "main"
+
+inventory:
+  image:
+    tag: "main"
+
+host-manager:
+  image:
+    tag: "main"
+
+maintenance-manager:
+  image:
+    tag: "main"
+
+networking-manager:
+  image:
+    tag: "main"
+
+telemetry-manager:
+  image:
+    tag: "main"
+
+onboarding-manager:
+  image:
+    tag: "main"
+
+loca-manager:
+  image:
+    tag: "main"
+
+exporter:
+  image:
+    tag: "main"
+
+dkam:
+  image:
+    tag: "main"
+
+tenant-controller:
+  image:
+    tag: "main"
+
+loca-metadata-manager:
+  image:
+    tag: "main"
+
+os-resource-manager:
+  image:
+    tag: "main"

@@ -1,0 +1,67 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+name: Post-Merge CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  workflow_dispatch:
+
+jobs:
+  post-merge-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false # Do not persist credentials, otherwise they will clash with credentials set by bootstrap action
+          fetch-depth: 0 # Fetch all history, WO sporadic issue with missing tags
+          fetch-tags: true # Fetch tags
+          ref: ${{ github.head_ref }} # Checkout the branch that triggered the workflow to avoid detached HEAD
+
+      - name: Checkout action repository
+        uses: actions/checkout@v4
+        with:
+          repository: intel/orch-ci
+          path: ci
+          ref: "0.0.2"
+          token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+      # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
+      - name: Set enviroment
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@0.0.2
+        with:
+          gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+      - name: Build and pack charts
+        run: make helm-build
+
+      - name: Run post-merge sanity tests
+        run: echo "Add post-merge sanity tests"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
+          aws-secret-access-key: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
+          aws-region: us-west-2
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: "080137407410"
+
+      - name: Push charts
+        run: make helm-push
+
+      - name: Tag repo
+        run: |
+          # Uses .chartver.yaml file to perform tagging in the repo with prefix for each umbrella folder
+          for dir in infra-core infra-external infra-managers infra-onboarding; do
+            pushd $dir
+            $GITHUB_WORKSPACE/ci/scripts/version-tag-param.sh "${dir}-" || true
+            popd
+          done

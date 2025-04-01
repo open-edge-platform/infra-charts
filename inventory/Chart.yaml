@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: inventory
+description: Edge Infrastructure Manager Inventory
+type: application
+version: 2.20.0
+appVersion: "2.20.0"
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team

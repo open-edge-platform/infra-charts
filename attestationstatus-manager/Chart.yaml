@@ -1,0 +1,13 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v2
+name: attestationstatus-manager
+description: Trusted Attestation Status Manager
+type: application
+version: 0.2.0
+appVersion: 0.2.0
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Infrastructure Manager Team

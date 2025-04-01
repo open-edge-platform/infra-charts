@@ -1,0 +1,133 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "loca-templates-manager.fullname" . }}
+  labels:
+    {{- include "loca-templates-manager.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "loca-templates-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "loca-templates-manager.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "loca-templates-manager.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+          - name: http_proxy
+            value: "{{ .Values.proxies.http_proxy }}"
+          - name: https_proxy
+            value: "{{ .Values.proxies.https_proxy }}"
+          - name: no_proxy
+            value: "{{ .Values.proxies.no_proxy }}"
+          - name: HTTP_PROXY
+            value: "{{ .Values.proxies.http_proxy }}"
+          - name: HTTPS_PROXY
+            value: "{{ .Values.proxies.https_proxy }}"
+          - name: NO_PROXY
+            value: "{{ .Values.proxies.no_proxy }}"
+          {{- if .Values.extraEnv }}
+          {{- toYaml .Values.extraEnv | nindent 10 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- range $key, $value := .Values.serviceArgs }}
+          - {{ print "-" $key | toYaml -}}={{- $value }}
+            {{- end }}
+          {{- if .Values.metrics.enabled }}
+          - -enableMetrics=true
+          {{- end }}
+          {{- if .Values.serviceArgs.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.serviceArgs.oamServerAddress) | last | atoi }}
+          livenessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- end }}
+          {{- if .Values.metrics.enabled }}
+          ports:
+          - name: metrics
+            containerPort: {{ .Values.metrics.port }}
+            protocol: TCP
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+          - name: certificates
+            mountPath: "/etc/ssl/certs/"
+            readOnly: true
+          - name: config
+            mountPath: "/etc/templates-manager"
+            readOnly: true
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      volumes:
+      - name: config
+        secret:
+          secretName: {{ include "loca-templates-manager.fullname" . }}-config
+          optional: false
+      - name: certificates
+        projected:
+          sources:
+          - secret:
+              name: {{ include "loca-templates-manager.fullname" . }}
+          - secret:
+              name: {{ include "loca-templates-manager.fullname" . }}-certificates
+      {{- with .Values.volumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

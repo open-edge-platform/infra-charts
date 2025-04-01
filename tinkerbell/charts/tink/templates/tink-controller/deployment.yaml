@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+{{- if .Values.controller.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.controller.name }}
+  name: {{ .Values.controller.name }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.controller.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.controller.name }}
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - image: {{ .Values.controller.image.repository }}
+          imagePullPolicy: {{ .Values.controller.image.imagePullPolicy }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          {{- if .Values.controller.args }}
+          args: 
+          {{- range .Values.controller.args }}
+            - {{ . }}
+          {{- end }}
+          {{- end }}
+          name: {{ .Values.controller.name }}
+          resources:
+            limits:
+              cpu: {{ .Values.controller.resources.limits.cpu }}
+              memory: {{ .Values.controller.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.controller.resources.requests.cpu }}
+              memory: {{ .Values.controller.resources.requests.memory }}
+      serviceAccountName: {{ .Values.controller.name }}
+{{- end }}

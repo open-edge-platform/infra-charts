@@ -1,0 +1,32 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+serviceAccount:
+  create: false
+  name: orch-svc
+
+keycloakAdmin:
+  user: admin
+  client: system-client
+  passwordSecret:
+    name: platform-keycloak # name of the secret
+    key: admin-password # key of the secret
+
+params:
+  keycloakUrl: "http://platform-keycloak.orch-platform:8080"
+  vaultUrl: "http://vault.orch-platform.svc:8200"
+
+jobAnnotations:
+  "argocd.argoproj.io/hook": PostSync
+  "argocd.argoproj.io/hook-delete-policy": HookSucceeded
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: false

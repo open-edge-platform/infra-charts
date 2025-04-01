@@ -1,0 +1,131 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for mi.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/dkammgr
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "dkam"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+managerArgs:
+  oamServerAddress: "0.0.0.0:2379"
+  globalLogLevel: "info"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+  legacyMode: false
+
+metrics:
+  enabled: false
+  port: 8081
+
+env:
+  # hookOSRepo defines Release Service artifact storing HookOS
+  hookOSRepo: "edge-orch/en/files/provisioning-hook-os"
+  # profileScriptRepo defines Release Service path where EN profile scripts are stored
+  profileScriptRepo: "edge-orch/en/files/profile-scripts/"
+  # hookVersion specifies the version of HookOS to be downloaded from the artifact
+  hookOSVersion: "2.0.2"
+
+  rs_proxy_address: "rs-proxy.orch-platform.svc.cluster.local:8081/"
+  mode: prod
+  oidc:
+    oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
+    oidc_tls_insecure_skip_verify_value: "true"
+    clients:
+      # REST clients should set the "User-Agent" header to be the client name.
+      bypass:
+
+podAnnotations: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+volumeSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: ClusterIP
+  port: 5581
+
+proxies:
+  http_proxy:
+  https_proxy:
+  no_proxy:
+  ftp_proxy:
+  socks_proxy:
+
+# Sets requests/limits to support at least 100 edge nodes.
+# Must be adjusted in case of higher load.
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "1Gi"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# pvc to store microOS and iPXE binaries
+pvc:
+  name: disk-pvc
+  claimName: dkam-tink-shared-pvc
+  mountPath: "/data"
+  storageClassName: standard
+
+certs:
+  secretNameBootsCert: boots-ca-cert
+  secretNameOrchCaCert: gateway-ca-cert

@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+controller:
+  enabled: true
+  name: tinkerbell-tink-controller
+  image:
+    repository: quay.io/tinkerbell/tink-controller:v0.10.0
+    pullPolicy: IfNotPresent
+  replicas: 1
+  args: []
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  roleName: tink-controller-manager-role
+  roleBindingName: tink-controller-manager-rolebinding
+  tinkLeaderElectionRoleName: tink-leader-election-role
+  tinkLeaderElectionRoleBindingName: tink-leader-election-rolebinding
+
+server:
+  enabled: true
+  name: tinkerbell-tink-server
+  image:
+    repository: quay.io/tinkerbell/tink:v0.10.0
+    pullPolicy: IfNotPresent
+  replicas: 1
+  service:
+    port: 42113
+  deployment:
+    port: 42113
+    portName: tink-grpc
+  healthCheck:
+    port: 42114
+    portName: health-check
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  roleName: tink-server-role
+  roleBindingName: tink-server-rolebinding
+  metrics:
+    enabled: false
+    port: 8081

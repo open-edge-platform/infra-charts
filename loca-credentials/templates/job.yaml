@@ -1,0 +1,55 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: loca-credentials-{{ randAlphaNum 8 | lower }}
+  {{- with .Values.jobAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "loca-credentials.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "loca-credentials.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName:  {{ .Values.serviceAccount.name }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092
+          command: ["/bin/sh"]
+          args: ["/onboard-loca-credentials.sh", "{{ .Values.params.keycloakUrl }}", "{{ .Values.params.vaultUrl }}", "{{.Values.serviceAccount.name }}"]
+          env:
+            - name: ADMIN_USER
+              value: "{{ .Values.keycloakAdmin.user }}"
+            - name: ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: {{ .Values.keycloakAdmin.passwordSecret.key }}
+                  name: {{ .Values.keycloakAdmin.passwordSecret.name }}
+            - name: ADMIN_CLIENT
+              value: "{{ .Values.keycloakAdmin.client }}"
+          volumeMounts:
+            - mountPath: /onboard-loca-credentials.sh
+              subPath: onboard-loca-credentials.sh
+              name: loca-credentials
+      volumes:
+        - name: loca-credentials
+          configMap:
+            name: loca-credentials
+            defaultMode: 0777
+

@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "loca-metadata.fullname" . }}
+  labels:
+    {{- include "loca-metadata.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "loca-metadata.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "loca-metadata.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "loca-metadata.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- range $key, $value := .Values.serviceArgs }}
+            - {{ print "-" $key | toYaml -}}={{- $value }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - -enableMetrics=true
+            {{- end }}
+          {{- if .Values.serviceArgs.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.serviceArgs.oamServerAddress) | last | atoi }}
+          livenessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- end}}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            {{- if .Values.humanReadableLogs }}
+            - name: HUMAN
+            {{- end }}
+            - name: VAULT_URL
+              value: {{ .Values.env.vaultUrl | default "" }}
+            - name: VAULT_PKI_ROLE
+              value: {{ .Values.env.vaultRole | default "" }}
+            - name: CLUSTER_DOMAIN
+              value: "{{ .Values.env.clusterDomain }}"
+          volumeMounts:
+            - name: secret-volume
+              readOnly: true
+              mountPath: "/etc/ssl/certs/"
+            - name: boots-ca-cert
+              mountPath: "/etc/ssl/boots-ca-cert"
+              readOnly: true
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: {{ include "loca-metadata.fullname" . }}
+        - name: boots-ca-cert
+          secret:
+            secretName: {{ .Values.certs.secretNameBootsCert }}
+            optional: true
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

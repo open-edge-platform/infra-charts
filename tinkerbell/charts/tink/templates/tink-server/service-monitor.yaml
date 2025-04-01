@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+{{- if .Values.server.enabled }}
+{{- if .Values.server.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name:  {{ .Values.server.name }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  endpoints:
+    - port: metrics
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    app: {{ .Values.server.name }}
+{{- end }}
+{{- end }}

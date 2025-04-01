@@ -1,0 +1,145 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for inventory.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/inventory
+  pullPolicy: IfNotPresent
+  # Image specific takes precedence
+  # registry:
+  #   name: null
+  #   imagePullSecrets:
+  #     - name: ""
+
+nameOverride: ""
+fullnameOverride: "inventory"
+
+serviceAccount:
+  # This is the service account needed to reach Vault
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "orch-svc"
+
+inventory:
+  globalLogLevel: "info"
+  enableTracing: false
+  traceURL: "fluent-bit:4318"
+  policyBundlePath: "/rego/policy_bundle.tar.gz"
+  oamServerAddress: "0.0.0.0:2379"
+  enableAuth: false
+  enableAuditing: false
+
+#humanReadableLogs: "enable"
+
+podAnnotations: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  port: 50051
+  external:
+    enabled: false
+    nodePort: 30080
+    port: 8080
+
+metrics:
+  enabled: false
+  port: 8081
+  external: # Active only if .Values.service.external.enabled is true
+    nodePort: 30001
+
+# Sets requests/limits to support at least 100 edge nodes.
+# Must be adjusted in case of higher load.
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+oidc:
+  oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
+  oidc_tls_insecure_skip_verify_env_name: "OIDC_TLS_INSECURE_SKIP_VERIFY"
+  oidc_tls_insecure_skip_verify_value: "true"
+  allow_missing_auth_clients_env_name: "ALLOW_MISSING_AUTH_CLIENTS"
+  clients:
+    # Only gRPC clients should be listed here, and the gRPC client should identify itself in the gRPC request metadata
+    # with a client=<name> key-value pair. This should be used to skip AuthZ in Inventory.
+    bypass:
+
+postgresql:
+  # Pod is enabled ONLY for testing environments
+  pod:
+    # always enabled during testing even if image does not support postgresql
+    enabled: false
+    # defines postgresql container capabilities and permissions in the host.
+    securityContext:
+      # capabilities:
+      #  drop:
+      #    - ALL
+      readOnlyRootFilesystem: true
+      # runAsNonRoot: true
+      # runAsUser: 1000
+    registry:
+      enabled: false
+    image:
+      name: postgres
+      tag: 16.4
+      pullPolicy: IfNotPresent
+    # provide a DNS name to the pod
+    service:
+      type: ClusterIP
+      port: 50052
+    pvc:
+      storage: 128Mi
+      mountPath: "/var/lib/postgresql/data"
+  # secrets with PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT
+  secrets: inventory-postgresql-config
+  # Configuration for read-only replicas
+  readOnlyReplicasEnabled: false
+  # secrets for read-only replicas with PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT
+  readOnlyReplicasSecrets: inventory-reader-postgresql-config
+  # connection using ssl
+  ssl: false

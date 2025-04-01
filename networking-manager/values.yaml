@@ -1,0 +1,95 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for networking-manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/netmgr
+  pullPolicy: IfNotPresent
+  # Image specific takes precedence
+  # registry:
+  #   name: null
+  #   imagePullSecrets:
+  #     - name: ""
+
+nameOverride: ""
+fullnameOverride: "networking-manager"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+serviceArgs:
+  inventoryAddress: "inventory:50051"
+  oamServerAddress: "0.0.0.0:2379"
+  globalLogLevel: "info"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+
+metrics:
+  enabled: false
+  port: 8081
+
+#humanReadableLogs: "enable"
+
+podAnnotations: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  port: 50003
+  external:
+    enabled: false
+    nodePort: 35003
+    port: 50003
+
+# Sets requests/limits to support at least 100 edge nodes.
+# Must be adjusted in case of higher load.
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

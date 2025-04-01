@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+apiVersion: v2
+name: tinkerbell
+description: Edge Infrastructure Manager Tinkerbell Umbrella Chart
+type: application
+version: 2.10.0
+appVersion: "0.0.1"
+dependencies:
+  - name: tinkerbell_tink
+    version: "1.6.0"
+    condition: tinkerbell_tink.enabled
+    repository: "file://charts/tink"
+  - name: tinkerbell_hegel
+    version: "1.5.0"
+    condition: tinkerbell_hegel.enabled
+    repository: "file://charts/hegel"
+  - name: tinkerbell_smee
+    version: "1.2.0"
+    condition: tinkerbell_smee.enabled
+    repository: "file://charts/smee"

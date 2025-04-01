@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+{{- if .Values.traefikReverseProxy.enabled }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: tinkerbell-server-ingress
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{.Values.traefikReverseProxy.tinkServerDnsname}}`)
+      kind: Rule
+      middlewares:
+        - name: validate-jwt
+      services:
+        - name: {{ .Values.tinkerbell_tink.server.name }}
+          port: 42113
+          scheme: h2c
+          namespace: {{ .Release.Namespace | quote }}
+  tls:
+    secretName: {{ .Values.traefikReverseProxy.secretName }}
+{{- end }}

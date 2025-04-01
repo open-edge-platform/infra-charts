@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for tenant-controller.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+---
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/tenant-controller
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "tenant-controller"
+
+managerArgs:
+  inventoryAddress: "inventory:50051"
+  oamServerAddress: "0.0.0.0:2379"
+  globalLogLevel: "info"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+  initResourcesDefinitionPath: /configuration/default/resources.json
+  lenovoResourcesDefinitionPath: /configuration/default/resources-lenovo.json
+  disableCredentialsManagement: false
+
+metrics:
+  enabled: false
+  port: 8081
+
+serviceAccount:
+  enabled: true
+  name: orch-svc
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+vault:
+  url: "http://vault.orch-platform.svc:8200"
+  role: "orch-svc"
+
+podAnnotations: {}
+
+imagePullSecrets: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Sets requests/limits to support at least 100 edge nodes.
+# Must be adjusted in case of higher load.
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+
+# 3rd party vendor configurations
+# lenovoConfig:
+#   - name: "LOCA1"
+#     username: "something"
+#     password: "somethingelse"
+#     api_endpoint: "https://sc.loca1.lab/api/v1"
+#     auto_provision: true
+#     loca_ca_cert: |
+#       -----BEGIN CERTIFICATE-----
+#       MIIBYDCCAQegAwIBAgIRANkLzIEDboebuYRdSG13nhMwCgYIKoZIzj0EAwIwDzEN
+#       MAsGA1UEAxMETE9DQTAgFw0yMjExMDIxNjEyMjRaGA8yMTIyMTAwOTE2MTIyNFow
+#       DzENMAsGA1UEAxMETE9DQTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDm7Snax
+#       mbPGKi8yoEpbNs3CyY0GAZp6+W9br+KhHwxdy8JmQOcDZp7FFnTnyu/WFBdFrpvY
+#       IK5g9whLC/WZ4jijQjBAMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/
+#       MB0GA1UdDgQWBBS9klFV6Z6NVN7uRHbF04lh8P2ryDAKBggqhkjOPQQDAgNHADBE
+#       AiAWJRigjzQ4tTOjMN1xm28zrHDoMtGiAERNw2OPfp+gSgIgHait0IBXitCpzJYS
+#       KE8gtR6W+Z9dHBpfbSAqnosLcgQ=
+#       -----END CERTIFICATE-----
+#   - name: "LOCA2"
+#     username: "something"
+#     password: "somethingelse"
+#     api_endpoint: "https://sc.loca2.lab/api/v1"
+#     auto_provision: true
+#     loca_ca_cert: |
+#       -----BEGIN CERTIFICATE-----
+#       MIIBYDCCAQegAwIBAgIRANkLzIEDboebuYRdSG13nhMwCgYIKoZIzj0EAwIwDzEN
+#       MAsGA1UEAxMETE9DQTAgFw0yMjExMDIxNjEyMjRaGA8yMTIyMTAwOTE2MTIyNFow
+#       DzENMAsGA1UEAxMETE9DQTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDm7Snax
+#       mbPGKi8yoEpbNs3CyY0GAZp6+W9br+KhHwxdy8JmQOcDZp7FFnTnyu/WFBdFrpvY
+#       IK5g9whLC/WZ4jijQjBAMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/
+#       MB0GA1UdDgQWBBS9klFV6Z6PQVN7uRbF04lh8P2ryDAKBggqhkjOPQQDAgNHADBE
+#       AiAWJRigjzQ4tTOjMN1xm28zrHDoMtGiAERNw2OPfp+gSgIgHait0IBXitCpzJYS
+#       KE8gtR6W+Z9dHBpfbSAqnosLcgQ=
+#       -----END CERTIFICATE-----
+lenovoConfig:

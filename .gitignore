@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+venv_charts
+*.swp
+.idea
+.vscode
+vendor
+.DS_Store
+infra-core/Chart.lock
+infra-core/charts/*.tgz
+infra-external/Chart.lock
+infra-external/charts/*.tgz
+infra-managers/Chart.lock
+infra-managers/charts/*.tgz
+infra-onboarding/Chart.lock
+infra-onboarding/charts/*.tgz
+tinkerbell/Chart.lock
+tinkerbell/charts/*.tgz
+
+*.tgz
+
+ci/
+
+tools/intel-harbor-ca.crt
+# Useful when developing with coder vms
+.tool-versions

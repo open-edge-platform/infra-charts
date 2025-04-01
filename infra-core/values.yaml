@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for infra-core.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+# This is to enable the dependencies.
+# All dependencies are enabled by default.
+import:
+  api:
+    enabled: true
+  credentials:
+    enabled: true
+  exporter:
+    enabled: true
+  inventory:
+    enabled: true
+  tenant-controller:
+    enabled: true
+  apiv2:
+    enabled: false
+
+# Global values overrides
+# global:
+#   registry:
+#     name: [REGISTRY_URL]
+#     imagePullSecrets:
+#       - name: "[PULL_SECRET_NAME]"
+
+# Below are all sub-chart overrides
+# api:
+
+# credentials:
+
+# exporter:
+
+# inventory:
+
+# credentials:
+
+

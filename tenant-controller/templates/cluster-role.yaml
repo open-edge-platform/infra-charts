@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+
+{{- if .Values.serviceAccount.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "tenant-controller.serviceAccountName" . }}-tc-permission
+rules:
+- apiGroups: ["config.edge-orchestrator.intel.com"]
+  resources: ["configs"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["runtime.edge-orchestrator.intel.com"]
+  resources: ["runtimes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["org.edge-orchestrator.intel.com"]
+  resources: ["orgs"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["org.edge-orchestrator.intel.com"]
+  resources: ["orgs/status"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["orgwatcher.edge-orchestrator.intel.com"]
+  resources: ["orgwatchers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["orgactivewatcher.edge-orchestrator.intel.com"]
+  resources: ["orgactivewatchers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["project.edge-orchestrator.intel.com"]
+  resources: ["projects"]
+  verbs: ["get", "list", "watch","update", "create", "patch", "delete"]
+- apiGroups: ["projectactivewatcher.edge-orchestrator.intel.com"]
+  resources: ["projectactivewatchers","projectactivewatchers/status"]
+  verbs: ["get", "list", "watch","create","patch", "update", "delete"]
+- apiGroups: ["projectwatcher.edge-orchestrator.intel.com"]
+  resources: ["projectwatchers"]
+  verbs: ["get", "list", "watch","create", "patch", "update", "delete"]
+- apiGroups: ["runtimeorg.edge-orchestrator.intel.com"]
+  resources: ["runtimeorgs"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["runtimeproject.edge-orchestrator.intel.com"]
+  resources: ["runtimeprojects"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["runtimefolder.edge-orchestrator.intel.com"]
+  resources: ["runtimefolders"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["folder.edge-orchestrator.intel.com"]
+  resources: ["folders"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["tenancy.edge-orchestrator.intel.com"]
+  resources: ["multitenancies"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["network.edge-orchestrator.intel.com"]
+  resources: ["networks"]
+  verbs: [ "get", "list", "watch" ]
+- apiGroups: ["apimappingconfig.edge-orchestrator.intel.com"]
+  resources: ["apimappingconfigs"]
+  verbs: [ "get", "list", "watch","create", "patch", "update", "delete"]
+{{- end }}

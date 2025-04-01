@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: api
+description: Edge Infrastructure Manager API
+type: application
+version: 1.27.3
+appVersion: "1.28.2"
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team

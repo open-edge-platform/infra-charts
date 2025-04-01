@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for apiv2.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: edge-orch/infra/apiv2
+  pullPolicy: IfNotPresent
+  # Image specific takes precedence
+  # registry:
+  #   name: null
+  #   imagePullSecrets:
+  #     - name: ""
+
+nameOverride: ""
+fullnameOverride: "apiv2"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+serviceArgsProxy:
+  serverAddress: "0.0.0.0:8080"
+  baseRESTURL: "/edge-infra.orchestrator.apis/v2"
+  oamServerAddress: "0.0.0.0:2379"
+  globalLogLevel: "info"
+  echoDebug: false
+  allowedCorsOrigins: "http://localhost:3000"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+  enableAuditing: true
+  enableAuth: true
+
+serviceArgsGrpc:
+  grpcAddress: "0.0.0.0:8090"
+  inventoryAddress: "infra-inventory:50051"
+  oamServerAddress: "0.0.0.0:2380"
+  globalLogLevel: "info"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+  enableAuditing: true
+  enableAuth: true
+
+#humanReadableLogs: "enable"
+
+podAnnotations: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  port: 
+    proxy: 8080
+    grpc: 8090
+  external:
+    enabled: false
+    nodePort: 30080
+    port: 8080
+
+metrics:
+  enabled: false
+  port: 
+    proxy: 8081
+    grpc: 8091
+  external:
+    nodePort: 30001
+
+# Sets requests/limits to support at least 100 edge nodes.
+# Must be adjusted in case of higher load.
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+oidc:
+  name: "keycloak-api"
+  oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
+  oidc_tls_insecure_skip_verify_env_name: "OIDC_TLS_INSECURE_SKIP_VERIFY"
+  oidc_tls_insecure_skip_verify_value: "true"
+  clients:
+    # REST clients should set the "User-Agent" header to be the client name (e.g. for webhook-monitor)
+    bypass:
+
+# -- traefikReverseProxy defines params for external access to services in a cluster using Traefik reverse proxy.
+traefikReverseProxy:
+  host:
+    grpc:
+      name: ""
+
+  # -- enabled is a switch to turn on/off the Traefik reverse proxy resource; Traefik MUST be deployed to orch-gateway ns before enabling it here.
+  enabled: false
+  # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
+  gatewayNamespace: orch-gateway
+  # -- secretName is name of k8s secret containing TLS server cert.
+  secretName: tls-demo
+  # -- matchRoute defines routing rules (e.g. Host(`http.sample.com`))
+  matchRoute:
+  # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
+  tlsOption: gateway-tls
+
+# Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
+multiTenancy:
+  enforceMultiTenancy: true

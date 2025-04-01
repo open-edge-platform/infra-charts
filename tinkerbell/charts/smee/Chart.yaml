@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+apiVersion: v2
+name: tinkerbell_smee
+description: A Helm chart for tinkerbell_smee, formerly known as tinkerbell_boots, 
+             In the previous version, CDN boots were built upon Tinkerbell boots. However, 
+             in the most recent update, Tinkerbell boots have been renamed to Smee, and Intel 
+             modifications now sits on top of of the Smee.
+
+
+type: application
+
+version: 1.2.0
+
+appVersion: "2.0.0"

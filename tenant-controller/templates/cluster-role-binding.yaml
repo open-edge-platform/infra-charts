@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+{{- if .Values.serviceAccount.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "tenant-controller.serviceAccountName" . }}-tc-permission
+subjects:
+- kind: ServiceAccount
+  name: {{ include "tenant-controller.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "tenant-controller.serviceAccountName" . }}-tc-permission
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.pvc.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.pvc.claimName }}"
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  storageClassName: "{{ .Values.pvc.storageClassName }}"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # The amount of the volume's storage to request
+      storage: "{{ .Values.pvc.storageSize }}"
+{{- end }}

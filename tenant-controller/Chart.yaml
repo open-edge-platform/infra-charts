@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v2
+name: tenant-controller
+description: Edge Infrastructure Manager Tenant Controller
+type: application
+version: 0.17.0
+appVersion: "0.15.0"
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for infra-external.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+# This is to enable the dependencies.
+# All dependencies are enabled by default.
+import:
+  loca-manager:
+    enabled: true
+  loca-credentials:
+    enabled: true
+  loca-metadata-manager:
+    enabled: true
+  loca-templates-manager:
+    enabled: true
+# Global values overrides
+# global:
+#   registry:
+#     name: [REGISTRY_URL]
+#     imagePullSecrets:
+#       - name: "[PULL_SECRET_NAME]"
+
+# Below are all sub-chart overrides
+
+# loca-manager:
+
+# loca-credentials:
+
+# loca-metadata-manager:
+
+# loca-templates-manager:

@@ -1,0 +1,175 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "api.fullname" . }}
+  labels:
+    {{- include "api.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "api.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "api.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-proxy
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/usr/local/bin/proxy"]
+          args:
+            {{- range $key, $value := .Values.serviceArgsProxy }}
+            - {{ print "-" $key | toYaml -}}={{- $value }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - -enableMetrics=true
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port.proxy }}
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port.proxy }}
+              protocol: TCP
+            {{- end }}
+          {{- if .Values.serviceArgsProxy.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.serviceArgsProxy.oamServerAddress) | last | atoi }}
+          livenessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- end}}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: OIDC_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-apiv2"
+                  key: oidc_server_url
+            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-apiv2"
+                  key: oidc_tls_insecure_skip_verify_value
+            - name: ALLOW_MISSING_AUTH_CLIENTS
+              value: {{ join "," .Values.oidc.clients.bypass | default "" }}
+            {{- if .Values.humanReadableLogs }}
+            - name: HUMAN
+            {{- end }}
+            {{- if .Values.multiTenancy.enforceMultiTenancy }}
+            - name: ENFORCE_MULTI_TENANCY
+              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
+            {{- end }}
+        - name: {{ .Chart.Name }}-grpc
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/usr/local/bin/api"]
+          args:
+            {{- range $key, $value := .Values.serviceArgsGrpc }}
+            - {{ print "-" $key | toYaml -}}={{- $value }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - -enableMetrics=true
+            {{- end }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.service.port.grpc }}
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port.grpc }}
+              protocol: TCP
+            {{- end }}
+          {{- if .Values.serviceArgsGrpc.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.serviceArgsGrpc.oamServerAddress) | last | atoi }}
+          livenessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- end}}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: OIDC_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-apiv2"
+                  key: oidc_server_url
+            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-apiv2"
+                  key: oidc_tls_insecure_skip_verify_value
+            - name: ALLOW_MISSING_AUTH_CLIENTS
+              value: {{ join "," .Values.oidc.clients.bypass | default "" }}
+            {{- if .Values.humanReadableLogs }}
+            - name: HUMAN
+            {{- end }}
+            {{- if .Values.multiTenancy.enforceMultiTenancy }}
+            - name: ENFORCE_MULTI_TENANCY
+              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

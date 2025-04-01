@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+# The NGINX ConfigMap is in a separate file because its checksum is used to trigger updates in
+# the deployment.
+{{- if .Values.stack.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: {{ .Release.Namespace | quote }}
+data:
+  nginx.conf: |
+    error_log /var/log/nginx/error.log debug;
+    events {
+        worker_connections 1024;
+        multi_accept on;
+        use epoll;
+    }
+    http {
+        default_type application/octet-stream;
+        gzip on;
+        include /etc/nginx/mime.types;
+        include /etc/nginx/conf.d/*.conf;
+        keepalive_timeout 65;
+        limit_conn_zone $binary_remote_addr zone=addr:10m;
+        limit_conn addr 100;
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent $request_time "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+        access_log /var/log/nginx/access.log  main;
+        sendfile on;
+{{- if not .Values.traefikReverseProxy.enabled }}
+        server {
+            listen {{ .Values.tinkerbell_smee.http.port }};
+            location / {
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                resolver $POD_NAMESERVER;
+                set $smee_dns {{ .Values.tinkerbell_smee.name }}.{{ .Release.Namespace }}.svc.{{ .Values.stack.clusterDomain }}.;
+                proxy_pass http://$smee_dns:{{ .Values.tinkerbell_smee.http.port }};
+            }
+        }
+        server {
+            listen {{ .Values.tinkerbell_hegel.service.port }};
+            location / {
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                resolver $POD_NAMESERVER;
+                set $hegel_dns {{ .Values.tinkerbell_hegel.name }}.{{ .Release.Namespace }}.svc.{{ .Values.stack.clusterDomain }}.;
+
+                proxy_pass http://$hegel_dns:{{ .Values.tinkerbell_hegel.service.port }};
+            }
+        }
+        server {
+            listen {{ .Values.tinkerbell_tink.server.service.port }}
+            http2;
+            location / {
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                resolver $POD_NAMESERVER;
+                set $tink_dns {{ .Values.tinkerbell_tink.server.name }}.{{ .Release.Namespace }}.svc.{{ .Values.stack.clusterDomain }}.;
+                grpc_pass grpc://$tink_dns:{{ .Values.tinkerbell_tink.server.service.port }};
+            }
+        }
+{{- end }}
+        server {
+            index index.html index.htm;
+            listen {{ .Values.stack.hook.port }};
+            location / {
+                sendfile           on;
+                sendfile_max_chunk 1m;
+                root /usr/share/nginx/html;
+            }
+            root /usr/share/nginx/html;
+            server_name localhost;
+        }
+    }
+    pid /tmp/nginx.pid;
+    worker_processes auto;
+{{- end }}

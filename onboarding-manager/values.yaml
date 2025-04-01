@@ -1,0 +1,136 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for onboarding-manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/onboardingmgr
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "onboarding-manager"
+
+managerArgs:
+  inventoryAddress: "inventory:50051"
+  oamServerAddress: "0.0.0.0:2379"
+  globalLogLevel: "info"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+  # disableCredentialsManagement disables interaction with Vault and Keycloak.
+  # Note that it should only be set for testing when Vault/Keycloak is not deployed.
+  disableCredentialsManagement: false
+  enableAuth: true
+
+metrics:
+  enabled: false
+  port: 8081
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+service:
+  onboardingmgr:
+    type: ClusterIP
+    port: 50054
+    portnio: 50055
+    # nodePort: 32000
+
+env:
+  mode: "prod"
+  userName: "user"
+  passWord: "user"
+  # -- vaultUrl defines a Vault URL to connect to.
+  vaultUrl: "http://vault.orch-platform.svc:8200"
+  vaultRole: "orch-svc"
+  keycloakUrl: "http://platform-keycloak.orch-platform:8080"
+  keycloakRealm: "master"
+  oidc:
+    oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
+    oidc_tls_insecure_skip_verify_value: "true"
+    clients:
+      # REST clients should set the "User-Agent" header to be the client name.
+      bypass:
+        - cdn-boots
+  onboardingManagerClientName: "host-manager-m2m-client"
+  templateClientServiceAccountUser: "service-account-en-m2m-template-client"
+  onboardingCredentialsSecretName: "host-manager-m2m-client-secret"
+  onboardingCredentialsSecretKey: "client_secret"
+  enCredentialsPrefix: "edgenode-"
+  # Override it in orch-deploy to use a different TinkerAction version.
+  tinkerActionsVersion: 1.14.0
+  tinkerActionsRepo: "edge-orch/infra/tinker-actions"
+  # rsProxyRegistryAddress specifies the Release Service proxy address
+  # It is defined and loaded as an env variable in the pod container.
+  rsProxyRegistryAddress: "rs-proxy.orch-platform.svc.cluster.local:8081/"
+
+serviceAccount:
+  enabled: true
+  name: orch-svc
+clusterRoleName: onboarding-mgr-cluster-role
+clusterRoleBindingName: onboarding-mgr-cluster-role-binding
+
+traefikReverseProxy:
+  host:
+    grpc:
+      name: ""
+    stream:
+      name: ""
+
+  # -- enabled is a switch to turn on/off the Traefik reverse proxy resource; Traefik MUST be deployed to orch-gateway ns before enabling it here.
+  enabled: false
+  # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
+  gatewayNamespace: orch-gateway
+  # -- secretName is name of k8s secret containing TLS server cert.
+  secretName: tls-demo
+  # -- matchRoute defines routing rules (e.g. Host(`http.sample.com`))
+  matchRoute:
+  # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
+  tlsOption: gateway-tls
+
+podAnnotations: {}
+
+imagePullSecrets: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Sets requests/limits to support at least 100 edge nodes.
+# Must be adjusted in case of higher load.
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+# Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
+multiTenancy:
+  enforceMultiTenancy: true
+  enableCredentialsGroupCache: false
+
+certs:
+  secretNameOrchCaCert: gateway-ca-cert

@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "networking-manager.fullname" . }}
+  labels:
+    {{- include "networking-manager.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- if .Values.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+    {{- end }}
+  selector:
+    {{- include "networking-manager.selectorLabels" . | nindent 4 }}
+---
+{{- if .Values.service.external.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "networking-manager.fullname" . }}-external
+  labels:
+    app: {{ template "networking-manager.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    {{- include "networking-manager.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  selector:
+    {{- include "networking-manager.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.external.port }}
+      nodePort: {{ .Values.service.external.nodePort }}
+      protocol: {{ .Values.service.external.protocol }}
+{{- end }}

@@ -1,0 +1,169 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "onboarding-manager.fullname" . }}
+  labels:
+    {{- include "onboarding-manager.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "onboarding-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "onboarding-manager.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.serviceAccount.enabled }}
+      serviceAccountName:  {{ .Values.serviceAccount.name }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.managerArgs.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.managerArgs.oamServerAddress) | last | atoi }}
+          livenessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- end }}
+          args:
+            {{- range $key, $value := .Values.managerArgs }}
+            - {{ print "-" $key | toYaml -}}={{- $value }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - -enableMetrics=true
+            {{- end }}
+            - -configFile=/etc/infra-config/config.yaml
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: infra-config-volume
+            mountPath: "/etc/infra-config"
+            readOnly: true
+          - name: orch-ca-cert
+            mountPath: "/etc/ssl/orch-ca-cert"
+            readOnly: true
+          env:
+          - name: MGR_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: TINKER_VERSION
+            value: "{{ .Values.env.tinkerActionsVersion }}"
+          - name: TINKER_ARTIFACT_NAME
+            value: "{{ .Values.env.tinkerActionsRepo }}"
+          - name: ONBMGR_PORT
+            value: "{{ .Values.service.onboardingmgr.port }}"
+          - name: VAULT_URL
+            value: {{ .Values.env.vaultUrl | default "" }}
+          - name: VAULT_PKI_ROLE
+            value: {{ .Values.env.vaultRole | default "" }}
+          - name: KEYCLOAK_URL
+            value: {{ .Values.env.keycloakUrl | default "" }}
+          - name: KEYCLOAK_REALM
+            value: {{ .Values.env.keycloakRealm | default "" }}
+          - name: OIDC_SERVER_URL
+            value: "{{ .Values.env.oidc.oidc_server_url }}"
+          # create the user credentails only when the EN_DKAMMODE is "dev" mode
+          # internally OM code will create the user credentails only if its dev mode in internal/tinkerbell/template_data.go 
+          # file for the action ActionCreateUser
+          - name: EN_DKAMMODE
+            value:  "{{ .Values.env.mode }}"
+          - name: EN_USERNAME
+            value: "{{ .Values.env.userName }}"
+          - name: EN_PASSWORD
+            value: "{{ .Values.env.passWord}}"
+          - name: OIDC_TLS_INSECURE_SKIP_VERIFY
+            value: "{{ .Values.env.oidc.oidc_tls_insecure_skip_verify_value }}"
+          - name: ALLOW_MISSING_AUTH_CLIENTS
+            value: {{ join "," .Values.env.oidc.clients.bypass | default "" }}
+          - name: DEFAULT_K8S_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: ONBOARDING_MANAGER_CLIENT_NAME
+            value: {{ .Values.env.onboardingManagerClientName | default "" }}
+          - name: TEMPLATE_CLIENT_SERVICE_ACCOUNT_USER
+            value: {{ .Values.env.templateClientServiceAccountUser | default "" }}
+          - name: ONBOARDING_CREDENTIALS_SECRET_NAME
+            value: {{ .Values.env.onboardingCredentialsSecretName | default "" }}
+          - name: ONBOARDING_CREDENTIALS_SECRET_KEY
+            value: {{ .Values.env.onboardingCredentialsSecretKey | default "" }}
+          - name: EN_CREDENTIALS_PREFIX
+            value: {{ .Values.env.enCredentialsPrefix | default "" }}
+          {{- if .Values.multiTenancy.defaultTenantID }}
+          - name: DEFAULT_TENANT_ID
+            value: {{ .Values.multiTenancy.defaultTenantID }}
+          {{- end }}
+          {{- if .Values.multiTenancy.enforceMultiTenancy }}
+          - name: ENFORCE_MULTI_TENANCY
+            value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
+          {{- end }}
+          {{- if .Values.multiTenancy.enableCredentialsGroupCache }}
+          - name: ENABLE_GROUP_CACHE
+            value: "{{ .Values.multiTenancy.enableCredentialsGroupCache | toString }}"
+          {{- end }}
+          - name: RSPROXY_ADDRESS
+            value: "{{ .Values.env.rsProxyRegistryAddress }}"
+          ports:
+            - name: grpc-port
+              containerPort: {{ .Values.service.onboardingmgr.port }}
+              protocol: TCP
+            - name: grpc-port-nio
+              containerPort: {{ .Values.service.onboardingmgr.portnio }}
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+            {{- end }}
+      volumes:
+        - name: infra-config-volume
+          configMap:
+            name: infra-config
+        - name: orch-ca-cert
+          secret:
+            secretName: {{ .Values.certs.secretNameOrchCaCert }}
+            optional: true
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

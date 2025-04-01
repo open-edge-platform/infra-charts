@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for os-resource-manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+---
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+  proxies:
+    http_proxy:
+    https_proxy:
+    no_proxy:
+
+image:
+  repository: infra/osresourcemgr
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "os-resource-manager"
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+autoProvision:
+  enabled: false # set to true if autoProvision should be enabled
+  defaultProfile: ubuntu-22.04-lts-generic # name of default OS profile for autoprovisioning
+
+managerArgs:
+  inventoryAddress: "inventory:50051"
+  oamServerAddress: "0.0.0.0:2379"
+  globalLogLevel: "info"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+  manualMode: false
+  # osProfileRevision specifies the release version of OS profiles in RS that we should filter upon
+  # Note that it should be overwritten to latest osProfileRevision
+  osProfileRevision: main
+  enabledProfiles:
+    - ubuntu-22.04-lts-generic
+    - microvisor-rt
+    - microvisor-nonrt
+    - ubuntu-22.04-lts-generic-ext
+  disableProviderAutomation: false
+  osSecurityFeatureEnable: false
+  # rsProxyRegistryAddress specifies the Release Service OCI Registry proxy address
+  # It is defined and loaded as an env variable in the pod container.
+  rsProxyRegistryAddress: "rs-proxy.orch-platform.svc.cluster.local:8081/"
+  # rsProxyFilesAddress specifies the Release Service File Server proxy address
+  rsProxyFilesAddress: "rs-proxy-files.orch-platform.svc.cluster.local:8081/"
+  rsEnProfileRepo: "edge-orch/en/files/os-profile/"
+
+metrics:
+  enabled: false
+  port: 8081
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+oidc:
+  oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
+  oidc_tls_insecure_skip_verify_value: "true"
+  clients:
+    # REST clients should set the "User-Agent" header to be the client name.
+    bypass:
+
+nodeSelector: {}
+
+# Sets requests/limits to support at least 100 edge nodes.
+# Must be adjusted in case of higher load.
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+podAnnotations: {}
+
+tolerations: []
+
+affinity: {}
+
+# Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
+multiTenancy:
+  enforceMultiTenancy: false

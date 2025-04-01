@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+config:
+  enProxyHTTP: ""
+  enProxyHTTPS: ""
+  enProxyFTP: ""
+  enProxySocks: ""
+  enProxyNoProxy: ""
+
+  enDebianPackagesRepo: "edge-orch/en/deb"
+  enFilesRsRoot: "files-edge-orch"
+  enManifestRepo: "edge-orch/en/files/ena-manifest"
+  enAgentManifestTag:  latest-dev
+  rsType: no-auth
+
+  orchInfra: infra-node.kind.internal:443
+  orchCluster: cluster-orch-edge-node.kind.internal:443
+  orchUpdate: update-node.kind.internal:443
+  orchAttestationStatus: attest-node.kind.internal:443
+  orchRelease: release.kind.internal:443
+  orchPlatformObsLogs: logs-node.kind.internal:443
+  orchPlatformObsMetrics: metrics-node.kind.internal:443
+  # TODO: to remove below 4 lines
+  orchPlatformObsHost: logs-node.kind.internal
+  orchPlatformObsPort: 443
+  orchPlatformObsMetricsHost: metrics-node.kind.internal
+  orchPlatformObsMetricsPort: 443
+  orchKeycloak: keycloak.kind.internal:443
+  orchTelemetry: telemetry-node.kind.internal:443
+  # TODO: remove below two lines
+  orchTelemetryHost: telemetry-node.kind.internal
+  orchTelemetryPort: 443
+  orchRegistry: registry-rs.edgeorchestration.intel.com:9443
+  orchFileServer: files-rs.edgeorchestration.intel.com:60444
+  orchAptSrcProxyPort: 60444
+  orchImgRegProxyPort: 9443
+  netIp: static
+  systemConfigFsInotifyMaxUserInstances: 8192
+  systemConfigVmOverCommitMemory: 1
+  systemConfigKernelPanicOnOops: 1
+  systemConfigKernelPanic: 10
+  ntpServer: "ntp1.server.org,ntp2.server.org"
+  releaseServer: files-rs.edgeorchestration.intel.com
+  registryService: registry-rs.edgeorchestration.intel.com
+  keycloak: keycloak.kind.internal
+  nameServers: ""
+  provisioningSvc: tink-stack.kind.internal
+  tinkerSvc: tink-stack.kind.internal
+  cdnSvc: files-rs.edgeorchestration.intel.com
+  omSvc: onboarding.kind.internal
+  omStreamSvc: onboarding-stream.kind.internal
+  # For coder deployment, fill all FQDN to point to the coder-deployed orchestrator.
+  extraHosts:
+  firewallReqAllow: |-
+    [{
+      "sourceIp": "kind.internal",
+      "ipVer": "ipv4",
+      "protocol": "tcp",
+      "ports": "6443,10250"
+    }]
+  firewallCfgAllow: |-
+    [{
+      "sourceIp": "",
+      "ipVer": "",
+      "protocol": "tcp",
+      "ports": "2379,2380,6443,9345,10250,5473"
+    },
+    {
+      "sourceIp": "",
+      "ipVer": "",
+      "protocol": "",
+      "ports": "7946"
+    },
+    {
+      "sourceIp": "",
+      "ipVer": "",
+      "protocol": "udp",
+      "ports": "123"
+    }]

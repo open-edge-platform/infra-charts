@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+apiVersion: v2
+name: tinkerbell_hegel
+description: A Helm chart for tinkerbell_hegel
+type: application
+version: 1.5.0
+appVersion: "1.3.0"

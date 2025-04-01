@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for infra-onboarding.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+# This is to enable the dependencies.
+# All dependencies are enabled by default.
+import:
+  dkam:
+    enabled: true
+  tinkerbell:
+    enabled: true
+  onboarding-manager:
+    enabled: true
+  infra-config:
+    enabled: true
+
+# Global values overrides
+# global:
+#   registry:
+#     name: [REGISTRY_URL]
+#     imagePullSecrets:
+#       - name: "[PULL_SECRET_NAME]"
+
+# Below are all sub-chart overrides
+# dkam:
+
+# tinkerbell:
+
+# onboarding-manager:

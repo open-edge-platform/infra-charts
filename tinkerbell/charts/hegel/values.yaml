@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+name: tinkerbell-hegel
+image:
+  repository: quay.io/tinkerbell/hegel:v0.12.0
+  pullPolicy: IfNotPresent
+replicas: 1
+service:
+  enabled: true
+  port: 50061
+deployment:
+  port: 50061
+  portName: hegel-http
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+roleName: hegel-role
+roleBindingName: hegel-rolebinding
+
+# Trusted proxies defines a list of IP or CIDR ranges that are allowed to set the X-Forwarded-For
+# header. This typically requires all Pod CIDRs in the cluster.
+trustedProxies: []

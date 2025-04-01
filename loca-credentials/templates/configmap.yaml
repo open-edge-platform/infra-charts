@@ -1,0 +1,173 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loca-credentials
+data:
+  onboard-loca-credentials.sh: |
+    #!/bin/bash
+
+    exit_istio()
+    {
+      # If Istio proxy is available, quit sidecar
+      if curl -s -f http://127.0.0.1:15020/healthz/ready; then
+        response=$(curl -o /dev/null -w "%{http_code}" --location  -v --request POST http://127.0.0.1:15000/quitquitquit --header 'Content-Type: text/plain')
+        if [[ ! "${response}" =~ "200" ]]; then
+            echo -e "ERROR: Error while quiting Istio proxy"
+            exit 1
+        fi
+      fi
+      exit 0 # exit successfully
+    }
+
+    # DO NOT MODIFY - SEE DESCRIPTION
+
+    # Script Name: onboard_loca_credentials.sh
+    # Description: This script onboards the credentials that are needed by LOCA services to Vault,
+    #              where the services can obtain the credentials from.
+    #              It expects curl to be available on OS.
+    #              ADMIN_USER, ADMIN_PASS and ADMIN_CLIENT are expected to be available as env variable.
+    # Usage: ./onboard_loca_credentials.sh <KEYCLOAK_URL> <VAULT_URL> <SVC_ACCOUNT>
+    #    -h:             help (optional)
+
+    set -xe
+    set -o pipefail
+
+    HELP=""
+
+    while getopts 'h' flag; do
+      case "${flag}" in
+        h) HELP='true' ;;
+        *) HELP='true' ;;
+      esac
+    done
+    shift $((OPTIND -1))
+
+    function usage {
+        cat >&2 <<EOF
+    Purpose:
+    Onboard credentials for LOCA services.
+
+    Usage:
+      $(basename "$0") <KEYCLOAK_URL> <VAULT_URL>
+
+    ex:
+    ./onboard_loca_credentials.sh http://localhost:8090 http://localhost:8200 orch-svc
+
+    Options:
+        -h:             help (optional)
+    EOF
+    }
+
+    KEYCLOAK_URL=$1
+    VAULT_URL=$2
+    SVC_ACCOUNT=$3
+
+    if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$VAULT_URL" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
+        usage
+        exit 1
+    fi
+
+    # Operation in vault are retried up to $max_retries times
+    max_retries=5
+    retry_count=0
+    # Login to Vault
+    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    while [ "$retry_count" -lt $max_retries ]; do
+      if vault_login_output=$(curl -k -X PUT \
+             "$VAULT_URL/v1/auth/kubernetes/login" \
+             -H "Authorization: Bearer $TOKEN" \
+             -d '{"jwt": "'"${TOKEN}"'", "role": "'"${SVC_ACCOUNT}"'"}') && \
+          [[ ! "$vault_login_output" =~ "errors" ]]; then
+        echo "Vault login successful!"
+        VAULT_TOKEN=$(echo "$vault_login_output" | jq -r  '.auth.client_token')
+        break
+      fi
+      echo "ERROR: $vault_login_output"
+      sleep 10
+      retry_count=$((retry_count + 1))
+    done
+
+    if [ $retry_count -eq $max_retries ]; then
+      echo "ERROR: Too many errors in logging into Vault!"
+      exit 1
+    fi
+
+    # Query the client secret, if already there quit the job as successful
+    if vault_create_output=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" \
+           "${VAULT_URL}/v1/secret/data/3rd-party-host-manager-m2m-client-secret") && \
+      [[ ! "$vault_create_output" =~ "errors" ]]; then
+      echo "Secret already created in vault!"
+      CREATED_TIME=$(echo "$vault_create_output" | jq -r '.data.metadata.created_time')
+      echo "SUCCESS: Secrets have been successfully created at ${CREATED_TIME} in Vault!"
+      exit_istio
+    fi
+
+    # Login with admin user to Keycloak
+    IDP_AT=$(curl -s --location --request POST "${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token" \
+      --header 'Content-Type: application/x-www-form-urlencoded' \
+      --data-urlencode 'grant_type=password' \
+      --data-urlencode "client_id=${ADMIN_CLIENT}" \
+      --data-urlencode "username=${ADMIN_USER}" \
+      --data-urlencode "password=${ADMIN_PASS}" \
+      --data-urlencode 'scope=openid profile email groups' \
+      | jq -r '.access_token')
+
+    if [[ -z "${IDP_AT}" ]]; then
+      echo "ERROR: Failed to obtain admin user JWT token!"
+      exit 1
+    fi
+
+    # Obtain the client_id of 3rd-party-host-manager-m2m-client
+    LM_ID=$(curl -s "${KEYCLOAK_URL}/admin/realms/master/clients?clientId=3rd-party-host-manager-m2m-client" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${IDP_AT}" | jq -r '.[0].id')
+
+    if [[ -z "${LM_ID}" ]]; then
+      echo "ERROR: Failed to obtain client_id of 3rd-party-host-manager-m2m-client!"
+      exit 1
+    fi
+
+    # Obtain the client_secret of 3rd-party-host-manager-m2m-client
+    LM_SECRET=$(curl -s "${KEYCLOAK_URL}/admin/realms/master/clients/${LM_ID}/client-secret" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${IDP_AT}" | jq -r '.value')
+
+    if [[ -z "${LM_SECRET}" ]]; then
+      echo "ERROR: Failed to obtain client_secret of 3rd-party-host-manager-m2m-client!"
+      exit 1
+    fi
+
+    # Create a secret in Vault
+    retry_count=0
+    while [ "$retry_count" -lt $max_retries ]; do
+      if vault_create_output=$(curl -s -H "Content-Type: application/json" \
+             -H "X-Vault-Token: ${VAULT_TOKEN}" \
+             --data "{\"data\":{\"client_id\":\"${LM_ID}\",\"client_secret\":\"${LM_SECRET}\"}}" \
+             "${VAULT_URL}/v1/secret/data/3rd-party-host-manager-m2m-client-secret") && \
+        [[ ! "$vault_create_output" =~ "errors" ]]; then
+        echo "Vault create secret successful!"
+        CREATED_TIME=$(echo "$vault_create_output" | jq -r '.data.created_time')
+        break
+      fi
+      echo "ERROR: $vault_create_output"
+      sleep 10
+      retry_count=$((retry_count + 1))
+    done
+
+    if [ $retry_count -eq $max_retries ]; then
+      echo "ERROR: Too many errors in creating secret in Vault!"
+      exit 1
+    fi
+
+    if [[ -z "${CREATED_TIME}" ]]; then
+      echo "ERROR: Failed to store secrets in Vault: $VAULT_URL"
+      exit 1
+    fi
+
+    echo "SUCCESS: Secrets have been successfully created at ${CREATED_TIME} in Vault!"
+
+    exit_istio

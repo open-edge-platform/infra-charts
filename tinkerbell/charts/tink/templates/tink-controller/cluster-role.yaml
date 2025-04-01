@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# NOTICE: This file has been modified by Intel Corporation.
+# Original file can be found at https://github.com/tinkerbell/charts.
+
+{{- if .Values.controller.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.controller.roleName }}
+rules:
+  - apiGroups:
+      - tinkerbell.org
+    resources:
+      - hardware
+      - hardware/status
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - tinkerbell.org
+    resources:
+      - templates
+      - templates/status
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - tinkerbell.org
+    resources:
+      - workflows
+      - workflows/status
+    verbs:
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+{{- end }}

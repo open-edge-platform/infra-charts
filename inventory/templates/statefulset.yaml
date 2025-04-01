@@ -1,0 +1,94 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- if .Values.postgresql.pod.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "inventory.fullname" . }}-postgresql
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: inventory-postgresql
+  selector:
+    matchLabels:
+      {{- include "postgresql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.postgresql.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.postgresql.pod.registry.enabled }}
+      {{- with .Values.postgresql.pod.registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "inventory.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: tmpfs-1
+          emptyDir: { }
+      containers:
+        - name: {{ .Chart.Name }}-postgresql
+          securityContext:
+            {{- toYaml .Values.postgresql.pod.securityContext | nindent 12 }}
+          {{- if .Values.postgresql.pod.registry.enabled }}
+          image: "{{ .Values.postgresql.pod.registry.name }}/{{ .Values.postgresql.pod.image.name }}:{{ .Values.postgresql.pod.image.tag }}"
+          {{- else }}
+          image: "{{ .Values.postgresql.pod.image.name }}:{{ .Values.postgresql.pod.image.tag }}"
+          {{- end }}
+          {{- if not .Values.postgresql.pod.registry.enabled }}
+          imagePullPolicy: {{ .Values.postgresql.pod.image.pullPolicy }}
+          {{- else }}
+          imagePullPolicy: Always
+          {{- end }}
+          ports:
+            - name: sql
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  key: PGUSER
+                  name: {{ .Values.postgresql.secrets }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PGPASSWORD
+                  name: {{ .Values.postgresql.secrets }}
+          volumeMounts:
+            - name: postgresql-pvc
+              mountPath: {{ .Values.postgresql.pod.pvc.mountPath }}
+              subPath: postgresql-inv
+            - name: tmpfs-1
+              mountPath: /var/run
+      {{- with .Values.postgresql.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgresql.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgresql.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.postgresql.pod.pvc.storage }}
+{{- end }}

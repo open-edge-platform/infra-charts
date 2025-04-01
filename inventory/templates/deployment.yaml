@@ -1,0 +1,179 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "inventory.fullname" . }}
+  labels:
+    {{- include "inventory.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "inventory.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "inventory.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "inventory.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- range $key, $value := .Values.inventory }}
+            - {{ print "-" $key | toYaml -}}={{- $value }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - -enableMetrics=true
+            {{- end }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          {{- if .Values.inventory.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.inventory.oamServerAddress) | last | atoi }}
+          livenessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- end}}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: OIDC_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-inventory"
+                  key: oidc_server_url
+            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-inventory"
+                  key: oidc_tls_insecure_skip_verify_value
+            - name: ALLOW_MISSING_AUTH_CLIENTS
+              value: {{ join "," .Values.oidc.clients.bypass | default "" }}
+            {{- if .Values.humanReadableLogs }}
+            - name: HUMAN
+            {{- end }}
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  key: PGUSER
+                  name: {{ .Values.postgresql.secrets }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PGPASSWORD
+                  name: {{ .Values.postgresql.secrets }}
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: PGDATABASE
+                  name: {{ .Values.postgresql.secrets }}
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  key: PGHOST
+                  name: {{ .Values.postgresql.secrets }}
+            - name: PGPORT
+              valueFrom:
+                secretKeyRef:
+                  key: PGPORT
+                  name: {{ .Values.postgresql.secrets }}
+            # Set the ReadOnly replicas endpoint env variables only if enabled
+            {{- if .Values.postgresql.readOnlyReplicasEnabled }}
+            - name: PGUSER_RO
+              valueFrom:
+                secretKeyRef:
+                  key: PGUSER
+                  name: {{ .Values.postgresql.readOnlyReplicasSecrets }}
+            - name: PGPASSWORD_RO
+              valueFrom:
+                secretKeyRef:
+                  key: PGPASSWORD
+                  name: {{ .Values.postgresql.readOnlyReplicasSecrets }}
+            - name: PGDATABASE_RO
+              valueFrom:
+                secretKeyRef:
+                  key: PGDATABASE
+                  name: {{ .Values.postgresql.readOnlyReplicasSecrets }}
+            - name: PGHOST_RO
+              valueFrom:
+                secretKeyRef:
+                  key: PGHOST
+                  name: {{ .Values.postgresql.readOnlyReplicasSecrets }}
+            - name: PGPORT_RO
+              valueFrom:
+                secretKeyRef:
+                  key: PGPORT
+                  name: {{ .Values.postgresql.readOnlyReplicasSecrets }}
+            {{- end }}
+            {{- if (lookup "v1" "ConfigMap" .Release.Namespace "tenant-migration") }}
+            - name: MIGRATION_ORG_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-migration
+                  key: MigrationOrgID
+            - name: MIGRATION_PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-migration
+                  key: MigrationProjectID
+            {{- end}}
+            - name: PGSSLMODE
+              {{- if .Values.postgresql.ssl }}
+              value: "require"
+              {{- else }}
+              value: "disable"
+              {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

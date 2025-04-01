@@ -1,0 +1,174 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+name: Pre-Merge CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+      - release-*
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-merge-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history, WO sporadic issue with missing tags
+          fetch-tags: true # Fetch tags
+          ref: ${{ github.head_ref }} # Checkout the branch that triggered the workflow to avoid detached HEAD
+
+      - name: Checkout action repository
+        uses: actions/checkout@v4
+        with:
+          repository: open-edge-platform/orch-ci
+          path: ci
+          ref: "0.0.2"
+          token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+      # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
+      - name: Set enviroment
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@0.0.2
+        with:
+          gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+      - name: Printenv
+        run: printenv
+
+      # TODO: check that env variable used are correct
+      - name: Helm Check Version Change
+        run: |
+          echo "Checks that changes to a chart include a change to the chart version"
+          APPVERSION_IS_VERSION=0 COMPARISON_BRANCH=origin/${{ github.base_ref }} ./ci/scripts/helm-version-check.sh
+
+      - name: Run linters
+        run: make lint
+
+      - name: Build and pack charts
+        run: make helm-build
+
+      - name: Verify if release
+        run: |
+          SEMVER_PATTERN="^[0-9]+\.[0-9]+\.[0-9]+$"
+          INFRA_CORE_RELEASE=`(yq '.version' infra-core/Chart.yaml | grep -Eq ${SEMVER_PATTERN}) && echo 1 || echo 0`
+          INFRA_MANAGERS_RELEASE=`(yq '.version' infra-managers/Chart.yaml | grep -Eq ${SEMVER_PATTERN}) && echo 1 || echo 0`
+          INFRA_EXTERNAL_RELEASE=`(yq '.version' infra-external/Chart.yaml | grep -Eq ${SEMVER_PATTERN}) && echo 1 || echo 0`
+          INFRA_ONBOARDING_RELEASE=`(yq '.version' infra-onboarding/Chart.yaml | grep -q "\-dev") && echo 0 || echo 1`
+          echo "INFRA_CORE_RELEASE=${INFRA_CORE_RELEASE}" >> $GITHUB_ENV
+          echo "INFRA_MANAGERS_RELEASE=${INFRA_MANAGERS_RELEASE}" >> $GITHUB_ENV
+          echo "INFRA_EXTERNAL_RELEASE=${INFRA_EXTERNAL_RELEASE}" >> $GITHUB_ENV
+          echo "INFRA_ONBOARDING_RELEASE=${INFRA_ONBOARDING_RELEASE}" >> $GITHUB_ENV
+
+      - name: Create kind cluster
+        run: |
+          kind create cluster -n orch-infra-test --image "kindest/node:v1.26.4"
+          kubectl create ns orch-infra
+
+      - name: Printenv
+        run: printenv
+
+      - name: Deploy Umbrella Charts
+        run: |
+          set -x
+          PUBLIC_RS="registry-rs.edgeorchestration.intel.com/edge-orch/"
+          DEV_VALUES="-f tools/latest-dev-components.yaml"
+          CORE_DEV_VALUES=""
+          MANAGERS_DEV_VALUES=""
+          EXTERNAL_DEV_VALUES=""
+          ONBOARDING_DEV_VALUES=""
+          if [ "${INFRA_CORE_RELEASE}" -eq 0 ]; then
+            echo "Infra Core dev version"
+            CORE_DEV_VALUES=${DEV_VALUES}
+          else 
+            echo "Infra Core release"
+          fi
+          if [[ "${INFRA_MANAGERS_RELEASE}" -eq 0 ]]; then
+            echo "Infra Managers dev version"
+            MANAGERS_DEV_VALUES=${DEV_VALUES}
+          else 
+            echo "Infra Managers release"
+          fi
+          if [ "${INFRA_EXTERNAL_RELEASE}" -eq 0 ]; then
+            echo "Infra External dev version"
+            EXTERNAL_DEV_VALUES=${DEV_VALUES}
+          else 
+            echo "Infra External release"
+          fi
+          if [ "${INFRA_ONBOARDING_RELEASE}" -eq 0 ]; then
+            echo "Infra Onboarding dev version"
+            ONBOARDING_DEV_VALUES=${DEV_VALUES}
+          else 
+            echo "Infra Onboarding release"
+          fi
+          
+          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+            --set import.credentials.enabled=false \
+            --set import.tenant-controller.enabled=false \
+            --set tenant-controller.managerArgs.disableCredentialsManagement=true \
+            --set inventory.postgresql.pod.enabled=true ${CORE_DEV_VALUES} \
+            infra-core ./infra-core
+          
+          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+            --set loca-manager.serviceArgs.disableCredentialsManagement=true \
+            --set loca-metadata-manager.serviceArgs.disableCredentialsManagement=true \
+            --set import.loca-credentials.enabled=false ${EXTERNAL_DEV_VALUES} \
+            infra-external ./infra-external
+          
+          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" ${MANAGERS_DEV_VALUES} \
+            infra-managers ./infra-managers
+          
+          # TODO: find a way to at least deploy OM, it currently depends on the RS.
+          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+            --set onboarding-manager.managerArgs.disableCredentialsManagement=true \
+            --set import.dkam.enabled=false \
+            --set import.onboarding-manager.enabled=false \
+            --set tinkerbell.pvc.enabled=true \
+            --set tinkerbell.pvc.storageSize=128Mi ${ONBOARDING_DEV_VALUES} \
+            infra-onboarding ./infra-onboarding
+
+      - name: Verify Kind deployment
+        run: |
+          # The sleep is required, else no resources exist at all and the following commands just fail
+          sleep 180
+          kubectl get pods -n orch-infra
+          kubectl get pv -A
+          kubectl get pvc -A
+          deploy_failed=0
+          timeout 10m kubectl wait -n orch-infra --for=condition=Ready pods --all --timeout=10m || deploy_failed=1
+          if [ "$deploy_failed" -eq 1 ]; then
+            kubectl get pods -n orch-infra
+            # Print debugging details and exit with an error if kubectl wait times out
+            kubectl describe pods -n orch-infra
+            kubectl get all -A
+            kubectl get pv -A
+            kubectl get pvc -A
+            kubectl describe nodes
+            helm ls -A
+            exit "$deploy_failed"
+          fi
+          echo "All services up and running"
+  final-check:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [pre-merge-pipeline]
+    steps:
+      - name: Final Status Check
+        run: |
+          pre_merge_pipeline_result="${{ needs.pre-merge-pipeline.result }}"
+          
+          echo "Pre-merge pipeline result: $pre_merge_pipeline_result"
+
+          if [ "$pre_merge_pipeline_result" == "success" ] || [ "$pre_merge_pipeline_result" == "skipped" ]; then
+            echo "Pre-merge check passed successfully."
+          else
+            echo "Pre-merge checks failed. PR can't get merged"
+            exit 1
+          fi

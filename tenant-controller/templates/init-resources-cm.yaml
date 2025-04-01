@@ -1,0 +1,140 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tc-init-resources
+data:
+  resources.json: |
+    [
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_LOGS",
+          "name": "Container_Cluster",
+          "groups": ["container"],
+          "collectorKind": "COLLECTOR_KIND_CLUSTER"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_LOGS",
+          "name": "RKE_Cluster",
+          "groups": ["kubelet"],
+          "collectorKind": "COLLECTOR_KIND_CLUSTER"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_LOGS",
+          "name": "Opentelemetry_Cluster",
+          "groups": ["opentelemetry"],
+          "collectorKind": "COLLECTOR_KIND_CLUSTER"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_LOGS",
+          "name": "SystemD",
+          "groups": ["systemd"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_LOGS",
+          "name": "Fleet_Agents",
+          "groups": [
+            "installer",
+            "caddy",
+            "hw_agent",
+            "cluster_agent",
+            "node_agent",
+            "platform_update_agent",
+            "platform_telemetry_agent",
+            "apt_install_logs",
+            "inbm",
+            "inbm_dispatcher",
+            "inbm_configuration",
+            "inbm_diagnostic",
+            "inbm_telemetry",
+            "inbm_update_status_logs"
+          ],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_LOGS",
+          "name": "Opentelemetry",
+          "groups": ["opentelemetry"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "K8s_Stat_Cluster",
+          "groups": ["kube_inventory"],
+          "collectorKind": "COLLECTOR_KIND_CLUSTER"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "Opentelemetry_Cluster",
+          "groups": ["opentelemetry"],
+          "collectorKind": "COLLECTOR_KIND_CLUSTER"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "Disk_Usage_and_Health",
+          "groups": ["diskio", "smart"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "Network_Usage",
+          "groups": ["net"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "Ipmi_Sensor",
+          "groups": ["ipmi_sensor"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "GPU_Usage",
+          "groups": ["intel_gpu_top (exec)"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "Reliability_Availability_Serviceability",
+          "groups": ["ras"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      },
+      {
+        "telemetryGroup": {
+          "kind": "TELEMETRY_RESOURCE_KIND_METRICS",
+          "name": "Power_Usage_And_Temperature",
+          "groups": ["intel_powerstat"],
+          "collectorKind": "COLLECTOR_KIND_HOST"
+        }
+      }
+    ]
+  resources-lenovo.json: |
+{{ .Values.lenovoConfig | default list | toPrettyJson | indent 4}}

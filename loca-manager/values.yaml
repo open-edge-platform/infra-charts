@@ -1,0 +1,147 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for loca-manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/locamgr
+  pullPolicy: IfNotPresent
+  # Image specific takes precedence
+  # registry:
+  #   name: null
+  #   imagePullSecrets:
+  #     - name: ""
+
+nameOverride: ""
+fullnameOverride: "loca-manager"
+
+serviceAccount:
+  enabled: true
+  name: orch-svc
+
+serviceArgs:
+  inventoryAddress: "inventory:50051"
+  oamServerAddress: "0.0.0.0:2379"
+  globalLogLevel: "info"
+  traceURL: "fluent-bit:4318"
+  enableTracing: false
+  # disableCredentialsManagement disables interaction with Vault and Keycloak.
+  # Note that it should only be set for testing when Vault/Keycloak is not deployed.
+  disableCredentialsManagement: false
+  # This flag disables secure communication with TLS over HTTP with LOC-A.
+  # By default, secure communication is enabled.
+  disableTLS: false
+
+metrics:
+  enabled: false
+  port: 8081
+
+#humanReadableLogs: "enable"
+
+podAnnotations: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  port: 50005
+  external:
+    enabled: false
+    nodePort: 35005
+    port: 50005
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  # -- vaultUrl defines a Vault URL to connect to.
+  vaultUrl: "http://vault.orch-platform.svc:8200"
+  vaultRole: "orch-svc"
+  keycloakUrl: "http://platform-keycloak.orch-platform:8080"
+  keycloakRealm: "master"
+  onboardingManagerClientName: "3rd-party-host-manager-m2m-client"
+  templateClientServiceAccountUser: "service-account-en-m2m-template-client"
+  onboardingCredentialsSecretName: "3rd-party-host-manager-m2m-client-secret"
+  onboardingCredentialsSecretKey: "client_secret"
+  enCredentialsPrefix: "edgenode-"
+
+# loc-a configurations
+# providerConfig:
+#   - name: "LOCA1"
+#     username: "something"
+#     password: "somethingelse"
+#     api_endpoint: "https://sc.loca1.lab/api/v1"
+#     auto_provision: true
+#     loca_ca_cert: |
+#       -----BEGIN CERTIFICATE-----
+#       MIIBYDCCAQegAwIBAgIRANkLzIEDboebuYRdSG13nhMwCgYIKoZIzj0EAwIwDzEN
+#       MAsGA1UEAxMETE9DQTAgFw0yMjExMDIxNjEyMjRaGA8yMTIyMTAwOTE2MTIyNFow
+#       DzENMAsGA1UEAxMETE9DQTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDm7Snax
+#       mbPGKi8yoEpbNs3CyY0GAZp6+W9br+KhHwxdy8JmQOcDZp7FFnTnyu/WFBdFrpvY
+#       IK5g9whLC/WZ4jijQjBAMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/
+#       MB0GA1UdDgQWBBS9klFV6Z6NVN7uRHbF04lh8P2ryDAKBggqhkjOPQQDAgNHADBE
+#       AiAWJRigjzQ4tTOjMN1xm28zrHDoMtGiAERNw2OPfp+gSgIgHait0IBXitCpzJYS
+#       KE8gtR6W+Z9dHBpfbSAqnosLcgQ=
+#       -----END CERTIFICATE-----
+#   - name: "LOCA2"
+#     username: "something"
+#     password: "somethingelse"
+#     api_endpoint: "https://sc.loca2.lab/api/v1"
+#     auto_provision: true
+#     loca_ca_cert: |
+#       -----BEGIN CERTIFICATE-----
+#       MIIBYDCCAQegAwIBAgIRANkLzIEDboebuYRdSG13nhMwCgYIKoZIzj0EAwIwDzEN
+#       MAsGA1UEAxMETE9DQTAgFw0yMjExMDIxNjEyMjRaGA8yMTIyMTAwOTE2MTIyNFow
+#       DzENMAsGA1UEAxMETE9DQTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDm7Snax
+#       mbPGKi8yoEpbNs3CyY0GAZp6+W9br+KhHwxdy8JmQOcDZp7FFnTnyu/WFBdFrpvY
+#       IK5g9whLC/WZ4jijQjBAMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/
+#       MB0GA1UdDgQWBBS9klFV6Z6PQVN7uRbF04lh8P2ryDAKBggqhkjOPQQDAgNHADBE
+#       AiAWJRigjzQ4tTOjMN1xm28zrHDoMtGiAERNw2OPfp+gSgIgHait0IBXitCpzJYS
+#       KE8gtR6W+Z9dHBpfbSAqnosLcgQ=
+#       -----END CERTIFICATE-----
+providerConfig:
+
+# Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
+multiTenancy:
+  enforceMultiTenancy: true
+  enableCredentialsGroupCache: false

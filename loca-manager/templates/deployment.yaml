@@ -1,0 +1,130 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "loca-manager.fullname" . }}
+  labels:
+    {{- include "loca-manager.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "loca-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "loca-manager.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "loca-manager.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- range $key, $value := .Values.serviceArgs }}
+            - {{ print "-" $key | toYaml -}}={{- $value }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - -enableMetrics=true
+            {{- end }}
+          {{- if .Values.serviceArgs.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.serviceArgs.oamServerAddress) | last | atoi }}
+          livenessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ $oamservport }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- end}}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            {{- if .Values.humanReadableLogs }}
+            - name: HUMAN
+            {{- end }}
+            - name: VAULT_URL
+              value: {{ .Values.env.vaultUrl | default "" }}
+            - name: VAULT_PKI_ROLE
+              value: {{ .Values.env.vaultRole | default "" }}
+            - name: KEYCLOAK_URL
+              value: {{ .Values.env.keycloakUrl | default "" }}
+            - name: KEYCLOAK_REALM
+              value: {{ .Values.env.keycloakRealm | default "" }}
+            - name: ONBOARDING_MANAGER_CLIENT_NAME
+              value: {{ .Values.env.onboardingManagerClientName | default "" }}
+            - name: TEMPLATE_CLIENT_SERVICE_ACCOUNT_USER
+              value: {{ .Values.env.templateClientServiceAccountUser | default "" }}
+            - name: ONBOARDING_CREDENTIALS_SECRET_NAME
+              value: {{ .Values.env.onboardingCredentialsSecretName | default "" }}
+            - name: ONBOARDING_CREDENTIALS_SECRET_KEY
+              value: {{ .Values.env.onboardingCredentialsSecretKey | default "" }}
+            - name: EN_CREDENTIALS_PREFIX
+              value: {{ .Values.env.enCredentialsPrefix | default "" }}
+            {{- if .Values.multiTenancy.enforceMultiTenancy }}
+            - name: ENFORCE_MULTI_TENANCY
+              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
+            {{- end }}
+            {{- if .Values.multiTenancy.enableCredentialsGroupCache }}
+            - name: ENABLE_GROUP_CACHE
+              value: "{{ .Values.multiTenancy.enableCredentialsGroupCache | toString }}"
+            {{- end }}
+          volumeMounts:
+            - name: secret-volume
+              readOnly: true
+              mountPath: "/etc/ssl/certs/"
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: {{ include "loca-manager.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

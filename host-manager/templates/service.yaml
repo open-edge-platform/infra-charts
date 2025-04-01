@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "host-manager.fullname" . }}
+  labels:
+    {{- include "host-manager.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: {{ .Values.service.hostmgr.name }}
+      port: {{ .Values.service.hostmgr.port }}
+      targetPort: {{ .Values.service.hostmgr.port }}
+      protocol: TCP
+  {{- if .Values.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+  {{- end }}
+  selector:
+    {{- include "host-manager.selectorLabels" . | nindent 4 }}
+---
+{{- if .Values.traefikReverseProxy.enabled }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: "hostmgr-api-grpc-node"
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints: # We listen to requests coming from ports 443
+    - websecure
+  routes:
+    - match: {{ required "A valid infraNodeMatchHost entry required!" .Values.traefikReverseProxy.host.grpc.name }} && PathPrefix(`/`)
+      kind: Rule
+      middlewares:
+        - name: validate-jwt
+      services:
+        - name: {{ include "host-manager.fullname" . }}
+          namespace: {{ .Release.Namespace }}
+          port: {{ .Values.service.hostmgr.port }}
+          scheme: h2c
+  tls:
+    secretName: {{ .Values.traefikReverseProxy.secretName }}
+{{- if .Values.traefikReverseProxy.tlsOption }}
+    options:
+      name: {{ .Values.traefikReverseProxy.tlsOption }}
+      namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+{{- end }}
+{{- end }}

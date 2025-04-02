@@ -85,10 +85,6 @@ spec:
               value: "{{ .Values.oidc.oidc_tls_insecure_skip_verify_value }}"
             - name: ALLOW_MISSING_AUTH_CLIENTS
               value: {{ join "," .Values.oidc.clients.bypass | default "" }}
-            {{- if .Values.multiTenancy.enforceMultiTenancy }}
-            - name: ENFORCE_MULTI_TENANCY
-              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
-            {{- end }}
 
       {{- with .Values.nodeSelector }}
       nodeSelector:

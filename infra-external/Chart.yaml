@@ -14,7 +14,7 @@ maintainers:
 dependencies:
   - name: loca-manager
     condition: import.loca-manager.enabled
-    version: "2.15.0"
+    version: "2.15.1"
     repository: "file://../loca-manager"
   - name: loca-credentials
     condition: import.loca-credentials.enabled

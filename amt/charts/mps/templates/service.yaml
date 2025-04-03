@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: (C) 2023 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  {{ include "mps.fullname" . }}
+  labels:
+    {{- include "mps.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.service.cira.port }}
+    name: cira
+    protocol: TCP
+    appProtocol: tcp
+    targetPort: {{ .Values.service.cira.port }}
+  - port: {{ .Values.service.webapi.port }}
+    name: webapi
+    protocol: TCP
+    targetPort: {{ .Values.service.webapi.port }}
+  selector:
+    {{- include "mps.selectorLabels" . | nindent 4 }}

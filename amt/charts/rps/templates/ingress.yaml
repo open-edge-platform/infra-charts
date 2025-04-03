@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: (C) 2024 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+
+{{- if .Values.traefikReverseProxy.enabled }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "rps.fullname" . }}-websocket-server
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  headers:
+    sslProxyHeaders:
+      X-Forwarded-Proto: "https"
+    customRequestHeaders:
+      Host: {{ .Values.traefikReverseProxy.host.grpc.name }}
+      Connection: "Upgrade"
+      Upgrade: "websocket"
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Values.ingress.name }}
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: "Host(`{{ .Values.traefikReverseProxy.host.grpc.name }}`) && PathPrefix(`/`)"
+    kind: Rule
+    middlewares:
+       - name: {{ include "rps.fullname" . }}-websocket-server
+    services:
+      - name: {{ include "rps.fullname" . }}
+        port: {{ .Values.service.websocketServer.port }}
+        scheme: http
+        namespace: {{ .Release.Namespace }}
+  - match: "Host(`{{ .Values.traefikReverseProxy.host.webport.name }}`) && PathPrefix(`/`)"
+    kind: Rule
+    middlewares:
+       - name: validate-jwt
+    services:
+      - name: {{ include "rps.fullname" . }}
+        port: {{ .Values.service.webapi.port }}
+        scheme: http
+        namespace: {{ .Release.Namespace }}
+  tls:
+    secretName: {{ .Values.traefikReverseProxy.secretName }}
+{{- if .Values.traefikReverseProxy.tlsOption }}
+    options:
+      name: {{ .Values.traefikReverseProxy.tlsOption }}
+      namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+{{- end }}
+{{- end }}

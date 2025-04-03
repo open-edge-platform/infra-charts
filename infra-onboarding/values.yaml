@@ -17,6 +17,8 @@ import:
     enabled: true
   infra-config:
     enabled: true
+  amt:
+    enabled: true
 
 # Global values overrides
 # global:

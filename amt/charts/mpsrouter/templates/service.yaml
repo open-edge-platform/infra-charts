@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: (C) 2023 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  {{ include "mpsrouter.fullname" . }}
+  labels:
+    {{- include "mpsrouter.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.port }}
+    name: mpsrouter
+    protocol: TCP
+    targetPort: {{ .Values.service.port }}
+  selector:
+    {{- include "mpsrouter.selectorLabels" . | nindent 4 }}

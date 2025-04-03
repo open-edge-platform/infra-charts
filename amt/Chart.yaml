@@ -1,0 +1,26 @@
+---
+# SPDX-FileCopyrightText: (C) 2024 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+
+apiVersion: v2
+name: amt
+description: Edge Infrastructure Manager AMT
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team
+dependencies:
+  - name: mps
+    version: "0.0.1"
+    condition: amt-mps.enabled
+    repository: "file://charts/mps"
+  - name: mpsrouter
+    version: "0.0.1"
+    condition: amt-mpsrouter.enabled
+    repository: "file://charts/mpsrouter"
+  - name: rps
+    version: "0.0.1"
+    condition: amt-rps.enabled
+    repository: "file://charts/rps"

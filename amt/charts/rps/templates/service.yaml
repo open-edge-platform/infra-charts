@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: (C) 2023 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  {{ include "rps.fullname" . }}
+  labels:
+    {{- include "rps.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.websocketServer.port }}
+    name: websockets
+    protocol: TCP
+    targetPort: {{ .Values.service.websocketServer.port }}
+  - port: {{ .Values.service.webapi.port }}
+    name: webapi
+    protocol: TCP
+    targetPort: {{ .Values.service.webapi.port }}
+  selector:
+    {{- include "rps.selectorLabels" . | nindent 4 }}
+ 

@@ -1,0 +1,49 @@
+{{- if .Values.traefikReverseProxy.enabled }}
+
+# HTTP IngressRoute
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: "{{ .Values.ingress.name }}"
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: "Host(`{{ .Values.traefikReverseProxy.host.webport.name}}`) && PathPrefix(`/`)"
+    kind: Rule
+    middlewares:
+       - name: validate-jwt
+    services:
+      - name: {{ include "mps.fullname" . }}
+        port: {{ .Values.service.webapi.port }}
+        scheme: http
+        namespace: {{ .Release.Namespace }} 
+  tls:
+    secretName: {{ .Values.traefikReverseProxy.secretName }}
+{{- if .Values.traefikReverseProxy.tlsOption }}
+    options:
+      name: {{ .Values.traefikReverseProxy.tlsOption }}
+      namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+{{- end }}
+
+---
+# TCP IngressRoute
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: "{{ .Values.ingress.name }}"
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints:
+  - tcpamt
+  routes:
+  - match: HostSNI(`*`)
+    services:
+      - name: {{ include "mps.fullname" . }}
+        port: {{ .Values.service.cira.port }}
+        namespace: {{ .Release.Namespace }}
+  tls:
+    passthrough: true
+
+{{- end }}

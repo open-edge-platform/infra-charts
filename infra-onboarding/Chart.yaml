@@ -28,3 +28,7 @@ dependencies:
     condition: import.infra-config.enabled
     version: "0.5.1"
     repository: "file://../infra-config"
+  - name: amt
+    condition: import.amt.enabled
+    version: "0.0.1"
+    repository: "file://../amt"

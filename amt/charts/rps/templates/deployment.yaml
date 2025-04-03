@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: (C) 2023 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rps.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "rps.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "rps.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if hasKey $registry "name" }}
+      {{- with $registry.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          readinessProbe:
+            httpGet:
+              path: /api/v1/admin/health
+              port: 8081
+            periodSeconds: 5
+            initialDelaySeconds: 5
+            failureThreshold: 3
+          env:
+            - name: "RPS_LOG_LEVEL"
+              value: "{{ .Values.rps.logLevel }}"
+            - name: "RPS_VAULT_ADDRESS"
+              value: "{{ .Values.rps.vault_url }}"
+            - name: "RPS_SECRETS_PATH"
+              value: "{{ .Values.rps.secretpath }}"
+            - name: "RPS_MPS_SERVER"
+              value: "{{ .Values.rps.mps_server }}"
+            - name: "RPS_CONNECTION_STRING"
+              valueFrom:
+                secretKeyRef:
+                  name: rps
+                  key: connectionString
+            - name: RPS_VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-token
+                  key: vault-token
+            - name: "RPS_VAULT_ROLE" # Added Vault role
+              value: "{{ .Values.rps.vaultRole }}"
+          ports:
+            - containerPort: {{ .Values.service.websocketServer.port }}
+              name: rps
+            - containerPort: {{ .Values.service.webapi.port }}
+              name: rpsweb
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

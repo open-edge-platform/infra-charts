@@ -170,11 +170,13 @@ TODO For support, start with [Troubleshooting][troubleshooting-url] or
 
 ## License
 
-Infrastructure Manager is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+Infrastructure Manager is licensed under[Apache 2.0][apache-license].
 
-Last Updated Date: Feb 6, 2025
+Last Updated Date: April 7, 2025
 
 [user-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html
 [inframanager-dev-guide-url]: (https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html)
 [contributors-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/index.html
 [troubleshooting-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/troubleshooting/troubleshooting.html
+[apache-license]: https://www.apache.org/licenses/LICENSE-2.0
+

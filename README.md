@@ -36,7 +36,7 @@ software architecture.
 ## Get Started
 
 See TODO the \[Documentation\](<https://website-name.com>) to get started
-using {Name}.
+using Edge Infrastructure Manager.
 
 Each umbrella chart has its own life cycle in the repository, independent of the others.
 It means that every umbrella chart can be updated independently from the others, and thus

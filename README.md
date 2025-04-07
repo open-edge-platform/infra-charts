@@ -3,7 +3,6 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Features](#features)
 - [Get Started](#get-started)
 - [Develop](#develop)
 - [Contribute](#contribute)
@@ -11,7 +10,15 @@
 
 ## Overview
 
-This repository contains Helm Charts to deploy all the serviced for Edge Infrastructure Manager.
+This repository contains Helm Charts to deploy all the serviced for Edge Infrastructure Manager on a kubernetes cluster
+offering the ability to:
+
+- Onboard and provision Edge Nodes
+- Review each nodes capabilities
+- Monitor the status of the nodes and their resource consumption
+- Update and Upgrade notes via scheduled maintenances
+- Delete and de-authorize nodes
+- Scale the Edge Nodes to 10.0000
 
 It contains 4 umbrella charts, referencing the other existing charts in the repository.
 
@@ -22,19 +29,9 @@ It contains 4 umbrella charts, referencing the other existing charts in the repo
 
 It also contains test code for validating/linting helm charts.
 
-## Features
-
-These charts provide the ability to deploy Infrastrcutre manager on a kubernetes cluster offering the ability to:
-
-- Onboard and provision Edge Nodes
-- Review each nodes capabilities
-- Monitor the status of the nodes and their resource consumption
-- Update and Upgrade notes via scheduled maintenances
-- Delete and de-authorize nodes
-- Scale the Edge Nodes to 10.0000
-
-TODO Read more about Infrastructure Manager in the \[User
-Guide\](<https://website-name.com>).
+TODO Read more about Infrastructure Manager in the
+[Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url] for internals and
+software architecture.
 
 ## Get Started
 
@@ -63,6 +60,24 @@ For example, for infra-managers umbrella charts a support branch must be defined
 In every pull request the helm versions of all charts in the repository are checked for updates.
 And the umbrella charts have their versions checked by their own `.chartver.yaml` files.
 The `make test` target ensures the charts versions are consistently linted and updated.
+
+There are several convenience make targets to support developer activities, you can use `help` to see a list of makefile
+targets. The following is a list of makefile targets that support developer activities:
+
+- `helmbuild` to build all helm charts
+- `helmclean` to clean all helm charts
+- `helmpush` to psh all helm charts
+- `helmlint` to lint all helm charts
+- `clean` to clean generated files for all helm charts
+- `clean-<name>` to clean generated files for a specific chart
+- `deps` to build the dependencies for all charts
+- `deps-<name>` to build all the dependencies for a specific chart
+- `pack` to build the helm package for all charts
+- `pack-<name>` to build the helm package for a specific chart
+- `mdlint` to run linting of this file.
+- `test` to run the charts checks (license shellcheck helmlint mdlint)
+- `license` to check licensing with the reuse tool
+- `shellcheck` to check all shell scripts
 
 ### Build
 
@@ -143,33 +158,7 @@ make clean
 
 ## Contribute
 
-To learn how to contribute to the project, see the [contributor's guide][contributors-guide-url]. The project will
-accept contributions through Pull-Requests (PRs). PRs must be built successfully by the CI pipeline, pass linters
-verifications and the unit tests.
-
-There are several convenience make targets to support developer activities, you can use `help` to see a list of makefile
-targets. The following is a list of makefile targets that support developer activities:
-
-- `helmbuild` to build all helm charts
-- `helmclean` to clean all helm charts
-- `helmpush` to psh all helm charts
-- `helmlint` to lint all helm charts
-- `clean` to clean generated files for all helm charts
-- `clean-<name>` to clean generated files for a specific chart
-- `deps` to build the dependencies for all charts
-- `deps-<name>` to build all the dependencies for a specific chart
-- `pack` to build the helm package for all charts
-- `pack-<name>` to build the helm package for a specific chart
-- `mdlint` to run linting of this file.
-- `test` to run the charts checks (license shellcheck helmlint mdlint)
-- `license` to check licensing with the reuse tool
-- `shellcheck` to check all shell scripts
-
-For additional information:
-
-- See the [docs](docs/api/hostmgr.md) for the Host Resource Manager APIs
-- See[Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url] for internals and
-  software architecture.
+To learn how to contribute to the project, see the [contributor's guide][contributors-guide-url].
 
 ## Community and Support
 

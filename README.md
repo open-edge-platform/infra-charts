@@ -10,15 +10,15 @@
 
 ## Overview
 
-This repository contains Helm Charts to deploy all the serviced for Edge Infrastructure Manager on a kubernetes cluster
+This repository contains Helm Charts to deploy all the services for Edge Infrastructure Manager on a Kubernetes cluster
 offering the ability to:
 
 - Onboard and provision Edge Nodes
-- Review each nodes capabilities
+- Review each node's capabilities
 - Monitor the status of the nodes and their resource consumption
-- Update and Upgrade notes via scheduled maintenances
+- Update and upgrade nodes via scheduled maintenance
 - Delete and de-authorize nodes
-- Scale the Edge Nodes to 10.0000
+- Scale Edge Nodes to 10.0000
 
 It contains 4 umbrella charts, referencing the other existing charts in the repository.
 

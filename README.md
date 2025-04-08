@@ -61,12 +61,12 @@ In every pull request the helm versions of all charts in the repository are chec
 And the umbrella charts have their versions checked by their own `.chartver.yaml` files.
 The `make test` target ensures the charts versions are consistently linted and updated.
 
-There are several convenience make targets to support developer activities, you can use `help` to see a list of makefile
+There are several convenience make targets to support developer activities. You can use `help` to see a list of makefile
 targets. The following is a list of makefile targets that support developer activities:
 
 - `helmbuild` to build all helm charts
 - `helmclean` to clean all helm charts
-- `helmpush` to psh all helm charts
+- `helmpush` to push all helm charts
 - `helmlint` to lint all helm charts
 - `clean` to clean generated files for all helm charts
 - `clean-<name>` to clean generated files for a specific chart

@@ -21,6 +21,7 @@ tinkerbell/charts/*.tgz
 *.tgz
 
 ci/
+gitleaks.tar.gz
 
 tools/intel-harbor-ca.crt
 # Useful when developing with coder vms

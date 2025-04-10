@@ -73,6 +73,22 @@ spec:
               containerPort: {{ .Values.metrics.port }}
               protocol: TCP
             {{- end }}
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - test -f /data/initramfs-x86_64 && test -f /data/vmlinuz-x86_64 && test -f /data/signed_ipxe.efi && test -f /data/keys/db.der && test -f /data/keys/Full_server.crt
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - test -f /data/initramfs-x86_64 && test -f /data/vmlinuz-x86_64 && test -f /data/signed_ipxe.efi && test -f /data/keys/db.der && test -f /data/keys/Full_server.crt
+            initialDelaySeconds: 30
+            periodSeconds: 10
           env:
           - name: MODE
             value: "{{ .Values.env.mode }}"

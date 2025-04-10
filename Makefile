@@ -28,13 +28,13 @@ helmclean: ## lint all helm charts, cleaning first
 
 CHARTS = infra-core infra-external infra-managers infra-onboarding
 helm-list: ## List top-level helm charts, tag format, and versions in YAML format
-	@echo "outDir: '$(OUT_DIR)'"
 	@echo "charts:"
 	@for chart in $(CHARTS); do \
-		echo "  $${chart}:" ;\
-		echo -n "    "; grep "^version" "$${chart}/Chart.yaml"  ;\
-	  echo "    gitTagPrefix: '$${chart}-'" ;\
-	done
+    echo "  $${chart}:" ;\
+    echo -n "    "; grep "^version" "$${chart}/Chart.yaml"  ;\
+    echo "    gitTagPrefix: '$${chart}-'" ;\
+    echo "    outDir: '$(OUT_DIR)'" ;\
+  done
 
 shellcheck: ## Check all shell scripts
 	shellcheck --version

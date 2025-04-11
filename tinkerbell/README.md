@@ -70,11 +70,11 @@ Post booting to provisioned OS, cloud-init configuration is handled by [Onboardi
 
 ### Bringing up the Edge Orchestrator
 
-See the [the Edge Orchestrator documentation][https://github.com/open-edge-platform/edge-manageability-framework/blob/main/README.md] to learn more about setting up the Edge Orchestrator.
+See the [the Edge Orchestrator documentation](https://github.com/open-edge-platform/edge-manageability-framework/blob/main/README.md) to learn more about setting up the Edge Orchestrator.
 
 ## Installing the Chart
 
-If Tinkerbell charts are not deployed already in [Infra-Onboarding Chart](../infra-onboarding/Chart.yaml),
+If Tinkerbell charts are not deployed already in [Infra-Onboarding Chart](../infra-onboarding/Chart.yaml):
 
 1. Fill in all the required fields in [values.yaml](values.yaml). Details about the fields can be found within the file.
 2. Run the following set of commands
@@ -115,12 +115,12 @@ wget --no-proxy --ca-certificate=orch-ca.crt https://<nginxDnsname>/tink-stack/b
 
 ## Installing the Chart with traefikReverseProxy disabled
 
-Before installing the chart
+Before installing the chart:
 
 - Customize the IP used for the load balancer (`stack.loadBalancerIP`). This IP provides ingress for
 Hegel, Tink, and Smee (TFTP, HTTP, and SYSLOG endpoints as well as unicast DHCP requests).
 
-- If enabling smee, based on the services you want to use
+- If enabling smee, based on the services you want to use:
   - set the IP used in DHCP packets for option 54, the location of the iPXE binaries, the `auto.ipxe` script.
   - syslog IP, and the IP for downloading Hook files (`tinkerbell_smee.remoteIp`).
   The vast majority of the time,these 2 (`stack.loadBalancerIP` and `tinkerbell_smee.remoteIp`) IPs will be the same.
@@ -216,7 +216,7 @@ verifications and the unit tests.
 To learn more about the project, its community, and governance, visit
 the [Edge Orchestrator Community](https://community.intel.com/).
 
-For support, start with [troubleshooting][troubleshooting-url]
+For support, start with [Troubleshooting][troubleshooting-url]
 
 - For more information on how to onboard an edge node, refer to the [user guide on onboarding an edge node][user-guide-onboard-edge-node].
 - To get started, check out the [user guide][user-guide-url].

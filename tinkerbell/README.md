@@ -35,12 +35,12 @@ out of which only the following are enabled by default at present
 A switch named `traefikReverseProxy` is provided which determines whether to use ingress and ingressroutes provided by
 EMF external to these chart configurations, or use the local routing using `kube-vip`.
 
-if `traefikReverseProxy` is disabled:
+If `traefikReverseProxy` is disabled:
 
 - Enable `kube-vip` to provide a service type loadBalancer IP for the Tinkerbell stack services
 - `stack` acts as a server for handling proxying to the Tinkerbell service and for serving the Hook artifacts
 
-if `traefikReverseProxy` is enabled:
+If `traefikReverseProxy` is enabled:
 
 - Traefik service running in `orch-gateway` namespace provides `IngressRoute` to `tink-server`
 - NGINX based `Ingress` running in `orch-infra` namespace provides route to `pa-server`
@@ -68,9 +68,9 @@ Post booting to provisioned OS, cloud-init configuration is handled by [Onboardi
 
 ## Get Started
 
-### Bringing up the cluster in coder environment
+### Bringing up the Edge Orchestrator
 
- TODO: link to documentation.
+See the [the Edge Orchestrator documentation][https://github.com/open-edge-platform/edge-manageability-framework/blob/main/README.md] to learn more about setting up the Edge Orchestrator.
 
 ## Installing the Chart
 
@@ -227,10 +227,10 @@ For support, start with [troubleshooting][troubleshooting-url]
 Edge Orchestrator is licensed under [Apache License
 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
-[user-guide-onboard-edge-node]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/set_up_edge_infra/edge_node_onboard.html
-[user-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html
-[inframanager-dev-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html
-[contributors-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/index.html
-[troubleshooting-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/troubleshooting/troubleshooting.html
+[user-guide-onboard-edge-node]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/set_up_edge_infra/index.html
+[user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
+[inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
+[contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
+[troubleshooting-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/troubleshooting/index.html
 
 Last Updated Date: March 26, 2025

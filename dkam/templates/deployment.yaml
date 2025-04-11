@@ -79,7 +79,7 @@ spec:
               - /bin/sh
               - -c
               - test -f /data/initramfs-x86_64 && test -f /data/vmlinuz-x86_64 && test -f /data/signed_ipxe.efi && test -f /data/keys/db.der && test -f /data/keys/Full_server.crt
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
           readinessProbe:
             exec:
@@ -87,7 +87,7 @@ spec:
               - /bin/sh
               - -c
               - test -f /data/initramfs-x86_64 && test -f /data/vmlinuz-x86_64 && test -f /data/signed_ipxe.efi && test -f /data/keys/db.der && test -f /data/keys/Full_server.crt
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
           env:
           - name: MODE

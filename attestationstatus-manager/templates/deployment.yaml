@@ -70,6 +70,7 @@ spec:
             failureThreshold: 3
           {{- end }}
           args:
+          - -serverAddress=0.0.0.0:{{ .Values.service.attestationstatusmgr.port }}
           - -inventoryAddress={{ .Values.inventory.addr }}:{{ .Values.inventory.port }}
           - -oamServerAddress={{ .Values.attestationstatusmgr.oamservaddr }}
           {{- if .Values.attestationstatusmgr.enableTracing }}

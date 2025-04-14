@@ -112,7 +112,3 @@ oidc:
   clients:
     # REST clients should set the "User-Agent" header to be the client name.
     bypass:
-
-# Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
-multiTenancy:
-  enforceMultiTenancy: true

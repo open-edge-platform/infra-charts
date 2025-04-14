@@ -18,7 +18,7 @@ dependencies:
     repository: "file://../onboarding-manager"
   - name: dkam
     condition: import.dkam.enabled
-    version: "1.25.0"
+    version: "1.25.1"
     repository: "file://../dkam"
   - name: tinkerbell
     condition: import.tinkerbell.enabled

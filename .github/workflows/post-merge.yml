@@ -28,12 +28,11 @@ jobs:
         with:
           repository: open-edge-platform/orch-ci
           path: ci
-          ref: "0.1.0"
           token: ${{ secrets.SYS_ORCH_GITHUB }}
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set environment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@0.1.0
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@main
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 

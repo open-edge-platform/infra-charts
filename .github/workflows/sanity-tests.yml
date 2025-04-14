@@ -120,6 +120,10 @@ jobs:
           echo "Orchestrator deployment done!"
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
+          
+          echo "Adds Aargo Github Reopos..."
+          mage argo:login
+          mage argo:addGithubRepos
 
       - name: Verify Kind Deployment
         id: verify-emf

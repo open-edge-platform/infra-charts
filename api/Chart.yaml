@@ -5,7 +5,7 @@ apiVersion: v2
 name: api
 description: Edge Infrastructure Manager API
 type: application
-version: 1.29.0
+version: 1.29.1
 appVersion: "1.33.0"
 home: edge-orchestrator.intel.com
 maintainers:

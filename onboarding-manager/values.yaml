@@ -129,7 +129,6 @@ resources:
 
 # Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
 multiTenancy:
-  enforceMultiTenancy: true
   enableCredentialsGroupCache: false
 
 certs:

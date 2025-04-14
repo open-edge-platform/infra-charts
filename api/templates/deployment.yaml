@@ -94,10 +94,6 @@ spec:
             {{- if .Values.humanReadableLogs }}
             - name: HUMAN
             {{- end }}
-            {{- if .Values.multiTenancy.enforceMultiTenancy }}
-            - name: ENFORCE_MULTI_TENANCY
-              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
-            {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

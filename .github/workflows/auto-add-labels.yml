@@ -15,4 +15,28 @@ jobs:
   label:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/labeler@v5
+      - uses: actions/checkout@v4
+      - name: "Push labels"
+        id: labeler
+        uses: actions/labeler@v5
+      - name: "Push labels to PR title"
+        if: steps.labeler.outputs.all-labels != ''
+        shell: bash
+        run: |
+          valid_labels="CI🤖|root|infra-core|infra-external|infra-manager|infra-onboarding"
+          
+          labels=$(echo "${{ steps.labeler.outputs.all-labels }}" | grep -oE "$valid_labels" | tr '\n' ',' | sed 's/,$//')          
+          old_pr_title="${{ github.event.pull_request.title }}"
+          new_pr_title=$(echo "$old_pr_title" | sed -n 's/^\[\([^]]*\)\] *//p')
+          if [ -z "$new_pr_title" ]; then
+            new_pr_title="$old_pr_title"
+          fi
+          new_pr_title="[$labels] ${new_pr_title}"
+          echo "Labels:           $labels"
+          echo "Old PR title:     $old_pr_title"
+          echo "New PR title:     $new_pr_title"
+          curl -s -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.SYS_ORCH_GITHUB }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+            -d '{"title": "'"$new_pr_title"'"}' > /dev/null

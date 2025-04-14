@@ -22,7 +22,7 @@ dependencies:
     repository: "file://../dkam"
   - name: tinkerbell
     condition: import.tinkerbell.enabled
-    version: "2.10.0"
+    version: "2.10.1"
     repository: "file://../tinkerbell"
   - name: infra-config
     condition: import.infra-config.enabled

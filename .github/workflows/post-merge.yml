@@ -57,6 +57,8 @@ jobs:
         run: make helm-push
 
       - name: Tag repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
         run: |
           # Uses .chartver.yaml file to perform tagging in the repo with prefix for each umbrella folder
           for dir in infra-core infra-external infra-managers infra-onboarding; do

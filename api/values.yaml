@@ -127,6 +127,3 @@ traefikReverseProxy:
   matchRoute:
   # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
   tlsOption: gateway-tls
-
-multiTenancy:
-  enforceMultiTenancy: true

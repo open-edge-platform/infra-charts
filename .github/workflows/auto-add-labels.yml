@@ -30,7 +30,7 @@ jobs:
           if [ -z "$new_pr_title" ]; then
             new_pr_title="$old_pr_title"
           fi
-          new_pr_title="[$labels] ${new_pr_title}"
+          new_pr_title="${new_pr_title} [$labels]"
           echo "Labels:           $labels"
           echo "Old PR title:     $old_pr_title"
           echo "New PR title:     $new_pr_title"

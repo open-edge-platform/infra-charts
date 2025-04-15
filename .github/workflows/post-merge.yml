@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false # Do not persist credentials, otherwise they will clash with credentials set by bootstrap action
           fetch-depth: 0 # Fetch all history, WO sporadic issue with missing tags
@@ -24,16 +24,15 @@ jobs:
           ref: ${{ github.head_ref }} # Checkout the branch that triggered the workflow to avoid detached HEAD
 
       - name: Checkout action repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: open-edge-platform/orch-ci
           path: ci
-          ref: "0.1.0"
           token: ${{ secrets.SYS_ORCH_GITHUB }}
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set environment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@0.1.0
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@main
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 
@@ -44,13 +43,13 @@ jobs:
         run: echo "Add post-merge sanity tests"
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
         with:
           aws-access-key-id: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
           aws-secret-access-key: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
           aws-region: us-west-2
 
-      - uses: aws-actions/amazon-ecr-login@v2
+      - uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
         with:
           registries: "080137407410"
 
@@ -58,6 +57,8 @@ jobs:
         run: make helm-push
 
       - name: Tag repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
         run: |
           # Uses .chartver.yaml file to perform tagging in the repo with prefix for each umbrella folder
           for dir in infra-core infra-external infra-managers infra-onboarding; do

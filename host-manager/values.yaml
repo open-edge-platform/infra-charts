@@ -133,7 +133,3 @@ serviceArgs:
   enableAuth: true
   invCacheUuidEnable: true
   invCacheStaleTimeout: 5m
-
-# Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
-multiTenancy:
-  enforceMultiTenancy: true

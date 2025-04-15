@@ -11,6 +11,7 @@ OCI_REPOSITORY       ?= edge-orch/infra/charts
 
 # Create the virtualenv with python tools installed
 VENV_NAME     := venv_charts
+OUT_DIR       := "."
 
 .PHONY: Makefile license yamllint helmlint clean clean-all lint mdlint
 
@@ -24,6 +25,16 @@ helmlint: ## lint all helm charts
 
 helmclean: ## lint all helm charts, cleaning first
 	$(TOOLS_DIR)/helmlint.sh clean
+
+CHARTS = infra-core infra-external infra-managers infra-onboarding
+helm-list: ## List top-level helm charts, tag format, and versions in YAML format
+	@echo "charts:"
+	@for chart in $(CHARTS); do \
+    echo "  $${chart}:" ;\
+    echo -n "    "; grep "^version" "$${chart}/Chart.yaml"  ;\
+    echo "    gitTagPrefix: '$${chart}-'" ;\
+    echo "    outDir: '$(OUT_DIR)'" ;\
+  done
 
 shellcheck: ## Check all shell scripts
 	shellcheck --version

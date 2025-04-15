@@ -95,10 +95,6 @@ spec:
             {{- if .Values.humanReadableLogs }}
             - name: HUMAN
             {{- end }}
-            {{- if .Values.multiTenancy.enforceMultiTenancy }}
-            - name: ENFORCE_MULTI_TENANCY
-              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
-            {{- end }}
         - name: {{ .Chart.Name }}-grpc
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
@@ -156,10 +152,6 @@ spec:
               value: {{ join "," .Values.oidc.clients.bypass | default "" }}
             {{- if .Values.humanReadableLogs }}
             - name: HUMAN
-            {{- end }}
-            {{- if .Values.multiTenancy.enforceMultiTenancy }}
-            - name: ENFORCE_MULTI_TENANCY
-              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
             {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

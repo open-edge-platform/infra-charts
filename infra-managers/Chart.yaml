@@ -5,8 +5,8 @@ apiVersion: v2
 name: infra-managers
 description: Infrastructure Manager Managers Umbrella Chart
 type: application
-version: "2.12.2"
-appVersion: "2.12.2"
+version: "2.12.3"
+appVersion: "2.12.3"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:
@@ -14,11 +14,11 @@ maintainers:
 dependencies:
   - name: host-manager
     condition: import.host-manager.enabled
-    version: "1.24.0"
+    version: "1.24.1"
     repository: "file://../host-manager"
   - name: maintenance-manager
     condition: import.maintenance-manager.enabled
-    version: "1.23.0"
+    version: "1.23.1"
     repository: "file://../maintenance-manager"
   - name: networking-manager
     condition: import.networking-manager.enabled
@@ -26,13 +26,13 @@ dependencies:
     repository: "file://../networking-manager"
   - name: telemetry-manager
     condition: import.telemetry-manager.enabled
-    version: "1.24.0"
+    version: "1.24.1"
     repository: "file://../telemetry-manager"
   - name: os-resource-manager
     condition: import.os-resource-manager.enabled
-    version: "0.19.1"
+    version: "0.19.2"
     repository: "file://../os-resource-manager"
   - name: attestationstatus-manager
     condition: import.attestationstatus-manager.enabled
-    version: "0.5.0"
+    version: "0.5.1"
     repository: "file://../attestationstatus-manager"

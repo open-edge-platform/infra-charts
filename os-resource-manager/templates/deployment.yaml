@@ -115,10 +115,6 @@ spec:
               value: "{{ .Values.managerArgs.rsProxyFilesAddress }}"
             - name: RS_EN_PROFILE_REPO
               value: "{{ .Values.managerArgs.rsEnProfileRepo }}"
-            {{- if .Values.multiTenancy.enforceMultiTenancy }}
-            - name: ENFORCE_MULTI_TENANCY
-              value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
-            {{- end }}
 
       {{- with .Values.nodeSelector }}
       nodeSelector:

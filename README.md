@@ -174,7 +174,6 @@ Infrastructure Manager is licensed under[Apache 2.0][apache-license].
 
 Last Updated Date: April 7, 2025
 
-
 [user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
 [inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
 [contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html

@@ -15,7 +15,6 @@ jobs:
   label:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: "Push labels"
         id: labeler
         uses: actions/labeler@v5
@@ -27,7 +26,7 @@ jobs:
           
           labels=$(echo "${{ steps.labeler.outputs.all-labels }}" | grep -oE "$valid_labels" | tr '\n' ',' | sed 's/,$//')          
           old_pr_title="${{ github.event.pull_request.title }}"
-          new_pr_title=$(echo "$old_pr_title" | sed -n 's/^\[\([^]]*\)\] *//p')
+          new_pr_title=$(echo "$old_pr_title" | sed -n 's/ *\[\([^]]*\)\]$//p')
           if [ -z "$new_pr_title" ]; then
             new_pr_title="$old_pr_title"
           fi

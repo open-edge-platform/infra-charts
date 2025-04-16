@@ -29,14 +29,13 @@ It contains 4 umbrella charts, referencing the other existing charts in the repo
 
 It also contains test code for validating/linting helm charts.
 
-TODO Read more about Infrastructure Manager in the
+Read more about Infrastructure Manager in the
 [Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url] for internals and
 software architecture.
 
 ## Get Started
 
-See TODO the \[Documentation\](<https://website-name.com>) to get started
-using Edge Infrastructure Manager.
+See the [Documentation][inframanager-dev-guide-url] to get started using Edge Infrastructure Manager.
 
 Each umbrella chart has its own life cycle in the repository, independent of the others.
 It means that every umbrella chart can be updated independently from the others, and thus
@@ -163,10 +162,9 @@ To learn how to contribute to the project, see the [contributor's guide][contrib
 ## Community and Support
 
 To learn more about the project, its community, and governance, visit
-the \[Edge Orchestrator Community\](<https://website-name.com>).
+the [Edge Orchestrator Community](https://docs.openedgeplatform.intel.com/edge-manage-docs/main/index.html).
 
-TODO For support, start with [Troubleshooting][troubleshooting-url] or
-\[contact us\](<https://website-name.com>).
+For support, start with [Troubleshooting](https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/troubleshooting/index.html)
 
 ## License
 
@@ -177,5 +175,4 @@ Last Updated Date: April 7, 2025
 [user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
 [inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
 [contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
-[troubleshooting-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/troubleshooting/index.html
 [apache-license]: https://www.apache.org/licenses/LICENSE-2.0

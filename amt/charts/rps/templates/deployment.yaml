@@ -23,6 +23,7 @@ spec:
       labels:
         {{- include "rps.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName:  {{ .Values.serviceAccount.name }}
       {{- if hasKey $registry "name" }}
       {{- with $registry.imagePullSecrets }}
       imagePullSecrets:

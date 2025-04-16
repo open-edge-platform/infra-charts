@@ -29,14 +29,13 @@ It contains 4 umbrella charts, referencing the other existing charts in the repo
 
 It also contains test code for validating/linting helm charts.
 
-TODO Read more about Infrastructure Manager in the
+Read more about Infrastructure Manager in the
 [Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url] for internals and
 software architecture.
 
 ## Get Started
 
-See TODO the \[Documentation\](<https://website-name.com>) to get started
-using Edge Infrastructure Manager.
+See the [Documentation][inframanager-dev-guide-url] to get started using Edge Infrastructure Manager.
 
 Each umbrella chart has its own life cycle in the repository, independent of the others.
 It means that every umbrella chart can be updated independently from the others, and thus

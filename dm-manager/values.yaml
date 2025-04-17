@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+    - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/dm-manager
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  # Image specific takes precedence
+  # registry:
+  #   name: null
+  #   imagePullSecrets:
+  #     - name: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "dm-manager"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "orch-svc"
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+resources:
+  limits:
+    cpu: 400m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: {}
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+extraEnv: []
+
+serviceArgs: {}
+
+metrics:
+  enabled: false

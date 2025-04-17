@@ -32,9 +32,9 @@ jobs:
       ORCH_DEFAULT_PASSWORD: ${{ secrets.ORCH_DEFAULT_PASSWORD }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: open-edge-platform/orch-deploy
+          repository: open-edge-platform/edge-manageability-framework
           token: ${{ secrets.SYS_ORCH_GITHUB }}
 
       - name: Set up git credentials
@@ -47,7 +47,7 @@ jobs:
         uses: open-edge-platform/orch-utils/.github/actions/setup-asdf@main
 
       - name: Checkout infra-charts repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: open-edge-platform/infra-charts
           path: infra-charts
@@ -65,7 +65,7 @@ jobs:
       - name: Print current git hash of the infra-charts PR
         run: echo "Current infra-charts git hash is ${{ env.GIT_HASH_CHARTS }}"
 
-      - name: Set custom orch-deploy deployment with branch dev/infra-charts
+      - name: Set custom emf deployment with branch dev/infra-charts
         id: custom-charts-branch
         env:
           INFRA_CHARTS_REV: ${{ env.GIT_HASH_CHARTS }}
@@ -93,36 +93,40 @@ jobs:
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-onboarding.yaml
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-external.yaml
 
-          sed -i '/var privateRepos = \[\]/a\    "https://github.com/open-edge-platform/infra-charts",' mage/Magefile.go
+          sed -i '/var githubRepos = \[\]/a\    "https://github.com/open-edge-platform/infra-charts",' mage/Magefile.go
 
           git commit -a -m "Custom infra-charts PR ${INFRA_CHARTS_REV}"
           git push origin dev/infra-charts-${INFRA_CHARTS_REV}
 
-      - name: Get current git hash of the orch-deploy PR
+      - name: Get current git hash of the emf PR
         id: get-git-hash-deploy
         run: echo "GIT_HASH_DEPLOY=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
-      - name: Print current git hash of the orch-deploy PR
-        run: echo "Current orch-deploy git hash is ${{ env.GIT_HASH_DEPLOY }}"
+      - name: Print current git hash of the emf PR
+        run: echo "Current emf git hash is ${{ env.GIT_HASH_DEPLOY }}"
 
       - name: Deploy External Orchestrator
         id: deploy-orch
         env:
           GIT_USER: "git"
           GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
-          ORCH_DEPLOY_REV: ${{ env.GIT_HASH_DEPLOY }}
+          EDGE_MANAGEABILITY_FRAMEWORK_REV: ${{ env.GIT_HASH_DEPLOY }}
           DOCKERHUB_TOKEN: ${{ secrets.SYS_DOCKERHUB_RO }}
           DOCKERHUB_USERNAME: ${{ secrets.SYS_DOCKERHUB_USERNAME }}
         run: |
           set +x
           echo "Starting to deploy Orchestrator..."
-          mage deploy:kindExternal
+          mage deploy:kindAll
           echo "Orchestrator deployment done!"
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
+          
+          echo "Adds Aargo Github Reopos..."
+          mage argo:login
+          mage argo:addGithubRepos
 
       - name: Verify Kind Deployment
-        id: verify-orch-deploy
+        id: verify-emf
         timeout-minutes: 25
         run: |
           echo "Starting to verify Orchestrator deployment..."
@@ -163,7 +167,7 @@ jobs:
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ensim -n orch-infra --timeout=5m
 
       - name: Checkout ensim (virtual-edge-node) repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: open-edge-platform/virtual-edge-node
           path: virtual-edge-node
@@ -241,7 +245,7 @@ jobs:
           kubectl -n orch-infra logs deploy/ensim > ensim.logs.txt
 
       - name: Upload E2E integration tests artifacts
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: e2e-int-tests-artifacts
           path: |
@@ -251,7 +255,7 @@ jobs:
             ${{ github.workspace }}/virtual-edge-node/edge-node-simulator/ensim.logs.txt
 
       - name: Checkout infra-core/api repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: open-edge-platform/infra-core
           path: infra-core
@@ -341,7 +345,7 @@ jobs:
 
       - name: Upload diagnostic artifacts
         if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: pods-apps-logs
           path: |

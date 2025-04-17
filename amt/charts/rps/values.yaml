@@ -23,7 +23,7 @@ rps:
   logLevel: "silly"
   vault_url: "http://vault.orch-platform.svc:8200"
   vaultRole: "orch-svc"
-  secretpath: "/secret/data/"
+  secretpath: "secret/data/"
   mps_server: "http://mps:3000"
 
 nameOverride: ""

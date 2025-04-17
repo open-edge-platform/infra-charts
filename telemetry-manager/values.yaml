@@ -108,8 +108,3 @@ oidc:
   oidc_tls_insecure_skip_verify_value: "true"
   clients:
     bypass:
-
-# Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
-multiTenancy:
-  enforceMultiTenancy: false
-

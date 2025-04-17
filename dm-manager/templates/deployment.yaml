@@ -1,23 +1,23 @@
----
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+---
 {{- $registry := .Values.global.registry -}}
 {{ if .Values.image.registry }}
   {{- $registry = .Values.image.registry -}}
-{{ end}}
+{{ end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "attestationstatusmgr-manager.fullname" . }}
+  name: {{ include "loca-dm-manager.fullname" . }}
   labels:
-    {{- include "attestationstatusmgr-manager.labels" . | nindent 4 }}
+    {{- include "loca-dm-manager.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "attestationstatusmgr-manager.selectorLabels" . | nindent 6 }}
+      {{- include "loca-dm-manager.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -25,7 +25,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "attestationstatusmgr-manager.selectorLabels" . | nindent 8 }}
+        {{- include "loca-dm-manager.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- if hasKey $registry "name" }}
       {{- with $registry.imagePullSecrets }}
@@ -33,11 +36,15 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- end }}
-      serviceAccountName: {{ include "attestationstatusmgr-manager.serviceAccountName" . }}
+      serviceAccountName: {{ include "loca-dm-manager.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          env:
+          {{- if .Values.extraEnv }}
+          {{- toYaml .Values.extraEnv | nindent 10 }}
+          {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           {{- if hasKey $registry "name" }}
@@ -46,21 +53,19 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: {{ .Values.service.attestationstatusmgr.name }}
-              containerPort: {{ .Values.service.attestationstatusmgr.port }}
-              protocol: TCP
-            {{- if .Values.metrics.enabled }}
-            - name: metrics
-              containerPort: {{ .Values.metrics.port }}
-              protocol: TCP
+          args:
+            {{- range $key, $value := .Values.serviceArgs }}
+          - {{ print "-" $key | toYaml -}}={{- $value }}
             {{- end }}
-          {{- if .Values.attestationstatusmgr.oamservaddr }}
-           {{- $oamservport:= (splitList ":" .Values.attestationstatusmgr.oamservaddr) | last | atoi }}
+          {{- if .Values.metrics.enabled }}
+          - -enableMetrics=true
+          {{- end }}
+          {{- if .Values.serviceArgs.oamServerAddress }}
+          {{- $oamservport:= (splitList ":" .Values.serviceArgs.oamServerAddress) | last | atoi }}
           livenessProbe:
             grpc:
               port: {{ $oamservport }}
-            initialDelaySeconds: 30
+            initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             grpc:
@@ -69,32 +74,22 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
           {{- end }}
-          args:
-          - -serverAddress=0.0.0.0:{{ .Values.service.attestationstatusmgr.port }}
-          - -inventoryAddress={{ .Values.inventory.addr }}:{{ .Values.inventory.port }}
-          - -oamServerAddress={{ .Values.attestationstatusmgr.oamservaddr }}
-          {{- if .Values.attestationstatusmgr.enableTracing }}
-          - -enableTracing={{ .Values.attestationstatusmgr.enableTracing }}
-          - -traceURL={{ .Values.attestationstatusmgr.traceURL }}
-          {{- end }}
-          {{- if .Values.globalLogLevel }}
-          - -globalLogLevel={{ .Values.globalLogLevel }}
-          {{- end}}
           {{- if .Values.metrics.enabled }}
-          - -enableMetrics=true
-          {{- end }}
-          {{- range $key, $value := .Values.serviceArgs }}
-          - {{ print "-" $key | toYaml -}}={{- $value }}
+          ports:
+          - name: metrics
+            containerPort: {{ .Values.metrics.port }}
+            protocol: TCP
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          env:
-            - name: OIDC_SERVER_URL
-              value: "{{ .Values.oidc.oidc_server_url }}"
-            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
-              value: "{{ .Values.oidc.oidc_tls_insecure_skip_verify_value }}"
-            - name: ALLOW_MISSING_AUTH_CLIENTS
-              value: {{ join "," .Values.oidc.clients.bypass | default "" }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      volumes:
+      {{- with .Values.volumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

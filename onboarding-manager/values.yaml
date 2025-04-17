@@ -77,7 +77,7 @@ env:
   onboardingCredentialsSecretKey: "client_secret"
   enCredentialsPrefix: "edgenode-"
   # Override it in orch-deploy to use a different TinkerAction version.
-  tinkerActionsVersion: 1.16.0
+  tinkerActionsVersion: 1.17.1
   tinkerActionsRepo: "edge-orch/infra/tinker-actions"
   # rsProxyRegistryAddress specifies the Release Service proxy address
   # It is defined and loaded as an env variable in the pod container.
@@ -129,7 +129,6 @@ resources:
 
 # Multi-tenancy default config, needs to be updated once full-MT is supported everywhere
 multiTenancy:
-  enforceMultiTenancy: true
   enableCredentialsGroupCache: false
 
 certs:

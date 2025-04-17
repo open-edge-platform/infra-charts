@@ -125,14 +125,6 @@ spec:
             value: {{ .Values.env.onboardingCredentialsSecretKey | default "" }}
           - name: EN_CREDENTIALS_PREFIX
             value: {{ .Values.env.enCredentialsPrefix | default "" }}
-          {{- if .Values.multiTenancy.defaultTenantID }}
-          - name: DEFAULT_TENANT_ID
-            value: {{ .Values.multiTenancy.defaultTenantID }}
-          {{- end }}
-          {{- if .Values.multiTenancy.enforceMultiTenancy }}
-          - name: ENFORCE_MULTI_TENANCY
-            value: "{{ .Values.multiTenancy.enforceMultiTenancy | toString }}"
-          {{- end }}
           {{- if .Values.multiTenancy.enableCredentialsGroupCache }}
           - name: ENABLE_GROUP_CACHE
             value: "{{ .Values.multiTenancy.enableCredentialsGroupCache | toString }}"

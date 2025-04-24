@@ -5,7 +5,7 @@ apiVersion: v2
 name: os-resource-manager
 description: Edge Infrastructure Manager OS Resource Manager
 type: application
-version: 0.19.3
+version: 0.20.0
 appVersion: "0.16.2"
 home: edge-orchestrator.intel.com
 maintainers:

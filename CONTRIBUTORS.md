@@ -1,6 +1,6 @@
 # Contributors
 
-## Special thanks for all the people who had helped this project so far:
+## Special thanks for all the people who had helped this project so far
 
 - [Andrea-Campanella](https://github.com/Andrea-Campanella)
 - [amr-mokhtar](https://github.com/amr-mokhtar)

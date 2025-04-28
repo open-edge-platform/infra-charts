@@ -40,7 +40,6 @@ jobs:
       - name: Set up git credentials
         shell: bash
         run: |
-          echo "GOPRIVATE=github.com/open-edge-platform" >> $GITHUB_ENV
           git config --global url."https://${{ secrets.SYS_ORCH_GITHUB }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Setup asdf and install dependencies

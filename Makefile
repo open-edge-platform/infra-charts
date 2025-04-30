@@ -120,8 +120,6 @@ pack-%: ## Build the helm package
 helm-push: helm-push-infra-core helm-push-infra-external helm-push-infra-managers helm-push-infra-onboarding
 
 helm-push-%: pack-% ## Push helm chart only if needed (not exist or dev version)
-	aws ecr create-repository --region us-west-2 --repository-name $(OCI_REPOSITORY)/$* || true
-
 	chartToPush=`find . -name $*-*.tgz`; \
 	chartVersion=`echo $$chartToPush | sed -n 's/.*$*-\(.*\).tgz/\1/p'`; \
 	isChartDev=`echo $$chartVersion | grep -c dev || true`; \

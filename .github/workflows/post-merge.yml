@@ -11,6 +11,11 @@ on:
       - release-*
   workflow_dispatch:
 
+permissions:
+  contents: read
+  security-events: write
+  id-token: write    
+
 jobs:
   sanitize-project-folder:
     runs-on: ubuntu-latest

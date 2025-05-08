@@ -18,6 +18,7 @@
 - [raphaelvrosa](https://github.com/raphaelvrosa)
 - [rranjan3](https://github.com/rranjan3)
 - [tmatenko](https://github.com/tmatenko)
+- [krishnajs](https://github.com/krishnajs)
 - [ktaube26](https://github.com/ktaube26)
 - [soniabha-intc](https://github.com/soniabha-intc)
 - [zdw](https://github.com/zdw)

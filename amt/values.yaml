@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: (C) 2024 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+mps:
+  name: mps
+  enabled: true
+  service:
+    enabled: true
+    type: ClusterIP
+  image:
+    repository: intel/oact-mps
+    tag: latest
+    pullPolicy: IfNotPresent
+    # Image specific takes precedence
+    # registry:
+    #   name: null
+    #   imagePullSecrets:
+    #     - name: ""
+
+mpsrouter:
+  name: mpsrouter
+  enabled: true
+  service:
+    enabled: true
+    type: ClusterIP
+  image:
+    repository: intel/oact-mpsrouter
+    tag: latest
+    pullPolicy: IfNotPresent
+    # Image specific takes precedence
+    # registry:
+    #   name: null
+    #   imagePullSecrets:
+    #     - name: ""
+
+rps:
+  name: rps
+  enabled: true
+  service:
+    enabled: true
+    type: ClusterIP
+  image:
+    repository: intel/oact-rps
+    tag: latest
+    pullPolicy: IfNotPresent
+    # Image specific takes precedence
+    # registry:
+    #   name: null
+    #   imagePullSecrets:
+    #     - name: ""

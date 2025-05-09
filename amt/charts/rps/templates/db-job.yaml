@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.job.name }}
+spec:
+  template:
+    spec:
+      serviceAccountName: db-role-amt-sa
+      containers:
+      - name: db-setup
+        image: postgres:latest
+        env:
+        - name: PGPASSWORD_RPS
+          valueFrom:
+            secretKeyRef:
+              name: rps-local-postgresql  # This should be the secret storing RPS password
+              key: PGPASSWORD
+        - name: PGPASSWORD_MPS
+          valueFrom:
+            secretKeyRef:
+              name: mps-local-postgresql  # This should be the secret storing MPS password
+              key: PGPASSWORD
+        command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            export PGPASSWORD=$PGPASSWORD_RPS
+            until psql -h postgresql.orch-database -d postgres -p 5432 -U orch-infra-rps_user -c "SELECT 1"; do
+              echo "Waiting for PostgreSQL to be ready for RPS user..."
+              sleep 1
+            done
+            psql -h postgresql.orch-database -p 5432 -d orch-infra-rps -U orch-infra-rps_user -f /rps/init.sql
+        volumeMounts:
+          - name: rps-volume
+            mountPath: /rps
+      restartPolicy: Never
+      volumes:
+        - name: rps-volume
+          configMap:
+            name: {{ .Values.job.configmap }}

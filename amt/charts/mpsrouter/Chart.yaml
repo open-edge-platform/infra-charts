@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: (C) 2023 Intel Corporation
+# SPDX-License-Identifier: LicenseRef-Intel
+
+apiVersion: v2
+name: mpsrouter
+description: Edge Infrastructure Manager AMT MPS ROUTER
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+annotations: {}
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team

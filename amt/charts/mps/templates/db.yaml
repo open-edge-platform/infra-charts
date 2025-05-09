@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup-databases-mps
+spec:
+  template:
+    spec:
+      serviceAccountName: db-role-amt-sa
+      containers:
+      - name: db-setup
+        image: postgres:latest
+        env:
+        - name: PGPASSWORD_mps
+          valueFrom:
+            secretKeyRef:
+              name: mps-local-postgresql  # This should be the secret storing RPS password
+              key: PGPASSWORD
+        command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            export PGPASSWORD=$PGPASSWORD_mps
+            until psql -h postgresql.orch-database -d postgres -p 5432 -U orch-infra-mps_user -W -c "SELECT 1"; do
+              echo "Waiting for PostgreSQL to be ready for mps user..."
+              sleep 1
+            done
+            psql -h postgresql.orch-database -d orch-infra-mps -p 5432 -U orch-infra-mps_user -W -f /mps/initMPS.sql
+        volumeMounts:
+          - name: mps-volume
+            mountPath: /mps
+      restartPolicy: Never
+      volumes:
+        - name: mps-volume
+          configMap:
+            name: mps-configmap  # Name of the ConfigMap containing necessary files

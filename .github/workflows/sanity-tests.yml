@@ -20,8 +20,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   sanity-tests:
+    permissions:
+      contents: read
     name: Deploy Kind Orchestrator and Run Sanity Tests
     if: |
       github.event_name != 'pull_request_review_comment' || 

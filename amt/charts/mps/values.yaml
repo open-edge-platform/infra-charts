@@ -75,7 +75,7 @@ serviceAccount:
 
 traefikReverseProxy:
   host:
-    grpc:
+    cira:
       name: ""
     webport:
       name: ""

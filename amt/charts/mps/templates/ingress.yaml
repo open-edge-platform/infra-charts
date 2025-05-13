@@ -10,11 +10,11 @@ spec:
   entryPoints:
   - websecure
   routes:
-  - match: "Host(`{{ .Values.traefikReverseProxy.host.grpc.name}}`) && PathPrefix(`/`)"
+  - match: "Host(`{{ .Values.traefikReverseProxy.host.cira.name}}`) && PathPrefix(`/`)"
     kind: Rule
     services:
     - name: {{ include "mps.fullname" . }}
-      port: {{ .Values.service.grpc.port }}
+      port: {{ .Values.service.cira.port }}
       scheme: http
       namespace: {{ .Release.Namespace }}
   - match: "Host(`{{ .Values.traefikReverseProxy.host.webport.name}}`) && PathPrefix(`/`)"

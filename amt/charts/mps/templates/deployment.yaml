@@ -53,9 +53,7 @@ spec:
             - name: "MPS_LOG_LEVEL"
               value: "{{ .Values.mps.logLevel }}"   
             - name: "MPS_COMMON_NAME"
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
+              value: {{ .Values.mps.commonName }}
             - name: "MPS_CONNECTION_STRING"
               valueFrom:
                 secretKeyRef:

@@ -20,7 +20,7 @@ import:
   tenant-controller:
     enabled: true
   apiv2:
-    enabled: false
+    enabled: true
 
 # Global values overrides
 # global:

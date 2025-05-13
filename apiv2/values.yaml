@@ -15,7 +15,7 @@ global:
 replicaCount: 1
 
 image:
-  repository: edge-orch/infra/apiv2
+  repository: infra/apiv2
   pullPolicy: IfNotPresent
   # Image specific takes precedence
   # registry:
@@ -49,7 +49,7 @@ serviceArgsProxy:
 
 serviceArgsGrpc:
   grpcAddress: "0.0.0.0:8090"
-  inventoryAddress: "infra-inventory:50051"
+  inventoryAddress: "inventory:50051"
   oamServerAddress: "0.0.0.0:2380"
   globalLogLevel: "info"
   traceURL: "fluent-bit:4318"

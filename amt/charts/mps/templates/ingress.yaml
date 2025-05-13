@@ -13,7 +13,7 @@ spec:
   - match: "Host(`{{ .Values.traefikReverseProxy.host.cira.name}}`) && PathPrefix(`/`)"
     kind: Rule
     middlewares:
-      - rate-limit
+      - name: rate-limit
     services:
     - name: {{ include "mps.fullname" . }}
       port: {{ .Values.service.cira.port }}

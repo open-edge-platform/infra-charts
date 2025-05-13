@@ -53,7 +53,7 @@ spec:
             - name: "MPS_LOG_LEVEL"
               value: "{{ .Values.mps.logLevel }}"   
             - name: "MPS_COMMON_NAME"
-              value: {{ .Values.mps.commonName }}
+              value: {{ .Values.commonName }}
             - name: "MPS_CONNECTION_STRING"
               valueFrom:
                 secretKeyRef:

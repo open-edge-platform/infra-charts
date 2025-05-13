@@ -15,7 +15,7 @@ global:
 replicaCount: 1
 
 image:
-  repository: edge-orch/infra/apiv2
+  repository: infra/apiv2
   pullPolicy: IfNotPresent
   # Image specific takes precedence
   # registry:

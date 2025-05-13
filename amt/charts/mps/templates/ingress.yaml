@@ -10,15 +10,6 @@ spec:
   entryPoints:
   - websecure
   routes:
-  - match: "Host(`{{ .Values.traefikReverseProxy.host.cira.name}}`) && PathPrefix(`/`)"
-    kind: Rule
-    middlewares:
-      - name: rate-limit
-    services:
-    - name: {{ include "mps.fullname" . }}
-      port: {{ .Values.service.cira.port }}
-      scheme: http
-      namespace: {{ .Release.Namespace }}
   - match: "Host(`{{ .Values.traefikReverseProxy.host.webport.name}}`) && PathPrefix(`/`)"
     kind: Rule
     middlewares:

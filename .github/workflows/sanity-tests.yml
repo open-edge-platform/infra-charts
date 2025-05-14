@@ -356,3 +356,6 @@ jobs:
             pods-describe.txt
             pods-list.txt
             argocd-applications.yaml
+
+permissions:
+  contents: read

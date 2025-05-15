@@ -198,7 +198,7 @@ jobs:
           echo "Router restarted"
       
       - name: Verify Kind Deployment
-        id: verify-emf-after-upgrade
+        id: verify-emf-after-upgrade-kubectl
         timeout-minutes: 10
         run: |
           echo "Kubectl verify Orchestrator deployment..."

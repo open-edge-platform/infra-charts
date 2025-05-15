@@ -136,6 +136,13 @@ jobs:
           mage router:stop router:start
           echo "Router restarted"
 
+      - name: Verify Kind Deployment
+        id: verify-emf-after-upgrade-kubectl-1
+        timeout-minutes: 10
+        run: |
+          echo "Kubectl verify Orchestrator deployment..."
+          kubectl get pods -A
+
     #  - name: Setup users and project/org
     #    shell: bash
     #    run: |
@@ -192,13 +199,14 @@ jobs:
         timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."
+          sleep 5
           mage deploy:waitUntilComplete
           echo "Orchestrator deployment verified!"
           mage router:stop router:start
           echo "Router restarted"
       
       - name: Verify Kind Deployment
-        id: verify-emf-after-upgrade-kubectl
+        id: verify-emf-after-upgrade-kubectl-2
         timeout-minutes: 10
         run: |
           echo "Kubectl verify Orchestrator deployment..."

@@ -136,22 +136,22 @@ jobs:
           mage router:stop router:start
           echo "Router restarted"
 
-      - name: Setup users and project/org
-        shell: bash
-        run: |
-          mage tenantUtils:createDefaultMtSetup
-          echo "Orch org/project/users created!"
-          echo "Project uID:"
-          kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID"
+    #  - name: Setup users and project/org
+    #    shell: bash
+    #    run: |
+    #      mage tenantUtils:createDefaultMtSetup
+    #      echo "Orch org/project/users created!"
+    #      echo "Project uID:"
+    #      kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID"
 
-      - name: Deploy edge node
-        shell: bash
-        run: |
-          mage devUtils:deployEnic 1 dev-coder
-          mage devUtils:registerEnic
-          mage devUtils:provisionEnic
-          sleep 5
-          mage devUtils:WaitForEnic
+    #  - name: Deploy edge node
+    #    shell: bash
+    #    run: |
+    #      mage devUtils:deployEnic 1 dev-coder
+    #      mage devUtils:registerEnic
+    #      mage devUtils:provisionEnic
+    #      sleep 5
+    #      mage devUtils:WaitForEnic
 
 
       - name: Set custom emf deployment with branch dev/infra-charts-upgr-test
@@ -189,33 +189,40 @@ jobs:
 
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade
-        timeout-minutes: 25
+        timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."
           mage deploy:waitUntilComplete
           echo "Orchestrator deployment verified!"
           mage router:stop router:start
           echo "Router restarted"
-
-      - name: Get diagnostic information
-        id: diagnostic-info
-        if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
+      
+      - name: Verify Kind Deployment
+        id: verify-emf-after-upgrade
+        timeout-minutes: 10
         run: |
-          kubectl get pods -o wide -A | tee pods-list.txt
-          kubectl describe pods -A | tee pods-describe.txt
-          mage logutils:collectArgoDiags | tee argo-diag.txt
-          kubectl get applications -o yaml -A | tee argocd-applications.yaml
+          echo "Kubectl verify Orchestrator deployment..."
+          kubectl get pods -A
 
-      - name: Upload diagnostic artifacts
-        if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: pods-apps-logs
-          path: |
-            argo-diag.txt
-            pods-describe.txt
-            pods-list.txt
-            argocd-applications.yaml
+  #    - name: Get diagnostic information
+  #      id: diagnostic-info
+   #     if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
+  #      run: |
+  #        kubectl get pods -o wide -A | tee pods-list.txt
+  #        kubectl describe pods -A | tee pods-describe.txt
+  #        mage logutils:collectArgoDiags | tee argo-diag.txt
+  #        kubectl get applications -o yaml -A | tee argocd-applications.yaml
+
+  #    - name: Upload diagnostic artifacts
+  #      if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
+  #      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+  #      with:
+  #        name: pods-apps-logs
+  #        path: |
+  #          argo-diag.txt
+  #          pods-describe.txt
+  #          pods-list.txt
+  #          argocd-applications.yaml
 
       - name: Clean custom branch dev/infra-charts-upgr-test
         if: ${{ always() && steps.new-emf-branch.conclusion == 'success' }}

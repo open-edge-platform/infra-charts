@@ -195,11 +195,18 @@ jobs:
           git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
       - name: Verify Kind Deployment
+        id: verify-emf-infra-managers-upgrade
+        timeout-minutes: 10
+        run: |
+          echo "Starting to verify Orchestrator deployment..."
+          watch -n 5 'kubectl -n argocd get application infra-managers -o jsonpath="{.status.sync.revision}"'
+
+      - name: Verify Kind Deployment
         id: verify-emf-after-upgrade
         timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."
-          sleep 5
+          sleep 5m
           mage deploy:waitUntilComplete
           echo "Orchestrator deployment verified!"
           mage router:stop router:start

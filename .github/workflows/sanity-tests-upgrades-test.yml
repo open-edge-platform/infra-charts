@@ -112,6 +112,8 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.SYS_DOCKERHUB_RO }}
           DOCKERHUB_USERNAME: ${{ secrets.SYS_DOCKERHUB_USERNAME }}
         run: |
+          ls
+          pwd
           set +x
           echo "Starting to deploy Orchestrator..."
           mage deploy:kindAll

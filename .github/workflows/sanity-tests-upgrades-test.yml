@@ -199,7 +199,7 @@ jobs:
         timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."
-          watch -n 5 'kubectl -n argocd get application infra-managers -o jsonpath="{.status.sync.revision}"'
+          watch -n 5 'argocd app get infra-managers | grep Revision'
 
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade

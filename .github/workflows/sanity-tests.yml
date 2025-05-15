@@ -5,16 +5,16 @@
 name: Sanity Tests
 
 on:
-  pull_request_review_comment:
-    types: [created]  # Run on PR review comment "sanity-tests"
+#  pull_request_review_comment:
+#    types: [created]  # Run on PR review comment "sanity-tests"
   schedule:
     - cron: "0 0 * * *" # Run every day at midnight
-  workflow_dispatch:  # Run on manual trigger
-    inputs:
-      run-sanity-tests:
-        description: 'Run sanity tests'
-        required: true
-        default: 'false'
+#  workflow_dispatch:  # Run on manual trigger
+#    inputs:
+#      run-sanity-tests:
+#        description: 'Run sanity tests'
+#       required: true
+#        default: 'false'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,7 +38,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: open-edge-platform/edge-manageability-framework
+          repository: open-edge-platform/edge-manageability-framework@27d33f856ee54d286902136d0e166da5f81b1a7f
           token: ${{ secrets.SYS_ORCH_GITHUB }}
 
       - name: Set up git credentials
@@ -77,7 +77,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b dev/infra-charts-${INFRA_CHARTS_REV}
+          git checkout -b dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
           # Replaces +/targetRevision: with the current git hash of the infra-charts PR
           sed -i "s/targetRevision: [a-zA-Z0-9.]\+/targetRevision: ${INFRA_CHARTS_REV}/" argocd/applications/templates/infra-core.yaml
           sed -i "s/targetRevision: [a-zA-Z0-9.]\+/targetRevision: ${INFRA_CHARTS_REV}/" argocd/applications/templates/infra-managers.yaml
@@ -99,7 +99,7 @@ jobs:
           sed -i '/var githubRepos = \[\]/a\    "https://github.com/open-edge-platform/infra-charts",' mage/Magefile.go
 
           git commit -a -m "Custom infra-charts PR ${INFRA_CHARTS_REV}"
-          git push origin dev/infra-charts-${INFRA_CHARTS_REV}
+          git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
       - name: Get current git hash of the emf PR
         id: get-git-hash-deploy

@@ -82,9 +82,11 @@ jobs:
           GIT_USER: "git"
           GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
         run: |
+          pwd
+          ls
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout 27d33f856ee54d286902136d0e166da5f81b1a7f
+          git checkout v3.0.0
           git checkout -b dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
           sed -i '/var githubRepos = \[\]/a\    "https://github.com/open-edge-platform/infra-charts",' mage/Magefile.go

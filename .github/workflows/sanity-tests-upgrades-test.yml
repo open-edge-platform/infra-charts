@@ -180,7 +180,7 @@ jobs:
           git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
       - name: Verify Kind Deployment
-        id: verify-emf
+        id: verify-emf-after-upgrade
         timeout-minutes: 25
         run: |
           echo "Starting to verify Orchestrator deployment..."

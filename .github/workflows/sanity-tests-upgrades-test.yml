@@ -30,10 +30,10 @@ concurrency:
 permissions: {}
 
 jobs:
-  sanity-tests:
+  upgrade-tests:
     permissions:
       contents: read
-    name: Deploy Kind Orchestrator and Run Sanity Tests
+    name: Deploy Kind Orchestrator Upgrade Infra charts and Test
     if: |
       github.event_name != 'pull_request_review_comment' || 
       (github.event.comment.body && contains(github.event.comment.body, 'sanity-tests'))
@@ -45,7 +45,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: open-edge-platform/edge-manageability-framework@27d33f856ee54d286902136d0e166da5f81b1a7f
+          repository: open-edge-platform/edge-manageability-framework
           token: ${{ secrets.SYS_ORCH_GITHUB }}
 
       - name: Set up git credentials
@@ -84,6 +84,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout 27d33f856ee54d286902136d0e166da5f81b1a7f
           git checkout -b dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
           sed -i '/var githubRepos = \[\]/a\    "https://github.com/open-edge-platform/infra-charts",' mage/Magefile.go

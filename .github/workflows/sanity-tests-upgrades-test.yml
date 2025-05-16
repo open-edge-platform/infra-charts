@@ -119,6 +119,9 @@ jobs:
           mage argo:login
           mage argo:addGithubRepos
 
+
+          echo ${{ env.ORCH_DOMAIN }}
+
       - name: Verify Kind Deployment
         id: verify-emf
         timeout-minutes: 25
@@ -240,7 +243,9 @@ jobs:
           ARGO_IP=$(kubectl -n argocd get svc argocd-server -o jsonpath="{.spec.clusterIP}")
 
           echo "Logging in to ArgoCD..."
-          argocd login argocd.${{ env.ORCH_DOMAIN }} --username admin --password ChangeMeOn1stLogin! --insecure
+          echo argocd.${{ env.ORCH_DOMAIN }}
+          echo argocd login argo.${{ env.ORCH_DOMAIN }} --username admin --password ChangeMeOn1stLogin! --insecure
+          argocd login argo.${{ env.ORCH_DOMAIN }} --username admin --password ChangeMeOn1stLogin! --insecure
 
           argocd app sync infra-managers
           sleep 3m

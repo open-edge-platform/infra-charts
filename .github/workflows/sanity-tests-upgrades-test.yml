@@ -88,7 +88,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git branch
           git fetch
-          git checkout v3.0.0
+          git checkout v3.0.0-rc1
           git checkout -b dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
           sed -i 's/^mage 1\.14\.0$/mage 1.15.0/' .tool-versions
@@ -193,6 +193,10 @@ jobs:
 
           git commit -a -m "Upgrade EIM infra-charts-upgr-test PR ${INFRA_CHARTS_REV}"
           git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
+
+          sleep 1
+
+          mage deploy:orchLocal dev
 
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade

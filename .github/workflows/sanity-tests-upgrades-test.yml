@@ -138,6 +138,35 @@ jobs:
           echo "Kubectl verify Orchestrator deployment..."
           kubectl get pods -A
 
+      - name: Patch ArgoCD RBAC for admin sync access
+        run: |
+          echo "Patching ArgoCD RBAC configmap..."
+          kubectl -n argocd patch configmap argocd-rbac-cm --type merge -p '
+          data:
+            policy.csv: |
+              p, role:admin, applications, sync, *, allow
+              g, admin, role:admin
+            policy.default: role:admin
+          '
+
+          echo "Restarting ArgoCD server to apply RBAC changes..."
+          kubectl -n argocd rollout restart deployment argocd-server
+
+          echo "Waiting for ArgoCD server to become ready..."
+          kubectl -n argocd rollout status deployment argocd-server --timeout=60s
+
+          mage deploy:waitUntilComplete
+
+
+    #  - name: Setup Test environment
+    #    shell: bash
+    #    run: |
+    #      sudo awk -i inplace '/BEGIN ORCH DEVELOPMENT HOSTS/,/END ORCH DEVELOPMENT HOSTS/ { next } 1' /etc/hosts
+    #      sudo awk -i inplace '/BEGIN ORCH SRE DEVELOPMENT HOST/,/END ORCH SRE DEVELOPMENT HOST/ { next } 1' /etc/hosts
+    #      mage gen:hostfileTraefik | sudo tee -a /etc/hosts > /dev/null
+    #      echo "Updated Hostfile entries!"
+    #      mage gen:orchCa deploy:orchCa
+
     #  - name: Setup users and project/org
     #    shell: bash
     #    run: |
@@ -205,10 +234,14 @@ jobs:
           echo "Starting to verify Orchestrator deployment..."
           sleep 1m
           mage argo:login
-          ARGO_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+          echo "Extracting admin password..."
+          ARGO_PASSWORD=$(kubectl -n argocd get secret argocd-secret -o jsonpath="{.data.admin\.password}" | base64 -d)
+
           ARGO_IP=$(kubectl -n argocd get svc argocd-server -o jsonpath="{.spec.clusterIP}")
-          argocd login $ARGO_IP --username admin --password $ARGO_PASSWORD --insecure
-          
+
+          echo "Logging in to ArgoCD..."
+          argocd login argocd.${{ env.ORCH_DOMAIN }} --username admin --password ChangeMeOn1stLogin! --insecure
+
           argocd app sync infra-managers
           sleep 3m
 

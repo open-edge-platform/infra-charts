@@ -187,7 +187,7 @@ jobs:
           git commit -a -m "Upgrade EIM infra-charts-upgr-test PR ${INFRA_CHARTS_REV}"
           git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
-          sleep 1
+          sleep 1m
 
           
           echo "Adds Aargo Github Reopos..."
@@ -202,6 +202,9 @@ jobs:
         timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."
+          sleep 1m
+
+          argocd app sync infra-managers
           sleep 3m
 
           echo "Orchestrator UPGRADE done!"

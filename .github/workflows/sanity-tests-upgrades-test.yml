@@ -56,13 +56,6 @@ jobs:
       - name: Setup asdf and install dependencies
         uses: open-edge-platform/orch-utils/.github/actions/setup-asdf@main
 
-      - name: Checkout infra-charts repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: open-edge-platform/infra-charts
-          path: infra-charts
-          token: ${{ secrets.SYS_ORCH_GITHUB }}
-
       - name: Get current git hash of the infra-charts PR
         id: get-git-hash-charts
         run: |
@@ -196,14 +189,25 @@ jobs:
 
           sleep 1
 
+          
+          echo "Adds Aargo Github Reopos..."
+          mage argo:login
+          mage argo:addGithubRepos
           mage deploy:orchLocal dev
+
+
 
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade
         timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."
-          sleep 5m
+          sleep 3m
+
+          echo "Orchestrator UPGRADE done!"
+          echo "Root App Status:"
+          kubectl -n dev get applications infra-managers -o yaml
+                    
           mage deploy:waitUntilComplete
           echo "Orchestrator deployment verified!"
           mage router:stop router:start

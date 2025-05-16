@@ -129,6 +129,8 @@ jobs:
           mage router:stop router:start
           echo "Router restarted"
 
+
+
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade-kubectl-1
         timeout-minutes: 10
@@ -196,14 +198,17 @@ jobs:
           mage deploy:orchLocal dev
 
 
-
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade
         timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."
           sleep 1m
-
+          mage argo:login
+          ARGO_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+          ARGO_IP=$(kubectl -n argocd get svc argocd-server -o jsonpath="{.spec.clusterIP}")
+          argocd login $ARGO_IP --username admin --password $ARGO_PASSWORD --insecure
+          
           argocd app sync infra-managers
           sleep 3m
 

@@ -41,7 +41,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set enviroment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@main
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@0.1.13
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 
@@ -50,9 +50,11 @@ jobs:
 
       # TODO: check that env variable used are correct
       - name: Helm Check Version Change
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           echo "Checks that changes to a chart include a change to the chart version"
-          APPVERSION_IS_VERSION=0 COMPARISON_BRANCH=origin/${{ github.base_ref }} ./ci/scripts/helm-version-check.sh
+          APPVERSION_IS_VERSION=0 COMPARISON_BRANCH=origin/${BASE_REF} ./ci/scripts/helm-version-check.sh
 
       - name: Run linters
         run: make lint
@@ -166,10 +168,12 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     needs: [pre-merge-pipeline]
+    env:
+      result: ${{ needs.pre-merge-pipeline.result }}
     steps:
       - name: Final Status Check
         run: |
-          pre_merge_pipeline="${{ needs.pre-merge-pipeline.result }}"
+          pre_merge_pipeline="${result}"
 
           results=("pre_merge_pipeline")
           status="OK"

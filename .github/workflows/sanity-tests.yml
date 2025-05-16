@@ -40,6 +40,7 @@ jobs:
         with:
           repository: open-edge-platform/edge-manageability-framework
           token: ${{ secrets.SYS_ORCH_GITHUB }}
+          persist-credentials: false
 
       - name: Set up git credentials
         shell: bash
@@ -55,6 +56,7 @@ jobs:
           repository: open-edge-platform/infra-charts
           path: infra-charts
           token: ${{ secrets.SYS_ORCH_GITHUB }}
+          persist-credentials: false
 
       - name: Get current git hash of the infra-charts PR
         id: get-git-hash-charts
@@ -175,6 +177,7 @@ jobs:
           repository: open-edge-platform/virtual-edge-node
           path: virtual-edge-node
           token: ${{ secrets.SYS_ORCH_GITHUB }}
+          persist-credentials: false
 
       - name: Checkout latest released tag of virtual-edge-node/edge-node-simulator repository
         working-directory: virtual-edge-node
@@ -264,6 +267,7 @@ jobs:
           repository: open-edge-platform/infra-core
           path: infra-core
           token: ${{ secrets.SYS_ORCH_GITHUB }}
+          persist-credentials: false
 
       - name: Checkout latest released tag of infra-core/api repository
         working-directory: infra-core

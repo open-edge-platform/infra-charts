@@ -20,15 +20,17 @@ jobs:
       contents: read
     outputs:
       sanitized_project_name: ${{ steps.sanitize.outputs.sanitized_project_name }}
+    env:
+      INPUTS_PROJECT_FOLDER: ${{ inputs.project_folder }}
     steps:
       - name: Sanitize project folder
         id: sanitize
         run: |
           # check if inputs.project_folder is set, if not return repository name
-          if [ -z "${{ inputs.project_folder }}" ] || [ "${{ inputs.project_folder }}" = "." ]; then
+          if [ -z "${INPUTS_PROJECT_FOLDER}" ] || [ "${INPUTS_PROJECT_FOLDER}" = "." ]; then
             SANITIZED_PROJECT_NAME="${GITHUB_REPOSITORY#"${GITHUB_REPOSITORY_OWNER}/"}"
           else
-            SANITIZED_PROJECT_NAME=$(echo "${{ inputs.project_folder }}" | tr '/' '-')
+            SANITIZED_PROJECT_NAME=$(echo "${INPUTS_PROJECT_FOLDER}" | tr '/' '-')
           fi
 
           echo "SANITIZED_PROJECT_NAME=${SANITIZED_PROJECT_NAME}" >> "$GITHUB_ENV"
@@ -87,7 +89,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set environment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@main
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@0.1.13
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 

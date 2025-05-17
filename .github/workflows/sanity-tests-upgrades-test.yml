@@ -256,7 +256,7 @@ jobs:
 
 
       - name: Verify Kind Deployment
-        id: verify-emf-after-upgrade
+        id: verify-emf-after-upgrade-2
         timeout-minutes: 10
         run: |
           echo "Starting to verify Orchestrator deployment..."

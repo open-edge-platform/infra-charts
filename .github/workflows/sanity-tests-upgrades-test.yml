@@ -269,7 +269,7 @@ jobs:
 
           echo "Trying to auto-discover ArgoCD FQDN..."
           IP=$(kubectl get node -o jsonpath="{.items[0].status.addresses[?(@.type=='InternalIP')].address}")
-          FQDN="argocd.orch-${IP//./-}.espdqa.infra-host.com"
+          FQDN="argo.orch-${IP//./-}.espdqa.infra-host.com"
           echo "Using ArgoCD FQDN: $FQDN"
 
           echo "Getting admin password..."

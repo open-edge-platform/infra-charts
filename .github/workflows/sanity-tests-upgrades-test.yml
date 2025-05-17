@@ -252,8 +252,8 @@ jobs:
 
           echo "Logging in to ArgoCD..."
           echo ${{ FQDN }}
-          echo argocd login $FQDN --username admin --password ChangeMeOn1stLogin! --insecure
-          argocd login $FQDN --username admin --password ChangeMeOn1stLogin! --insecure
+          echo argocd login ${{ FQDN }} --username admin --password ChangeMeOn1stLogin! --insecure
+          argocd login ${{ FQDN }}--username admin --password ChangeMeOn1stLogin! --insecure
 
           argocd app sync infra-managers
           sleep 3m

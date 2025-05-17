@@ -144,8 +144,8 @@ jobs:
           printenv | sort
           echo "Logging in to ArgoCD..."
           echo "ORCH_DOMAIN=$ORCH_DOMAIN"
-          echo argocd login argocd.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
-          argocd login argocd.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
+          echo argocd login argo.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
+          argocd login argo.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
 
       - name: Verify Kind Deployment
         id: verify-emf

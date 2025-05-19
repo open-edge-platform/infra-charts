@@ -85,8 +85,6 @@ spec:
           {{- range $key, $value := .Values.serviceArgs }}
           - {{ print "-" $key | toYaml -}}={{- $value }}
           {{- end }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: OIDC_SERVER_URL
               value: "{{ .Values.oidc.oidc_server_url }}"

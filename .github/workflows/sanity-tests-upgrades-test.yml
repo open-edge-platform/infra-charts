@@ -194,7 +194,7 @@ jobs:
     #      mage gen:hostfileTraefik | sudo tee -a /etc/hosts > /dev/null
     #      echo "Updated Hostfile entries!"
     #      mage gen:orchCa deploy:orchCa
-
+#
     #  - name: Setup users and project/org
     #    shell: bash
     #    run: |
@@ -202,7 +202,7 @@ jobs:
     #      echo "Orch org/project/users created!"
     #      echo "Project uID:"
     #      kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID"
-
+#
     #  - name: Deploy edge node
     #    shell: bash
     #    run: |
@@ -211,7 +211,6 @@ jobs:
     #      mage devUtils:provisionEnic
     #      sleep 5
     #      mage devUtils:WaitForEnic
-
 
       - name: Set custom emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
@@ -251,7 +250,6 @@ jobs:
 
           sleep 1m
 
-          
           echo "Adds Aargo Github Reopos..."
           mage argo:login
           mage argo:addGithubRepos

@@ -265,11 +265,10 @@ jobs:
           mage deploy:waitUntilComplete
           echo "Orchestrator deployment verified!"
 
-
 #      - name: Verify Kind Deployment
 #        id: verify-emf-after-upgrade-2
  #       env:
-          GIT_USER: "git"
+#          GIT_USER: "git"
 ##          GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
  #         EDGE_MANAGEABILITY_FRAMEWORK_REV: ${{ env.GIT_HASH_DEPLOY }}
  #         DOCKERHUB_TOKEN: ${{ secrets.SYS_DOCKERHUB_RO }}
@@ -311,8 +310,6 @@ jobs:
  #         echo argocd login argocd.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
   #        argocd login argocd.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
 
-
-      
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade-kubectl-2
         timeout-minutes: 10

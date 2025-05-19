@@ -30,7 +30,7 @@ dependencies:
     repository: "file://../telemetry-manager"
   - name: os-resource-manager
     condition: import.os-resource-manager.enabled
-    version: "0.20.0"
+    version: "0.20.1"
     repository: "file://../os-resource-manager"
   - name: attestationstatus-manager
     condition: import.attestationstatus-manager.enabled

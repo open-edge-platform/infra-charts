@@ -73,10 +73,10 @@ mimaintmgr:
 # Must be adjusted in case of higher load.
 resources:
   requests:
-    cpu: "50m"
+    cpu: "60m"
     memory: "64Mi"
   limits:
-    cpu: "100m"
+    cpu: "200m"
     memory: "128Mi"
 
 autoscaling:

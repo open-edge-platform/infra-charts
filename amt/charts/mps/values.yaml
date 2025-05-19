@@ -94,6 +94,7 @@ traefikReverseProxy:
 
 podAnnotations:
   traffic.sidecar.istio.io/excludeInboundPorts: "4433"
+  traffic.sidecar.istio.io/excludeOutboundPorts: "4433"
 
 imagePullSecrets: {}
 

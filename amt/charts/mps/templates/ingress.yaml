@@ -43,9 +43,6 @@ spec:
       - name: {{ include "mps.fullname" . }}
         port: {{ .Values.service.cira.port }}
         namespace: {{ .Release.Namespace }}
-      - name: nginx-pod
-        port: 80
-        namespace: default
   tls:
     passthrough: true
 

@@ -255,15 +255,20 @@ jobs:
           mage argo:addGithubRepos
           mage deploy:orchLocal dev
           sleep 1m
+          argocd app manifests dev/infra-managers --grpc-web
           echo "Sync application..."
           argocd app sync dev/infra-managers --grpc-web
           sleep 1m
+          argocd app manifests dev/infra-managers --grpc-web
           echo "Orchestrator UPGRADE done!"
           echo "Root App Status:"
           kubectl -n dev get applications infra-managers -o yaml
           echo "Verify deployment..."     
           mage deploy:waitUntilComplete
+          echo "Root App Status 2:"
+          kubectl -n dev get applications infra-managers -o yaml
           echo "Orchestrator deployment verified!"
+          argocd app manifests dev/infra-managers --grpc-web
 
 #      - name: Verify Kind Deployment
 #        id: verify-emf-after-upgrade-2

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: (C) 2023 Intel Corporation
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: LicenseRef-Intel
 {{/*
 Expand the name of the chart.

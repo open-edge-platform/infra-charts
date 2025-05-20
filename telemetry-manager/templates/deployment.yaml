@@ -76,8 +76,6 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
           {{- end }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: OIDC_SERVER_URL
               value: "{{ .Values.oidc.oidc_server_url }}"

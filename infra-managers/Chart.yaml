@@ -14,7 +14,7 @@ maintainers:
 dependencies:
   - name: host-manager
     condition: import.host-manager.enabled
-    version: "1.25.0"
+    version: "1.25.1"
     repository: "file://../host-manager"
   - name: maintenance-manager
     condition: import.maintenance-manager.enabled
@@ -22,17 +22,17 @@ dependencies:
     repository: "file://../maintenance-manager"
   - name: networking-manager
     condition: import.networking-manager.enabled
-    version: "1.21.0"
+    version: "1.21.1"
     repository: "file://../networking-manager"
   - name: telemetry-manager
     condition: import.telemetry-manager.enabled
-    version: "1.25.0"
+    version: "1.25.1"
     repository: "file://../telemetry-manager"
   - name: os-resource-manager
     condition: import.os-resource-manager.enabled
-    version: "0.20.0"
+    version: "0.20.1"
     repository: "file://../os-resource-manager"
   - name: attestationstatus-manager
     condition: import.attestationstatus-manager.enabled
-    version: "0.6.0"
+    version: "0.6.1"
     repository: "file://../attestationstatus-manager"

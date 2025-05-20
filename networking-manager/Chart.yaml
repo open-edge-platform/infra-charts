@@ -5,7 +5,7 @@ apiVersion: v2
 name: networking-manager
 description: Edge Infrastructure Manager Networking Manager
 type: application
-version: 1.21.0
+version: 1.21.1
 appVersion: "1.17.2"
 home: edge-orchestrator.intel.com
 maintainers:

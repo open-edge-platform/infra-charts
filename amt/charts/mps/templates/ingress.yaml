@@ -45,5 +45,4 @@ spec:
         namespace: {{ .Release.Namespace }}
   tls:
     passthrough: true
-
 {{- end }}

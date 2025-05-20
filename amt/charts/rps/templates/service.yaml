@@ -20,4 +20,3 @@ spec:
     targetPort: {{ .Values.service.webapi.port }}
   selector:
     {{- include "rps.selectorLabels" . | nindent 4 }}
- 

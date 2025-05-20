@@ -29,8 +29,6 @@ mps:
   logLevel: "silly"
   jwtExpiration: 1440
   secrets:
-    mpswebname: mpsweb
-    openjwt: open-amt-admin-jwt
 
 nameOverride: ""
 fullnameOverride: "mps"

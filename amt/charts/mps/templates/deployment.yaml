@@ -71,26 +71,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            - name: "MPS_JWT_SECRET"
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ .Values.mps.secrets.openjwt }}"
-                  key: secret
             - name: MPS_VAULT_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: vault-token
                   key: vault-token
-            - name: MPS_WEB_ADMIN_USER
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ .Values.mps.secrets.mpswebname }}"
-                  key: user
-            - name: MPS_WEB_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ .Values.mps.secrets.mpswebname }}"
-                  key: password
           ports:
             - containerPort: 3000
               name: mps

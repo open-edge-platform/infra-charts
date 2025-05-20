@@ -43,5 +43,7 @@ spec:
       - name: {{ include "mps.fullname" . }}
         port: {{ .Values.service.cira.port }}
         namespace: {{ .Release.Namespace }}
-  tls: {}
+  tls:
+    passthrough: true
+
 {{- end }}

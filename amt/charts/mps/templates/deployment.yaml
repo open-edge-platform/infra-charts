@@ -76,6 +76,8 @@ spec:
                 secretKeyRef:
                   name: vault-token
                   key: vault-token
+            - name: "MPS_JWT_SECRET"
+              value: "notUsed"
           ports:
             - containerPort: 3000
               name: mps

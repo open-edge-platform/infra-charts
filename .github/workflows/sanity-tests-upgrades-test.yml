@@ -232,7 +232,7 @@ jobs:
           mage devUtils:WaitForEnic
 
       - name: Get diagnostic information
-         id: diagnostic-info
+        id: diagnostic-info
         if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
         run: |
           kubectl get pods -o wide -A | tee pods-list.txt

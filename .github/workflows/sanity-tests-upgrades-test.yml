@@ -225,7 +225,7 @@ jobs:
       - name: Deploy edge node
         shell: bash
         run: |
-          mage devUtils:deployEnic 1 dev-coder
+          mage devUtils:deployEnic 1 dev
           mage devUtils:registerEnic
           mage devUtils:provisionEnic
           sleep 5

@@ -75,13 +75,10 @@ jobs:
           GIT_USER: "git"
           GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
         run: |
-          pwd
-          ls
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git branch
           git fetch
-          git checkout v3.0.0-rc4
+          git checkout v3.0.0
           git checkout -b dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
           sed -i 's/^mage 1\.14\.0$/mage 1.15.0/' .tool-versions
@@ -97,7 +94,7 @@ jobs:
       - name: Print current git hash of the emf PR
         run: echo "Current emf git hash is ${{ env.GIT_HASH_DEPLOY }}"
 
-      - name: Deploy External Orchestrator
+      - name: Deploy Orchestrator
         id: deploy-orch
         env:
           GIT_USER: "git"
@@ -118,23 +115,18 @@ jobs:
           mage argo:addGithubRepos
 
       - name: Verify Kind Deployment
-        id: verify-emf
+        id: verify-emf-deployment
         timeout-minutes: 25
         run: |
           echo "Starting to verify Orchestrator deployment..."
           mage deploy:waitUntilComplete
+          echo "Prints pods status..."
+          kubectl get pods -A
           echo "Orchestrator deployment verified!"
           mage router:stop router:start
           echo "Router restarted"
 
-      - name: Verify Kind Deployment
-        id: verify-emf-after-upgrade-kubectl-1
-        timeout-minutes: 10
-        run: |
-          echo "Kubectl verify Orchestrator deployment..."
-          kubectl get pods -A
-
-      - name: Set custom emf deployment with branch dev/infra-charts-upgr-test
+      - name: Upgrade emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
         env:
           INFRA_CHARTS_REV: ${{ env.GIT_HASH_CHARTS }}
@@ -169,17 +161,11 @@ jobs:
           git commit -a -m "Upgrade EIM infra-charts-upgr-test PR ${INFRA_CHARTS_REV}"
           git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
-          sleep 1m
-
-          echo "Adds Aargo Github Reopos..."
-          mage argo:login
-          mage argo:addGithubRepos
           echo "Apply updates"
           mage deploy:orchLocal dev
           sleep 1m
           echo "Sync applications..."
           argocd app sync dev/infra-managers dev/infra-core dev/infra-external dev/infra-onboarding --grpc-web
-          sleep 1m
           echo "Orchestrator upgrade done!"
     
 
@@ -189,11 +175,11 @@ jobs:
         run: |
           echo "Verify deployment..."     
           mage deploy:waitUntilComplete
-          echo "Prints status of pods in orch-infra namespace..."
-          kubectl get pods -n orch-infra
+          echo "Prints status of pods..."
+          kubectl get pods -A
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
-          echo "Orchestrator deployment verified!"
+          echo "Orchestrator upgrade verified!"
 
       - name: Setup Test environment
         shell: bash
@@ -216,8 +202,8 @@ jobs:
         shell: bash
         run: |
           mage devUtils:deployEnic 1 dev
-          mage devUtils:registerEnic enic-1
-          mage devUtils:provisionEnic enic-1
+          mage devUtils:registerEnic enic-0
+          mage devUtils:provisionEnic enic-0
           sleep 5
           mage devUtils:WaitForEnic
 

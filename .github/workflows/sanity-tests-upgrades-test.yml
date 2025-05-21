@@ -106,8 +106,6 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.SYS_DOCKERHUB_RO }}
           DOCKERHUB_USERNAME: ${{ secrets.SYS_DOCKERHUB_USERNAME }}
         run: |
-          ls
-          pwd
           set +x
           echo "Starting to deploy Orchestrator..."
           mage deploy:kindAll
@@ -115,37 +113,9 @@ jobs:
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
           
-          echo "Adds Aargo Github Reopos..."
+          echo "Adding Argo Github Repos..."
           mage argo:login
           mage argo:addGithubRepos
-
-
-          echo $ORCH_DOMAIN
-
-    #  - name: After deployment started
-    #    id: verify-emf-after-upgrade
-    #    timeout-minutes: 10
-    #    run: |
-    #      echo "Starting to verify Orchestrator deployment..."
-    #      sleep 1m
-    #      mage argo:login
-    #      echo "Extracting admin password..."
-    #      ARGO_PASSWORD=$(kubectl -n argocd get secret argocd-secret -o jsonpath="{.data.admin\.password}" | base64 -d)
-#
- #         ARGO_IP=$(kubectl -n argocd get svc argocd-server -o jsonpath="{.spec.clusterIP}")
-
- #         echo "Trying to auto-discover ArgoCD FQDN..."
- #         IP=$(kubectl get node -o jsonpath="{.items[0].status.addresses[?(@.type=='InternalIP')].address}")
- #         FQDN="argo.orch-${IP//./-}.espdqa.infra-host.com"
- #         echo "Using ArgoCD FQDN: $FQDN"
-
-  #        echo "Getting admin password..."
-  #        PASSWORD=$(kubectl -n argocd get secret argocd-secret -o jsonpath="{.data.admin\.password}" | base64 -d)
-  #        printenv | sort
-  #        echo "Logging in to ArgoCD..."
-  #        echo "ORCH_DOMAIN=$ORCH_DOMAIN"
-  #        echo argocd login argo.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
-  #        argocd login argo.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
 
       - name: Verify Kind Deployment
         id: verify-emf
@@ -157,60 +127,12 @@ jobs:
           mage router:stop router:start
           echo "Router restarted"
 
-
-
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade-kubectl-1
         timeout-minutes: 10
         run: |
           echo "Kubectl verify Orchestrator deployment..."
           kubectl get pods -A
-
-    #  - name: Patch ArgoCD RBAC for admin sync access
-    #    run: |
-    #      echo "Patching ArgoCD RBAC configmap..."
-    #      kubectl -n argocd patch configmap argocd-rbac-cm --type merge -p '
-     #     data:
-     #       policy.csv: |
-    #          p, role:admin, applications, sync, *, allow
-    #          g, admin, role:admin
-    #        policy.default: role:admin
-    #      '
-
-    #      echo "Restarting ArgoCD server to apply RBAC changes..."
-    #      kubectl -n argocd rollout restart deployment argocd-server
-
-    #      echo "Waiting for ArgoCD server to become ready..."
-    #      kubectl -n argocd rollout status deployment argocd-server --timeout=60s
-
-    #      mage deploy:waitUntilComplete
-
-
-    #  - name: Setup Test environment
-    #    shell: bash
-    #    run: |
-    #      sudo awk -i inplace '/BEGIN ORCH DEVELOPMENT HOSTS/,/END ORCH DEVELOPMENT HOSTS/ { next } 1' /etc/hosts
-    #      sudo awk -i inplace '/BEGIN ORCH SRE DEVELOPMENT HOST/,/END ORCH SRE DEVELOPMENT HOST/ { next } 1' /etc/hosts
-    #      mage gen:hostfileTraefik | sudo tee -a /etc/hosts > /dev/null
-    #      echo "Updated Hostfile entries!"
-    #      mage gen:orchCa deploy:orchCa
-#
-    #  - name: Setup users and project/org
-    #    shell: bash
-    #    run: |
-    #      mage tenantUtils:createDefaultMtSetup
-    #      echo "Orch org/project/users created!"
-    #      echo "Project uID:"
-    #      kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID"
-#
-    #  - name: Deploy edge node
-    #    shell: bash
-    #    run: |
-    #      mage devUtils:deployEnic 1 dev-coder
-    #      mage devUtils:registerEnic
-    #      mage devUtils:provisionEnic
-    #      sleep 5
-    #      mage devUtils:WaitForEnic
 
       - name: Set custom emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
@@ -255,10 +177,16 @@ jobs:
           mage argo:addGithubRepos
           mage deploy:orchLocal dev
           sleep 1m
+          echo "Manifests before upgrade.."
           argocd app manifests dev/infra-managers --grpc-web
+          echo "Describe mm pod before sync ..."
+          kubectl describe pod $(kubectl get pods -n orch-infra --no-headers -o custom-columns=":metadata.name" | grep ^maintenance-manager-) -n orch-infra
           echo "Sync application..."
           argocd app sync dev/infra-managers --grpc-web
           sleep 1m
+          echo "Describe mm pod after sync ..."
+          kubectl describe pod $(kubectl get pods -n orch-infra --no-headers -o custom-columns=":metadata.name" | grep ^maintenance-manager-) -n orch-infra
+          echo "Sync application..."
           argocd app manifests dev/infra-managers --grpc-web
           echo "Orchestrator UPGRADE done!"
           echo "Root App Status:"
@@ -270,51 +198,6 @@ jobs:
           echo "Orchestrator deployment verified!"
           argocd app manifests dev/infra-managers --grpc-web
 
-#      - name: Verify Kind Deployment
-#        id: verify-emf-after-upgrade-2
- #       env:
-#          GIT_USER: "git"
-##          GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
- #         EDGE_MANAGEABILITY_FRAMEWORK_REV: ${{ env.GIT_HASH_DEPLOY }}
- #         DOCKERHUB_TOKEN: ${{ secrets.SYS_DOCKERHUB_RO }}
- #         DOCKERHUB_USERNAME: ${{ secrets.SYS_DOCKERHUB_USERNAME }}
- #       timeout-minutes: 10
- #       run: |
- #         echo "Starting to verify Orchestrator deployment..."
- #         sleep 1m
- #         mage argo:login
- #         echo "Sync application..."
- #         argocd app sync infra-managers --grpc-web
- #         sleep 3m
-
-  #        echo "Orchestrator UPGRADE done!"
- #         echo "Root App Status:"
- #         kubectl -n dev get applications infra-managers -o yaml
-                    
- #         mage deploy:waitUntilComplete
- #         echo "Orchestrator deployment verified!"
- #         mage router:stop router:start
- #         echo "Router restarted"
-
-  #        echo "Extracting admin password..."
-   #       ARGO_PASSWORD=$(kubectl -n argocd get secret argocd-secret -o jsonpath="{.data.admin\.password}" | base64 -d)
-
-  #        ARGO_IP=$(kubectl -n argocd get svc argocd-server -o jsonpath="{.spec.clusterIP}")
-
-  #        echo "Trying to auto-discover ArgoCD FQDN..."
-  #        IP=$(kubectl get node -o jsonpath="{.items[0].status.addresses[?(@.type=='InternalIP')].address}")
-  #        FQDN="argo.orch-${IP//./-}.espdqa.infra-host.com"
-  #        echo "Using ArgoCD FQDN: $FQDN"
-
-  #        echo "Getting admin password..."
-  #        PASSWORD=$(kubectl -n argocd get secret argocd-secret -o jsonpath="{.data.admin\.password}" | base64 -d)
- #         printenv | sort
-  #        echo "Logging in to ArgoCD..."
- #         echo "FQDN=$FQDN"
- #         echo "ORCH_DOMAIN=$ORCH_DOMAIN"
- #         echo argocd login argocd.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
-  #        argocd login argocd.kind.internal --username admin --password ChangeMeOn1stLogin! --insecure
-
       - name: Verify Kind Deployment
         id: verify-emf-after-upgrade-kubectl-2
         timeout-minutes: 10
@@ -322,26 +205,52 @@ jobs:
           echo "Kubectl verify Orchestrator deployment..."
           kubectl get pods -A
 
-  #    - name: Get diagnostic information
-  #      id: diagnostic-info
-   #     if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
-  #      run: |
-  #        kubectl get pods -o wide -A | tee pods-list.txt
-  #        kubectl describe pods -A | tee pods-describe.txt
-  #        mage logutils:collectArgoDiags | tee argo-diag.txt
-  #        kubectl get applications -o yaml -A | tee argocd-applications.yaml
+      - name: Setup Test environment
+        shell: bash
+        run: |
+          sudo awk -i inplace '/BEGIN ORCH DEVELOPMENT HOSTS/,/END ORCH DEVELOPMENT HOSTS/ { next } 1' /etc/hosts
+          sudo awk -i inplace '/BEGIN ORCH SRE DEVELOPMENT HOST/,/END ORCH SRE DEVELOPMENT HOST/ { next } 1' /etc/hosts
+          mage gen:hostfileTraefik | sudo tee -a /etc/hosts > /dev/null
+          echo "Updated Hostfile entries!"
+          mage gen:orchCa deploy:orchCa
 
-  #    - name: Upload diagnostic artifacts
-  #      if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
-  #      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-  #      with:
-  #        name: pods-apps-logs
-  #        path: |
-  #          argo-diag.txt
-  #          pods-describe.txt
-  #          pods-list.txt
-  #          argocd-applications.yaml
+      - name: Setup users and project/org
+        shell: bash
+        run: |
+          mage tenantUtils:createDefaultMtSetup
+          echo "Orch org/project/users created!"
+          echo "Project uID:"
+          kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID"
 
+      - name: Deploy edge node
+        shell: bash
+        run: |
+          mage devUtils:deployEnic 1 dev-coder
+          mage devUtils:registerEnic
+          mage devUtils:provisionEnic
+          sleep 5
+          mage devUtils:WaitForEnic
+
+      - name: Get diagnostic information
+         id: diagnostic-info
+        if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
+        run: |
+          kubectl get pods -o wide -A | tee pods-list.txt
+          kubectl describe pods -A | tee pods-describe.txt
+          mage logutils:collectArgoDiags | tee argo-diag.txt
+          kubectl get applications -o yaml -A | tee argocd-applications.yaml
+
+      - name: Upload diagnostic artifacts
+        if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: pods-apps-logs
+          path: |
+            argo-diag.txt
+            pods-describe.txt
+            pods-list.txt
+            argocd-applications.yaml
+  
       - name: Clean custom branch dev/infra-charts-upgr-test
         if: ${{ always() && steps.new-emf-branch.conclusion == 'success' }}
         env:

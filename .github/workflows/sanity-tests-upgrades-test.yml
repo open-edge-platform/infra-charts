@@ -166,24 +166,24 @@ jobs:
           echo "Kubectl verify Orchestrator deployment..."
           kubectl get pods -A
 
-      - name: Patch ArgoCD RBAC for admin sync access
-        run: |
-          echo "Patching ArgoCD RBAC configmap..."
-          kubectl -n argocd patch configmap argocd-rbac-cm --type merge -p '
-          data:
-            policy.csv: |
-              p, role:admin, applications, sync, *, allow
-              g, admin, role:admin
-            policy.default: role:admin
-          '
+    #  - name: Patch ArgoCD RBAC for admin sync access
+    #    run: |
+    #      echo "Patching ArgoCD RBAC configmap..."
+    #      kubectl -n argocd patch configmap argocd-rbac-cm --type merge -p '
+     #     data:
+     #       policy.csv: |
+    #          p, role:admin, applications, sync, *, allow
+    #          g, admin, role:admin
+    #        policy.default: role:admin
+    #      '
 
-          echo "Restarting ArgoCD server to apply RBAC changes..."
-          kubectl -n argocd rollout restart deployment argocd-server
+    #      echo "Restarting ArgoCD server to apply RBAC changes..."
+    #      kubectl -n argocd rollout restart deployment argocd-server
 
-          echo "Waiting for ArgoCD server to become ready..."
-          kubectl -n argocd rollout status deployment argocd-server --timeout=60s
+    #      echo "Waiting for ArgoCD server to become ready..."
+    #      kubectl -n argocd rollout status deployment argocd-server --timeout=60s
 
-          mage deploy:waitUntilComplete
+    #      mage deploy:waitUntilComplete
 
 
     #  - name: Setup Test environment

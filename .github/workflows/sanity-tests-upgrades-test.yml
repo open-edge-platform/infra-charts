@@ -126,7 +126,7 @@ jobs:
           mage router:stop router:start
           echo "Router restarted"
 
-            - name: Setup environment
+      - name: Setup environment
         shell: bash
         run: |
           sudo awk -i inplace '/BEGIN ORCH DEVELOPMENT HOSTS/,/END ORCH DEVELOPMENT HOSTS/ { next } 1' /etc/hosts

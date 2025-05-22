@@ -18,6 +18,7 @@ data:
     no-hosts
     log-dhcp
     log-queries
+    log-facility=-
     log-debug
     enable-tftp
     tftp-root={{ .Values.config.tftpRoot }}

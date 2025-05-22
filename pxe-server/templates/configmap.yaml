@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pxe-server-config
+data:
+  dnsmasq.conf: |
+    interface={{ .Values.config.interface }}
+    bind-interfaces
+    port=0
+    # 192.168.160.0 is dummy IP address that is needed to meet dnsmasq syntax requirements.
+    # The line below is used to turn dnsmasq into ProxyDHCP mode. 
+    dhcp-range=192.168.160.0,proxy
+    
+    log-dhcp
+    log-queries
+    log-debug
+    enable-tftp
+    tftp-root={{ .Values.config.tftpRoot }}
+
+    dhcp-match=set:pxe,60,PXEClient
+    dhcp-match=set:efi64,option:client-arch,7
+
+    pxe-service=tag:pxe,tag:efi64,x86-64_EFI,"Network Boot UEFI x86_64",{{ .Values.config.bootFile }},{{ .Values.config.bootServer }}

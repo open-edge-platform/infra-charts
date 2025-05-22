@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+image:
+  repository: ghcr.io/openwrt/packages/network/services/dnsmasq
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "pxe-server"
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+    add: ["NET_ADMIN"]
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+config:
+  interface:
+  tftpRoot:
+  bootFile:
+  bootServer:

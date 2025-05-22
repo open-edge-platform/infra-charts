@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pxe-server.fullname" . }}
+  labels:
+    {{- include "pxe-server.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "pxe-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "pxe-server.selectorLabels" . | nindent 8 }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/dnsmasq.conf
+              subPath: dnsmasq.conf
+            - name: tftp-root
+              mountPath: {{ .Values.tftpRoot }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          args:
+            - "-k"  # Keep in foreground
+            - "--conf-file=/etc/dnsmasq.conf"
+      volumes:
+        - name: config
+          configMap:
+            name: pxe-server-config
+        - name: tftp-root
+          hostPath:
+            path: {{ .Values.tftpRoot }}
+            type: DirectoryOrCreate

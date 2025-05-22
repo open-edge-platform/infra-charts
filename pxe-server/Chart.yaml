@@ -6,7 +6,7 @@ name: pxe-server
 description: Edge Infrastructure Manager PXE Server
 type: application
 version: 0.1.0
-appVersion: "0.16.2"
+appVersion: "2.90-r3"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

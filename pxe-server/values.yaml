@@ -4,7 +4,6 @@
 
 image:
   repository: 4km3/dnsmasq
-  tag: latest #TODO: replace with tag
   pullPolicy: IfNotPresent
 
 nameOverride: ""

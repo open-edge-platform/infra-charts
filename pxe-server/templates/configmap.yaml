@@ -10,9 +10,9 @@ data:
     interface={{ .Values.config.interface }}
     bind-interfaces
     port=0
-    # 192.168.160.0 is dummy IP address that is needed to meet dnsmasq syntax requirements.
+    # 0.0.0.0 is dummy IP address that is needed to meet dnsmasq syntax requirements.
     # The line below is used to turn dnsmasq into ProxyDHCP mode. 
-    dhcp-range=192.168.160.0,proxy
+    dhcp-range=0.0.0.0,proxy
     
     leasefile-ro
     no-hosts

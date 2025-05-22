@@ -14,6 +14,8 @@ data:
     # The line below is used to turn dnsmasq into ProxyDHCP mode. 
     dhcp-range=192.168.160.0,proxy
     
+    leasefile-ro
+    no-hosts
     log-dhcp
     log-queries
     log-debug

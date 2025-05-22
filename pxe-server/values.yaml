@@ -3,8 +3,8 @@
 ---
 
 image:
-  repository: ghcr.io/openwrt/packages/network/services/dnsmasq
-  tag: latest
+  repository: 4km3/dnsmasq
+  tag: latest #TODO: replace with tag
   pullPolicy: IfNotPresent
 
 nameOverride: ""
@@ -12,13 +12,11 @@ fullnameOverride: "pxe-server"
 
 securityContext:
   capabilities:
-    drop:
-      - ALL
     add: ["NET_ADMIN"]
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
-  runAsNonRoot: true
-  runAsUser: 65534
+#  readOnlyRootFilesystem: true
+#  allowPrivilegeEscalation: false
+#  runAsNonRoot: true
+#  runAsUser: 65534
 
 config:
   interface:

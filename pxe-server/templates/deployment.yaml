@@ -33,7 +33,7 @@ spec:
               mountPath: /etc/dnsmasq.conf
               subPath: dnsmasq.conf
             - name: nginx-pvc
-              mountPath: "/var/lib/tftp/ipxe.efi"
+              mountPath: "/var/lib/tftp/signed_ipxe.efi"
               subpath: "signed_ipxe.efi"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}

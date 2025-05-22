@@ -1,0 +1,121 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+name: Post-Merge CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  workflow_dispatch:
+
+permissions: {} 
+
+jobs:
+  sanitize-project-folder:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      sanitized_project_name: ${{ steps.sanitize.outputs.sanitized_project_name }}
+    steps:
+      - name: Sanitize project folder
+        id: sanitize
+        run: |
+          # check if inputs.project_folder is set, if not return repository name
+          if [ -z "${{ inputs.project_folder }}" ] || [ "${{ inputs.project_folder }}" = "." ]; then
+            SANITIZED_PROJECT_NAME="${GITHUB_REPOSITORY#"${GITHUB_REPOSITORY_OWNER}/"}"
+          else
+            SANITIZED_PROJECT_NAME=$(echo "${{ inputs.project_folder }}" | tr '/' '-')
+          fi
+
+          echo "SANITIZED_PROJECT_NAME=${SANITIZED_PROJECT_NAME}" >> "$GITHUB_ENV"
+          echo "sanitized_project_name=${SANITIZED_PROJECT_NAME}" >> "$GITHUB_OUTPUT"
+  scorecard:
+    runs-on: ubuntu-latest
+    needs: sanitize-project-folder
+    permissions:
+      contents: read
+      # Needed to upload the results to code-scanning dashboard.
+      security-events: write
+      # Needed to publish results and get a badge (see publish_results below).
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Run OpenSSF Scorecard
+        uses: ossf/scorecard-action@f49aabe0b5af0936a0987cfb85d86b75731b0186  # v2.4.1
+        with:
+          results_file: scorecard-results-${{ needs.sanitize-project-folder.outputs.sanitized_project_name }}.sarif
+          results_format: sarif
+          repo_token: ${{ secrets.SYS_ORCH_GITHUB }}
+          publish_results: true
+      - name: Upload Scorecard Results
+        uses: github/codeql-action/upload-sarif@28deaeda66b76a05916b6923827895f2b14ab387  # v3.28.16
+        with:
+          sarif_file: scorecard-results-${{ needs.sanitize-project-folder.outputs.sanitized_project_name }}.sarif
+      - name: Upload Scorecard Results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: scorecard-results-${{ needs.sanitize-project-folder.outputs.sanitized_project_name }}
+          path: scorecard-results-${{ needs.sanitize-project-folder.outputs.sanitized_project_name }}.sarif
+  post-merge-pipeline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false # Do not persist credentials, otherwise they will clash with credentials set by bootstrap action
+          fetch-depth: 0 # Fetch all history, WO sporadic issue with missing tags
+          fetch-tags: true # Fetch tags
+          ref: ${{ github.head_ref }} # Checkout the branch that triggered the workflow to avoid detached HEAD
+
+      - name: Checkout action repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: open-edge-platform/orch-ci
+          path: ci
+          token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+      # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
+      - name: Set environment
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@main
+        with:
+          gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+      - name: Build and pack charts
+        run: make helm-build
+
+      - name: Run post-merge sanity tests
+        run: echo "Add post-merge sanity tests"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
+          aws-secret-access-key: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
+          aws-region: us-west-2
+
+      - uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        with:
+          registries: "080137407410"
+
+      - name: Push charts
+        run: make helm-push
+
+      - name: Tag repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
+        run: |
+          # Uses .chartver.yaml file to perform tagging in the repo with prefix for each umbrella folder
+          for dir in infra-core infra-external infra-managers infra-onboarding; do
+            pushd $dir
+            $GITHUB_WORKSPACE/ci/scripts/version-tag-param.sh "${dir}-" || true
+            popd
+          done

@@ -36,7 +36,7 @@ jobs:
     name: Deploy Kind Orchestrator Upgrade Infra charts and test EMF
     if: |
       github.event_name != 'pull_request_review_comment' || 
-      (github.event.comment.body && contains(github.event.comment.body, 'sanity-tests'))
+      (github.event.comment.body && contains(github.event.comment.body, 'upgrade-test'))
     runs-on: ubuntu-24.04-16core-64GB
     timeout-minutes: 90
     env:

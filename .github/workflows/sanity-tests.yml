@@ -101,8 +101,6 @@ jobs:
           git commit -a -m "Custom infra-charts PR ${INFRA_CHARTS_REV}"
           git push origin dev/infra-charts-${INFRA_CHARTS_REV}
 
-
-
       - name: Get current git hash of the emf PR
         id: get-git-hash-deploy
         run: echo "GIT_HASH_DEPLOY=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"

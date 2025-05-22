@@ -33,7 +33,7 @@ spec:
               mountPath: /etc/dnsmasq.conf
               subPath: dnsmasq.conf
             - name: tftp-root
-              mountPath: {{ .Values.tftpRoot }}
+              mountPath: {{ .Values.config.tftpRoot }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           args:
@@ -45,5 +45,5 @@ spec:
             name: pxe-server-config
         - name: tftp-root
           hostPath:
-            path: {{ .Values.tftpRoot }}
+            path: {{ .Values.config.tftpRoot }}
             type: DirectoryOrCreate

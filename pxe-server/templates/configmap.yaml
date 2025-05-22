@@ -21,9 +21,9 @@ data:
     log-facility=-
     log-debug
     enable-tftp
-    tftp-root={{ .Values.config.tftpRoot }}
+    tftp-root=/var/lib/tftp
 
     dhcp-match=set:pxe,60,PXEClient
     dhcp-match=set:efi64,option:client-arch,7
 
-    pxe-service=tag:pxe,tag:efi64,x86-64_EFI,"Network Boot UEFI x86_64",{{ .Values.config.bootFile }},{{ .Values.config.bootServer }}
+    pxe-service=tag:pxe,tag:efi64,x86-64_EFI,"Network Boot UEFI x86_64",ipxe.efi,{{ .Values.config.bootServer }}

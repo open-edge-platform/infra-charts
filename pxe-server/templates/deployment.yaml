@@ -32,8 +32,9 @@ spec:
             - name: config
               mountPath: /etc/dnsmasq.conf
               subPath: dnsmasq.conf
-            - name: tftp-root
-              mountPath: {{ .Values.config.tftpRoot }}
+            - name: nginx-pvc
+              mountPath: /var/lib/tftp/ipxe.efi
+              subpath: signed_ipxe.efi
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           args:
@@ -43,7 +44,6 @@ spec:
         - name: config
           configMap:
             name: pxe-server-config
-        - name: tftp-root
-          hostPath:
-            path: {{ .Values.config.tftpRoot }}
-            type: DirectoryOrCreate
+        - name: nginx-pvc
+          persistentVolumeClaim:
+            claimName: "{{ .Values.pvc.claimName }}"

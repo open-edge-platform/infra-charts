@@ -20,6 +20,7 @@ securityContext:
 
 config:
   interface:
-  tftpRoot:
-  bootFile:
   bootServer:
+
+pvc:
+  claimName: dkam-tink-shared-pvc

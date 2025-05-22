@@ -143,14 +143,48 @@ jobs:
           echo "Project uID:"
           kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID"
 
-      - name: Deploy edge node
+      - name: Setup edge-node-simulator
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          echo "Starting to instantiate ensim"
+          helm upgrade --install -n orch-infra ensim \
+              oci://registry-rs.edgeorchestration.intel.com/edge-orch/infra/charts/ensim \
+              --set global.registry.name=registry-rs.edgeorchestration.intel.com/edge-orch/ \
+              --set configArgs.server.orchFQDN=kind.internal \
+              --set tlsSecretName=gateway-ca-cert
+          echo "Wait for ensim to be running!"
+          sleep 5
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ensim -n orch-infra --timeout=5m
+
+      - name: Checkout ensim (virtual-edge-node) repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: open-edge-platform/virtual-edge-node
+          path: virtual-edge-node
+          token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+      - name: Checkout latest released tag of virtual-edge-node/edge-node-simulator repository
+        working-directory: virtual-edge-node
         shell: bash
         run: |
-          mage devUtils:deployEnic 1 dev
-          mage devUtils:registerEnic enic-0
-          mage devUtils:provisionEnic enic-0
-          sleep 5
-          mage devUtils:WaitForEnic
+          echo "Fetching all tags..."
+          git fetch --tags
+          echo "Finding the latest tag matching 'edge-node-simulator/v*'..."
+          LATEST_TAG=$(git tag -l "edge-node-simulator/v*" | sort -V | tail -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No tags found matching 'edge-node-simulator/x.y.z'. Exiting."
+            exit 1
+          fi
+          echo "Checking out the latest tag: $LATEST_TAG"
+          git checkout $LATEST_TAG
+
+      - name: Install virtual-edge-node tools-versions
+        working-directory: virtual-edge-node
+        shell: bash
+        run: |
+          asdf install
+
 
       - name: Upgrade emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
@@ -204,11 +238,56 @@ jobs:
           kubectl -n dev get applications root-app -o yaml
           echo "Orchestrator upgrade verified!"
 
-      - name: Verify edge node
+
+      - name: Run E2E integration tests
+        working-directory: virtual-edge-node/edge-node-simulator
+        env:
+          CA_PATH: ${{ github.workspace }}/orch-ca.crt
+          PASSWORD: 'ChangeMeOn1stLogin!'
         shell: bash
         run: |
-          mage devUtils:WaitForEnic
+          PROJECT_ID=$(kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID")
+          echo "Set port-forward to ensim/api"
+          kubectl port-forward svc/ensim -n orch-infra --address 0.0.0.0 3196:3196 &
+          kubectl port-forward svc/api -n orch-infra --address 0.0.0.0 8080:8080 &
 
+          echo "Runs day0 tests"
+          # Runs day0 integration tests
+          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-day0" ./test/infra -- \
+            -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
+            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
+
+          echo "Runs day1 tests"
+          # Runs day1 integration tests
+          ginkgo -v -r --fail-fast --race --json-report infra-tests-day1.json --output-dir . --label-filter="infra-tests-day1" ./test/infra -- \
+            -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
+            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
+
+          echo "Runs day2 tests"
+          # Runs day2 integration tests
+          ginkgo -v -r --fail-fast --race --json-report infra-tests-day2.json --output-dir . --label-filter="infra-tests-day2" ./test/infra --  \
+            -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
+            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
+
+          echo "Run hosts/locations cleanup"
+          ginkgo -v -r --fail-fast --race --label-filter="cleanup" ./test/infra --  \
+            -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
+            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
+          
+          echo "Kill port-forward to ensim/api"
+          kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/ensim' | awk '{print $2}')
+          kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/api' | awk '{print $2}')
+
+          echo "Retrieve ensim logs"
+          kubectl -n orch-infra logs deploy/ensim > ensim-upgr.logs.txt
 
       - name: Get diagnostic information
         id: diagnostic-info

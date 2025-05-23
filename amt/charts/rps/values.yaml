@@ -59,10 +59,8 @@ securityContext:
 
 service:
   type: ClusterIP
-  websocketServer:
-    port: 8080
-  webapi:
-    port: 8081
+  websocketServerport: 8080
+  webapiport: 8081
 
 serviceAccount:
   enabled: true

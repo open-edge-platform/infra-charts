@@ -10,14 +10,14 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: {{ .Values.service.cira.port }}
+  - port: {{ .Values.service.ciraport }}
     name: cira
     protocol: TCP
     appProtocol: tcp
-    targetPort: {{ .Values.service.cira.port }}
-  - port: {{ .Values.service.webapi.port }}
+    targetPort: {{ .Values.service.ciraport }}
+  - port: {{ .Values.service.webapiport }}
     name: webapi
     protocol: TCP
-    targetPort: {{ .Values.service.webapi.port }}
+    targetPort: {{ .Values.service.webapiport }}
   selector:
     {{- include "mps.selectorLabels" . | nindent 4 }}

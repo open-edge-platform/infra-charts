@@ -26,5 +26,5 @@ dependencies:
     repository: "file://../tinkerbell"
   - name: infra-config
     condition: import.infra-config.enabled
-    version: "0.6.0"
+    version: "0.6.1"
     repository: "file://../infra-config"

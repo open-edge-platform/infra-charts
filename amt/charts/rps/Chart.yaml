@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
+
 apiVersion: v2
-name: infra-config
-description: Edge Infrastructure Manager Shared Configuration
+name: rps
+description: Edge Infrastructure Manager AMT RPS
 type: application
-version: 0.6.1
-appVersion: "1.0.0"
+version: 0.0.1
+appVersion: "0.0.1"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:

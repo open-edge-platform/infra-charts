@@ -127,6 +127,7 @@ jobs:
             --set loca-manager.serviceArgs.disableCredentialsManagement=true \
             --set loca-metadata-manager.serviceArgs.disableCredentialsManagement=true \
             --set import.loca-credentials.enabled=false ${EXTERNAL_DEV_VALUES} \
+            --set import.amt.enabled=false \
             infra-external ./infra-external
           
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" ${MANAGERS_DEV_VALUES} \

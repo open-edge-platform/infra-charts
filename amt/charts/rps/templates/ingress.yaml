@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 
-{{- if .Values.traefikReverseProxy.enabled }}
-
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -18,7 +16,8 @@ spec:
       Connection: "Upgrade"
       Upgrade: "websocket"
 
----
+{{- if .Values.traefikReverseProxy.enabled }}
+
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:

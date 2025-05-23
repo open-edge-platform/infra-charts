@@ -26,7 +26,7 @@ jobs:
   upgrade-tests:
     permissions:
       contents: read
-    name: Deploy Kind Orchestrator Upgrade Infra charts and test EMF
+    name: Upgrade  deployed Infra charts and test Orchestrator
     if: |
       github.event_name != 'pull_request_review_comment' || 
       (github.event.comment.body && contains(github.event.comment.body, 'upgrade-test'))

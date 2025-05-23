@@ -3,7 +3,7 @@
 ---
 
 {{- if .Values.traefikReverseProxy.enabled }}
----
+
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -17,8 +17,8 @@ spec:
       Host: {{ .Values.traefikReverseProxy.host.grpc.name }}
       Connection: "Upgrade"
       Upgrade: "websocket"
----
 
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:

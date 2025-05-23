@@ -52,7 +52,7 @@ spec:
         {{- if .Values.standaloneMode.enabled }}
         - name: local-path
           hostPath:
-            path: {{- .Values.standaloneMode.ipxePath }}
+            path: {{- required "standaloneMode.ipxePath is mandatory!" .Values.standaloneMode.ipxePath }}
             type: File
         {{- else }}
         - name: nginx-pvc

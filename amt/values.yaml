@@ -16,8 +16,10 @@ import:
 
 mps:
   image:
+    registry:
+      name: docker.io/
     repository: intel/oact-mps
-    tag: latest
+    tag: v2.14.2
     pullPolicy: IfNotPresent
     # Image specific takes precedence
     # registry:
@@ -27,8 +29,10 @@ mps:
 
 rps:
   image:
+    registry:
+      name: docker.io/
     repository: intel/oact-rps
-    tag: latest
+    tag: v2.24.0
     pullPolicy: IfNotPresent
     # Image specific takes precedence
     # registry:

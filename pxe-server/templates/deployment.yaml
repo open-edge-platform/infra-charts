@@ -32,9 +32,14 @@ spec:
             - name: config
               mountPath: /etc/dnsmasq.conf
               subPath: dnsmasq.conf
+            {{- if .Values.standaloneMode.enabled }}
+            - name: local-path
+              mountPath: "/var/lib/tftp/ipxe.efi"
+            {{- else }}
             - name: nginx-pvc
               mountPath: "/var/lib/tftp/ipxe.efi"
               subPath: "signed_ipxe.efi"
+            {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           args:
@@ -44,6 +49,13 @@ spec:
         - name: config
           configMap:
             name: pxe-server-config
+        {{- if .Values.standaloneMode.enabled }}
+        - name: local-path
+          hostPath:
+            path: {{- .Values.standaloneMode.ipxePath }}
+            type: File
+        {{- else }}
         - name: nginx-pvc
           persistentVolumeClaim:
             claimName: "{{ .Values.pvc.claimName }}"
+        {{- end }}

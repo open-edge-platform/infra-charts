@@ -12,14 +12,21 @@ fullnameOverride: "pxe-server"
 securityContext:
   capabilities:
     add: ["NET_ADMIN"]
-#  readOnlyRootFilesystem: true
-#  allowPrivilegeEscalation: false
-#  runAsNonRoot: true
-#  runAsUser: 65534
+
+standaloneMode:
+  # Enable/disable standalone mode
+  enabled: true
+  # ipxePath specifies the local host path to the EMF's ipxe.efi
+  ipxePath:
 
 config:
+  # Name of interface in the host OS that is connected to local subnet where PXE DHCP requests are coming from
   interface:
-  bootServer:
+  # IP address assigned to the interface
+  bootServerIP:
+  # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
+  subnetAddress:
 
 pvc:
+  # PVC to mount EMF's ipxe.efi from. Used only if standaloneMode is not enabled.
   claimName: dkam-tink-shared-pvc

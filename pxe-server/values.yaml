@@ -16,7 +16,7 @@ securityContext:
 standaloneMode:
   # Enable/disable standalone mode
   enabled: false
-  # ipxePath specifies the local host path to the EMF's ipxe.efi
+  # ipxePath specifies the local host path to the EMF's ipxe.efi. Used only for standalone mode.
   ipxePath:
 
 config:

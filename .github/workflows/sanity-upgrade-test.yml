@@ -5,22 +5,16 @@
 name: Upgrade Test
 
 on:
-  pull_request:
-    branches:
-      - main
-      - release-*
-
-  workflow_dispatch:
-#  pull_request_review_comment:
-#    types: [created]  # Run on PR review comment "upgrade-test"
-#  schedule:
-#    - cron: "0 0 * * *" # Run every day at midnight
-#  workflow_dispatch:  # Run on manual trigger
-#    inputs:
-#      run-sanity-tests:
-#        description: 'Run upgrade test'
-#        required: true
-#        default: 'false'
+  pull_request_review_comment:
+    types: [created]  # Run on PR review comment "upgrade-test"
+  schedule:
+    - cron: "0 0 * * *" # Run every day at midnight
+  workflow_dispatch:  # Run on manual trigger
+    inputs:
+      run-sanity-tests:
+        description: 'Run upgrade test'
+        required: true
+        default: 'false'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

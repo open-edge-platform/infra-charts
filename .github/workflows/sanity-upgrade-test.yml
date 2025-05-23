@@ -221,14 +221,11 @@ jobs:
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-external.yaml
 
           git commit -a -m "Upgrade EIM infra-charts-upgr-test PR ${INFRA_CHARTS_REV}"
-          sleep 1m
+          
           echo "Apply updates..."
           mage deploy:orchLocal dev
           mage deploy:waitUntilComplete
           echo "Orchestrator upgrade done!"
-
-#         git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
-
     
       - name: Synchronize applications
         id: sync-emf-apps

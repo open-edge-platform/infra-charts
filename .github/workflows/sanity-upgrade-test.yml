@@ -221,7 +221,7 @@ jobs:
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-external.yaml
 
           git commit -a -m "Upgrade EIM infra-charts-upgr-test PR ${INFRA_CHARTS_REV}"
-
+          sleep 1m
           echo "Apply updates..."
           mage deploy:orchLocal dev
           mage deploy:waitUntilComplete
@@ -235,6 +235,7 @@ jobs:
         timeout-minutes: 5
         run: |
           echo "Sync applications..."
+          sleep 1m
           argocd app sync dev/infra-managers dev/infra-core dev/infra-external dev/infra-onboarding --grpc-web
           echo "Applications synchronized"
       

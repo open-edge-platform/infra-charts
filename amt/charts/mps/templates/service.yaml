@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  {{ include "mps.fullname" . }}
+  labels:
+    {{- include "mps.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.service.ciraport }}
+    name: cira
+    protocol: TCP
+    appProtocol: tcp
+    targetPort: {{ .Values.service.ciraport }}
+  - port: {{ .Values.service.webapiport }}
+    name: webapi
+    protocol: TCP
+    targetPort: {{ .Values.service.webapiport }}
+  selector:
+    {{- include "mps.selectorLabels" . | nindent 4 }}

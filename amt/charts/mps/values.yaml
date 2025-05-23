@@ -58,8 +58,10 @@ securityContext:
 
 service:
   type: ClusterIP
-  ciraport: 4433
-  webapiport: 3000
+  cira:
+    port: 4433
+  webapi:
+    port: 3000
 
 ingress:
   name: amt-api-mps

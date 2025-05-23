@@ -16,6 +16,10 @@ dependencies:
     version: "0.0.1"
     condition: amt-mps.enabled
     repository: "file://charts/mps"
+  - name: mpsrouter
+    version: "0.0.1"
+    condition: amt-mpsrouter.enabled
+    repository: "file://charts/mpsrouter"
   - name: rps
     version: "0.0.1"
     condition: amt-rps.enabled

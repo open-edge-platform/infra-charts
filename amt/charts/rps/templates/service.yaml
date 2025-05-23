@@ -9,15 +9,15 @@ metadata:
   labels:
     {{- include "rps.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   ports:
-  - port: {{ .Values.service.websocketServerport }}
+  - port: {{ .Values.service.websocketServer.port }}
     name: websockets
     protocol: TCP
-    targetPort: {{ .Values.service.websocketServerport }}
-  - port: {{ .Values.service.webapiport }}
+    targetPort: {{ .Values.service.websocketServer.port }}
+  - port: {{ .Values.service.webapi.port }}
     name: webapi
     protocol: TCP
-    targetPort: {{ .Values.service.webapiport }}
+    targetPort: {{ .Values.service.webapi.port }}
   selector:
     {{- include "rps.selectorLabels" . | nindent 4 }}

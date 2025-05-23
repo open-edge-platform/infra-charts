@@ -20,7 +20,7 @@ spec:
        - name: validate-jwt
     services:
       - name: {{ include "mps.fullname" . }}
-        port: {{ .Values.service.webapi.port }}
+        port: {{ .Values.service.webapiport }}
         scheme: http
         namespace: {{ .Release.Namespace }} 
   tls:
@@ -45,7 +45,7 @@ spec:
   - match: HostSNI(`*`)
     services:
       - name: {{ include "mps.fullname" . }}
-        port: {{ .Values.service.cira.port }}
+        port: {{ .Values.service.ciraport }}
         namespace: {{ .Release.Namespace }}
   tls:
     passthrough: true

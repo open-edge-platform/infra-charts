@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 
+{{- if .Values.traefikReverseProxy.enabled }}
+
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -16,8 +18,7 @@ spec:
       Connection: "Upgrade"
       Upgrade: "websocket"
 
-{{- if .Values.traefikReverseProxy.enabled }}
-
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -33,7 +34,7 @@ spec:
        - name: {{ include "rps.fullname" . }}-websocket-server
     services:
       - name: {{ include "rps.fullname" . }}
-        port: {{ .Values.service.websocketServer.port }}
+        port: {{ .Values.service.websocketServerport }}
         scheme: http
         namespace: {{ .Release.Namespace }}
   - match: "Host(`{{ .Values.traefikReverseProxy.host.webport.name }}`) && PathPrefix(`/`)"
@@ -42,7 +43,7 @@ spec:
        - name: validate-jwt
     services:
       - name: {{ include "rps.fullname" . }}
-        port: {{ .Values.service.webapi.port }}
+        port: {{ .Values.service.webapiport }}
         scheme: http
         namespace: {{ .Release.Namespace }}
   tls:

@@ -72,9 +72,9 @@ spec:
             - name: "RPS_VAULT_ROLE" # Added Vault role
               value: "{{ .Values.rps.vaultRole }}"
           ports:
-            - containerPort: {{ .Values.service.websocketServer.port }}
+            - containerPort: {{ .Values.service.websocketServerport }}
               name: rps
-            - containerPort: {{ .Values.service.webapi.port }}
+            - containerPort: {{ .Values.service.webapiport }}
               name: rpsweb
       {{- with .Values.affinity }}
       affinity:

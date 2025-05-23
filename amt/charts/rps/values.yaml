@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
-# SPDX-License-Identifier: LicenseRef-Intel
+# SPDX-License-Identifier: Apache-2.0
+---
 
 # Default values for AMT/RPS.
 # This is a YAML-formatted file.
@@ -41,7 +42,7 @@ config:
     protocol: "wss"
     # -- host name of websocket server
     # -- examples: vnc.kind.internal, vnc.demo.maestro.intel.com
-    hostName: "vnc.kind.internal"
+    hostName: "mps.kind.internal"
 
 podSecurityContext:
   seccompProfile:

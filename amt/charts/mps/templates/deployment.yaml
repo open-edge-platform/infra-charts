@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
-# SPDX-License-Identifier: LicenseRef-Intel
+# SPDX-License-Identifier: Apache-2.0
 ---
+
 {{- $registry := .Values.global.registry -}}
 {{ if .Values.image.registry }}
   {{- $registry = .Values.image.registry -}}

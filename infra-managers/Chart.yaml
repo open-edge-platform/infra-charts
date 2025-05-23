@@ -6,7 +6,7 @@ name: infra-managers
 description: Infrastructure Manager Managers Umbrella Chart
 type: application
 version: "2.13.0-dev"
-appVersion: "2.13.0"
+appVersion: "2.13.0-dev"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:

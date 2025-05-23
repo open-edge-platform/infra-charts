@@ -5,22 +5,16 @@
 name: Upgrade Test
 
 on:
-  pull_request:
-    branches:
-      - main
-      - release-*
-
-  workflow_dispatch:
-#  pull_request_review_comment:
-#    types: [created]  # Run on PR review comment "upgrade-test"
-#  schedule:
-#    - cron: "0 0 * * *" # Run every day at midnight
-#  workflow_dispatch:  # Run on manual trigger
-#    inputs:
-#      run-sanity-tests:
-#        description: 'Run upgrade test'
-#        required: true
-#        default: 'false'
+  pull_request_review_comment:
+    types: [created]  # Run on PR review comment "upgrade-test"
+  schedule:
+    - cron: "0 0 * * *" # Run every day at midnight
+  workflow_dispatch:  # Run on manual trigger
+    inputs:
+      run-sanity-tests:
+        description: 'Run upgrade test'
+        required: true
+        default: 'false'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -85,7 +79,6 @@ jobs:
           sed -i '/var githubRepos = \[\]/a\    "https://github.com/open-edge-platform/infra-charts",' mage/Magefile.go
 
           git commit -a -m "Custom infra-charts PR ${INFRA_CHARTS_REV}"
-#          git push origin dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
       - name: Get current git hash of the emf PR
         id: get-git-hash-deploy
@@ -185,7 +178,6 @@ jobs:
         shell: bash
         run: |
           asdf install
-
 
       - name: Upgrade emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
@@ -316,16 +308,3 @@ jobs:
             pods-describe-upgr.txt
             pods-list-upgr.txt
             argocd-applications-upgr.yaml
-  
-      - name: Clean custom branch dev/infra-charts-upgr-test
-        if: ${{ always() && steps.new-emf-branch.conclusion == 'success' }}
-        env:
-          INFRA_CHARTS_REV: ${{ env.GIT_HASH_CHARTS }}
-          GIT_USER: "git"
-          GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
-        run: |
-          set +x
-          echo "Deleting branch dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}"
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git push origin --delete dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}

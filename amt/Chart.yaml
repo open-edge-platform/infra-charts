@@ -14,9 +14,9 @@ maintainers:
 dependencies:
   - name: mps
     version: "0.0.1"
-    condition: amt-mps.enabled
+    condition: import.mps.enabled
     repository: "file://charts/mps"
   - name: rps
     version: "0.0.1"
-    condition: amt-rps.enabled
+    condition: import.rps.enabled
     repository: "file://charts/rps"

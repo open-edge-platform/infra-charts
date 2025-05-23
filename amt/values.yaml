@@ -8,12 +8,13 @@ global:
     imagePullSecrets:
       - name: ""
 
-mps:
-  name: mps
-  enabled: true
-  service:
+import:
+  mps:
     enabled: true
-    type: ClusterIP
+  rps:
+    enabled: true
+
+mps:
   image:
     repository: intel/oact-mps
     tag: latest
@@ -25,11 +26,6 @@ mps:
     #     - name: ""
 
 rps:
-  name: rps
-  enabled: true
-  service:
-    enabled: true
-    type: ClusterIP
   image:
     repository: intel/oact-rps
     tag: latest

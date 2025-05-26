@@ -5,8 +5,8 @@ apiVersion: v2
 name: infra-external
 description: Edge Infrastructure Manager External Umbrella Chart
 type: application
-version: "2.3.0"
-appVersion: "2.3.0"
+version: "2.4.1"
+appVersion: "2.4.1"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:
@@ -14,7 +14,7 @@ maintainers:
 dependencies:
   - name: loca-manager
     condition: import.loca-manager.enabled
-    version: "2.16.0"
+    version: "2.17.0"
     repository: "file://../loca-manager"
   - name: loca-credentials
     condition: import.loca-credentials.enabled
@@ -22,14 +22,14 @@ dependencies:
     repository: "file://../loca-credentials"
   - name: loca-metadata-manager
     condition: import.loca-metadata-manager.enabled
-    version: "1.2.0"
+    version: "1.3.0"
     repository: "file://../loca-metadata"
   - name: loca-templates-manager
     condition: import.loca-templates-manager.enabled
-    version: "1.2.0"
+    version: "1.3.0"
     repository: "file://../loca-templates-manager"
   - name: amt
     condition: import.amt.enabled
-    version: "0.0.1"
+    version: "0.0.2"
     repository: "file://../amt"
 

@@ -22,5 +22,5 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: "{{ .Values.rbac.serviceaccount }}"
-  namespace: orch-infra
+  namespace: {{ .Release.Namespace }}
 

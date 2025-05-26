@@ -6,17 +6,17 @@ apiVersion: v2
 name: amt
 description: Edge Infrastructure Manager AMT
 type: application
-version: 0.0.2
-appVersion: "0.0.2"
+version: 0.0.3
+appVersion: "0.0.3"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team
 dependencies:
   - name: mps
-    version: "0.0.2"
+    version: "0.0.3"
     condition: import.mps.enabled
     repository: "file://charts/mps"
   - name: rps
-    version: "0.0.2"
+    version: "0.0.3"
     condition: import.rps.enabled
     repository: "file://charts/rps"

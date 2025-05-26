@@ -10,6 +10,11 @@ spec:
   template:
     spec:
       serviceAccountName: db-role-amt-sa
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 65534
       containers:
       - name: db-setup
         image: postgres:latest
@@ -17,7 +22,7 @@ spec:
         - name: PGPASSWORD_mps
           valueFrom:
             secretKeyRef:
-              name: mps-local-postgresql  # This should be the secret storing RPS password
+              name: mps-local-postgresql
               key: PGPASSWORD
         command:
           - "/bin/bash"
@@ -32,6 +37,13 @@ spec:
         volumeMounts:
           - name: mps-volume
             mountPath: /mps
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
       restartPolicy: Never
       volumes:
         - name: mps-volume

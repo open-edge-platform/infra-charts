@@ -22,7 +22,7 @@ spec:
         - name: PGPASSWORD_mps
           valueFrom:
             secretKeyRef:
-              name: mps-local-postgresql
+              name: mps-local-postgresql  # This should be the secret storing RPS password
               key: PGPASSWORD
         command:
           - "/bin/bash"

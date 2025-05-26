@@ -21,11 +21,21 @@ spec:
     spec:
       restartPolicy: OnFailure
       serviceAccountName: orch-svc
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: amt
           image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092
           command: ["/bin/sh"]
           args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
           env:
             - name: ADMIN_USER
               value: admin
@@ -45,4 +55,3 @@ spec:
           configMap:
             name: amt-configmap
             defaultMode: 0777
-

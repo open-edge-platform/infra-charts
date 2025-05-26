@@ -5,9 +5,6 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  # use a constant job name so the job won't be restarted/redeployed once we update the umbrella chart
-  # this job should run only at the very beginning of the deployment when we are sure that the Keycloak admin password
-  # from secrets is not yet changed.
   name: "{{ .Values.job.name }}"
 spec:
   template:
@@ -22,19 +19,20 @@ spec:
       restartPolicy: OnFailure
       serviceAccountName: orch-svc
       securityContext:
-        capabilities:
-          drop:
-          - ALL
-        seccompProfile:
-          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 65534
-        allowPrivilegeEscalation: false
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: amt
           image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092
           command: ["/bin/sh"]
           args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
           env:
             - name: ADMIN_USER
               value: admin
@@ -54,4 +52,3 @@ spec:
           configMap:
             name: amt-configmap
             defaultMode: 0777
-

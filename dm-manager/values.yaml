@@ -83,3 +83,13 @@ serviceArgs: {}
 
 metrics:
   enabled: false
+
+jobAnnotations:
+  "argocd.argoproj.io/hook": PostSync
+  "argocd.argoproj.io/hook-delete-policy": HookSucceeded
+
+# User-provided password
+# Should have One uppercase letter, one lowercase letter, one digit, one special character, and be at least 8 characters long.
+params:
+  password: "P@ssw0rd"
+  vaultUrl: "http://vault.orch-platform.svc:8200"

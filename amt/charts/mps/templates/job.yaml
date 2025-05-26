@@ -21,6 +21,15 @@ spec:
     spec:
       restartPolicy: OnFailure
       serviceAccountName: orch-svc
+      securityContext:
+        capabilities:
+          drop:
+          - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 65534
+        allowPrivilegeEscalation: false
       containers:
         - name: amt
           image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092

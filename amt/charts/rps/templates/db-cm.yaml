@@ -10,10 +10,8 @@ data:
   init.sql: |
     -- Contents of init.sql file goes here
    
-    SELECT 'CREATE DATABASE rpsdb' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'rpsdb')\gexec
-
-    \connect rpsdb
-
+    \connect orch-infra-rps
+    
     CREATE EXTENSION IF NOT EXISTS citext;
 
     CREATE TABLE IF NOT EXISTS ciraconfigs(

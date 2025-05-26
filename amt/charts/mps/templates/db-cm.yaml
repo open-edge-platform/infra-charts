@@ -10,10 +10,8 @@ data:
   initMPS.sql: |
     -- Contents of initMPS.sql file goes here
     
-    SELECT 'CREATE DATABASE mpsdb' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'mpsdb')\gexec
-
+    CREATE DATABASE mpsdb;
     \connect mpsdb
-
     CREATE TABLE IF NOT EXISTS devices(
           guid uuid NOT NULL,
           tags text[],

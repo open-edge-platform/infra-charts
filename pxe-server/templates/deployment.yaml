@@ -48,7 +48,7 @@ spec:
             - name: tftp-storage
               mountPath: /tftp-storage
           securityContext:
-            { { - toYaml .Values.volumeSecurityContext | nindent 12 } }
+            {{- toYaml .Values.initContainerSecurityContext | nindent 12 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

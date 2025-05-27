@@ -21,6 +21,17 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
+initContainerSecurityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - CHOWN
+  seccompProfile:
+    type: RuntimeDefault
+
 securityContext:
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false

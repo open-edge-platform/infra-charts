@@ -10,7 +10,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "loca-dm-manager.labels" . | nindent 4 }}
+    {{- include "dm-manager.labels" . | nindent 4 }}
 spec:
   template:
     metadata:
@@ -19,7 +19,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "loca-dm-manager.selectorLabels" . | nindent 8 }}
+        {{- include "dm-manager.selectorLabels" . | nindent 8 }}
     spec:
       restartPolicy: OnFailure
       serviceAccountName:  {{ .Values.serviceAccount.name }}

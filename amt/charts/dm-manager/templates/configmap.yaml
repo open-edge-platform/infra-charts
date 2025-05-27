@@ -51,7 +51,7 @@ data:
       if vault_login_output=$(curl -k -X PUT \
              "{{ .Values.params.vaultUrl }}/v1/auth/kubernetes/login" \
              -H "Authorization: Bearer $TOKEN" \
-             -d '{"jwt": "'"${TOKEN}"'", "role": "'"{{ include "loca-dm-manager.serviceAccountName" . }}"'"}') && \
+             -d '{"jwt": "'"${TOKEN}"'", "role": "'"{{ include "dm-manager.serviceAccountName" . }}"'"}') && \
           [[ ! "$vault_login_output" =~ "errors" ]]; then
         echo "Vault login successful!"
         VAULT_TOKEN=$(echo "$vault_login_output" | jq -r  '.auth.client_token')

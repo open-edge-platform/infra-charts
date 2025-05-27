@@ -8,16 +8,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "loca-dm-manager.fullname" . }}
+  name: {{ include "dm-manager.fullname" . }}
   labels:
-    {{- include "loca-dm-manager.labels" . | nindent 4 }}
+    {{- include "dm-manager.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "loca-dm-manager.selectorLabels" . | nindent 6 }}
+      {{- include "dm-manager.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -25,7 +25,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "loca-dm-manager.labels" . | nindent 8 }}
+        {{- include "dm-manager.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -36,7 +36,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- end }}
-      serviceAccountName: {{ include "loca-dm-manager.serviceAccountName" . }}
+      serviceAccountName: {{ include "dm-manager.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

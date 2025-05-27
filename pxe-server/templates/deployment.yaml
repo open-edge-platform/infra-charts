@@ -29,6 +29,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
+            - name: dnsmasq-pid-directory
+              mountPath: /var/run/eim-dnsmasq
             - name: config
               mountPath: /etc/dnsmasq.conf
               subPath: dnsmasq.conf
@@ -46,6 +48,8 @@ spec:
             - "-k"  # Keep in foreground
             - "--conf-file=/etc/dnsmasq.conf"
       volumes:
+        - name: dnsmasq-pid-directory
+          emptyDir: {}
         - name: config
           configMap:
             name: pxe-server-config

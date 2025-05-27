@@ -15,6 +15,7 @@ data:
     # The line below is used to turn dnsmasq into ProxyDHCP mode. 
     dhcp-range={{ required "config.subnetAddress is mandatory!" .Values.config.subnetAddress }},proxy
     
+    pid-file=/var/run/eim-dnsmasq/dnsmasq.pid
     leasefile-ro
     no-hosts
     log-dhcp

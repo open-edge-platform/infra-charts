@@ -9,7 +9,12 @@ image:
 nameOverride: ""
 fullnameOverride: "pxe-server"
 
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
 securityContext:
+  readOnlyRootFilesystem: true
   capabilities:
     add: ["NET_ADMIN"]
 

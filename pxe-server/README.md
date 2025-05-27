@@ -30,9 +30,9 @@ If you need to run the PXE server as a standalone Helm chart on your K8s cluster
 
 ```bash
 helm install -n orch-infra pxe-server ./pxe-server/  \
---set config.interface=<interface>,config.bootServerIP=192.168.160.37,config.subnetAddress=192.168.160.0,standaloneMode.enabled=true,standaloneMode.ipxePath="/home/onprem/signed_ipxe.efi"
+--set config.interface=<interface>,config.bootServerIP=<bootServerIP>,config.subnetAddress=<subnetAddress>,standaloneMode.enabled=true,standaloneMode.ipxePath="/home/user/signed_ipxe.efi"
 ```
 
 Note the following:
 - `standaloneMode.enabled` must be set to `true`
-- `standaloneMode.ipxePath` must specify a local OS path to the iPXE script that will be provided via TFTP to chain-load into.
+- `standaloneMode.ipxePath` must specify a local OS path to the iPXE script that will be provided via TFTP to chain-load into. The iPXE script should be downloaded from the EMF orchestrator where Edge Nodes should be connected to.

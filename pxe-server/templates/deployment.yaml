@@ -24,7 +24,7 @@ spec:
       # Do not import any DNS configuration (nether from host nor from the cluster)
       dnsPolicy: None
       dnsConfig:
-        nameservers: []
+        nameservers: ["127.0.0.1"] # it effectively disables DNS resolution
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       # init container is used to prepare mounted ipxe.efi to be served with tftp-secure option.

@@ -23,10 +23,12 @@ data:
     no-ping
     no-hosts
     no-resolv
+    {{- if .Values.config.debug }}
     log-dhcp
     log-queries
     log-facility=-
     log-debug
+    {{- end }}
     enable-tftp
     tftp-root=/var/lib/tftp
 

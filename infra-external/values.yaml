@@ -17,6 +17,8 @@ import:
     enabled: true
   loca-templates-manager:
     enabled: true
+  amt:
+    enabled: true
 # Global values overrides
 # global:
 #   registry:

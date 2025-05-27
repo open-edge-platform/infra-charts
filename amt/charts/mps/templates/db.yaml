@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup-databases-mps
+spec:
+  template:
+    spec:
+      serviceAccountName: db-role-amt-sa
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 65534
+      containers:
+      - name: db-setup
+        image: postgres:16.4
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: PGPASSWORD_mps
+          valueFrom:
+            secretKeyRef:
+              name: mps-local-postgresql  # This should be the secret storing RPS password
+              key: PGPASSWORD
+        command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            export PGPASSWORD=$PGPASSWORD_mps
+            until psql -h postgresql.orch-database -d postgres -p 5432 -U orch-infra-mps_user -W -c "SELECT 1"; do
+              echo "Waiting for PostgreSQL to be ready for mps user..."
+              sleep 1
+            done
+            psql -h postgresql.orch-database -d orch-infra-mps -p 5432 -U orch-infra-mps_user -W -f /mps/initMPS.sql
+        volumeMounts:
+          - name: mps-volume
+            mountPath: /mps
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+      restartPolicy: Never
+      volumes:
+        - name: mps-volume
+          configMap:
+            name: mps-configmap  # Name of the ConfigMap containing necessary files

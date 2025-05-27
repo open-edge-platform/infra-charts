@@ -42,6 +42,8 @@ spec:
               mountPath: "/var/lib/tftp/ipxe.efi"
               subPath: "signed_ipxe.efi"
             {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           args:

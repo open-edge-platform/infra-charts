@@ -17,6 +17,7 @@ data:
     
     pid-file=/var/run/eim-dnsmasq/dnsmasq.pid
     leasefile-ro
+    no-ping
     no-hosts
     log-dhcp
     log-queries

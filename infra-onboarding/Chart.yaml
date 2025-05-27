@@ -14,11 +14,11 @@ maintainers:
 dependencies:
   - name: onboarding-manager
     condition: import.onboarding-manager.enabled
-    version: "1.37.1"
+    version: "1.38.0"
     repository: "file://../onboarding-manager"
   - name: dkam
     condition: import.dkam.enabled
-    version: "1.27.1"
+    version: "1.28.0"
     repository: "file://../dkam"
   - name: tinkerbell
     condition: import.tinkerbell.enabled
@@ -26,7 +26,7 @@ dependencies:
     repository: "file://../tinkerbell"
   - name: infra-config
     condition: import.infra-config.enabled
-    version: "0.6.0"
+    version: "0.6.1"
     repository: "file://../infra-config"
   - name: pxe-server
     condition: import.pxe-server.enabled

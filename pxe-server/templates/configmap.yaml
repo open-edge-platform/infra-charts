@@ -31,6 +31,7 @@ data:
     {{- end }}
     enable-tftp
     tftp-root=/var/lib/tftp
+    tftp-secure
 
     dhcp-match=set:pxe,60,PXEClient
     dhcp-match=set:efi64,option:client-arch,7

@@ -67,6 +67,8 @@ securityContext:
   capabilities:
     drop:
       - ALL
+    add:
+      - MKNOD
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
   runAsNonRoot: true

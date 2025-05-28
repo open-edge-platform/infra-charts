@@ -66,10 +66,16 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes: {}
+volumes:
+- name: infra-config-volume
+  configMap:
+    name: infra-config
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: {}
+volumeMounts:
+- name: infra-config-volume
+  mountPath: "/etc/infra-config"
+  readOnly: true
 
 nodeSelector: {}
 

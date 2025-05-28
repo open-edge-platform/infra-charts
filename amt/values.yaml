@@ -13,6 +13,8 @@ import:
     enabled: true
   rps:
     enabled: true
+  dm-manager:
+    enabled: true
 
 mps:
   image:

@@ -10,9 +10,15 @@ spec:
   template:
     spec:
       serviceAccountName: db-role-amt-sa
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 65534
       containers:
       - name: db-setup
-        image: postgres:latest
+        image: postgres:16.4
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
         - name: PGPASSWORD_RPS
           valueFrom:
@@ -37,6 +43,13 @@ spec:
         volumeMounts:
           - name: rps-volume
             mountPath: /rps
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
       restartPolicy: Never
       volumes:
         - name: rps-volume

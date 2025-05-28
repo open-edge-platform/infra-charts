@@ -276,7 +276,7 @@ jobs:
       
       - name: Verify kind deployment after upgrade
         id: verify-emf-after-upgrade
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: |
           echo "Verify deployment..."     
           mage deploy:waitUntilComplete

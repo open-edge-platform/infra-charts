@@ -23,7 +23,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: db-role-amt-sa
-  namespace: orch-infra
+  namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

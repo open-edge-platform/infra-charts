@@ -207,24 +207,6 @@ jobs:
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
-      - name: Run E2E integration test - check status and delete Virtual Edge Node
-        working-directory: virtual-edge-node/edge-node-simulator
-        env:
-          CA_PATH: ${{ github.workspace }}/orch-ca.crt
-          PASSWORD: 'ChangeMeOn1stLogin!'
-          PROJECT: 'sample-project'
-        shell: bash
-        run: |
-          PROJECT_ID=$(kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID")
-
-          echo "Runs day0 tests - verify existing Virtual Edge Node is in running state and delete it"
-          # Runs day0 integration tests
-          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-delete" ./test/infra -- \
-            -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
-            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
-            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
-
       - name: Upgrade emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
         timeout-minutes: 5
@@ -283,6 +265,24 @@ jobs:
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
           echo "Orchestrator upgrade verified!"
+
+      - name: Run E2E integration test - check status and delete Virtual Edge Node
+        working-directory: virtual-edge-node/edge-node-simulator
+        env:
+          CA_PATH: ${{ github.workspace }}/orch-ca.crt
+          PASSWORD: 'ChangeMeOn1stLogin!'
+          PROJECT: 'sample-project'
+        shell: bash
+        run: |
+          PROJECT_ID=$(kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID")
+
+          echo "Runs day0 tests - verify existing Virtual Edge Node is in running state and delete it"
+          # Runs day0 integration tests
+          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-delete" ./test/infra -- \
+            -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
+            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
       - name: Run infra E2E integration tests
         working-directory: virtual-edge-node/edge-node-simulator

@@ -267,7 +267,7 @@ jobs:
     
       - name: Synchronize applications
         id: sync-emf-apps
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: |
           echo "Sync applications..."
           sleep 1m

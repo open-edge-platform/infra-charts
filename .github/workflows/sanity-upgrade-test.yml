@@ -201,7 +201,7 @@ jobs:
 
           echo "Runs day0 tests - create Virtual Edge Node"
           # Runs day0 integration tests
-          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-day0-create" ./test/infra -- \
+          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-create" ./test/infra -- \
             -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
             -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
@@ -219,7 +219,7 @@ jobs:
 
           echo "Runs day0 tests - verify existing Virtual Edge Node is in running state and delete it"
           # Runs day0 integration tests
-          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-day0-delete" ./test/infra -- \
+          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-delete" ./test/infra -- \
             -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
             -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \

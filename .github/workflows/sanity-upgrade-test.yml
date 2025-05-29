@@ -209,7 +209,7 @@ jobs:
 
       - name: Upgrade emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
-        timeout-minutes: 5
+        timeout-minutes: 15
         env:
           INFRA_CHARTS_REV: ${{ env.GIT_HASH_CHARTS }}
           GIT_USER: "git"

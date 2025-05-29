@@ -56,14 +56,18 @@ jobs:
       - name: Setup asdf and install dependencies
         uses: open-edge-platform/orch-utils/.github/actions/setup-asdf@main # zizmor: ignore[unpinned-uses]
 
-      - name: Get current git hash of the infra-charts PR
+#      - name: Get current git hash of the infra-charts PR
+#        id: get-git-hash-charts
+#        run: |
+#          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+#            echo "GIT_HASH_CHARTS=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+#          else
+#            echo "GIT_HASH_CHARTS=${{ github.sha }}" >> "$GITHUB_ENV"
+#          fi
+
+      - name: Temporarly set fixed git hash of the infra-charts PR
         id: get-git-hash-charts
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "GIT_HASH_CHARTS=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
-          else
-            echo "GIT_HASH_CHARTS=${{ github.sha }}" >> "$GITHUB_ENV"
-          fi
+        run: echo "GIT_HASH_CHARTS=53f3ee63ae72537a1a5e5b7eacfcc11752b61d39" >> "$GITHUB_ENV"
 
       - name: Print current git hash of the infra-charts PR
         run: echo "Current infra-charts git hash is ${{ env.GIT_HASH_CHARTS }}"

@@ -249,13 +249,13 @@ jobs:
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
           echo "Infra Core App Status:"
-          kubectl -n dev get applications dev/infra-core -o yaml
+          kubectl -n dev get applications infra-core -o yaml
           echo "Infra Managers App Status:"
-          kubectl -n dev get applications dev/infra-managers -o yaml
+          kubectl -n dev get applications infra-managers -o yaml
           echo "Infra External App Status:"
-          kubectl -n dev get applications dev/infra-external -o yaml
+          kubectl -n dev get applications infra-external -o yaml
           echo "Infra Onboarding App Status:"
-          kubectl -n dev get applications dev/infra-onboarding -o yaml
+          kubectl -n dev get applications infra-onboarding -o yaml
     
       - name: Synchronize applications
         id: sync-emf-apps
@@ -275,13 +275,13 @@ jobs:
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
           echo "Infra Core App Status:"
-          kubectl -n dev get applications dev/infra-core -o yaml
+          kubectl -n dev get applications infra-core -o yaml
           echo "Infra Managers App Status:"
-          kubectl -n dev get applications dev/infra-managers -o yaml
+          kubectl -n dev get applications infra-managers -o yaml
           echo "Infra External App Status:"
-          kubectl -n dev get applications dev/infra-external -o yaml
+          kubectl -n dev get applications infra-external -o yaml
           echo "Infra Onboarding App Status:"
-          kubectl -n dev get applications dev/infra-onboarding -o yaml
+          kubectl -n dev get applications infra-onboarding -o yaml
           echo "Orchestrator upgrade verified!"
 
       - name: Run E2E integration test - check status and delete Virtual Edge Node

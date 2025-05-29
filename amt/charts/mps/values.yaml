@@ -94,3 +94,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+postgresql:
+  type: "local"

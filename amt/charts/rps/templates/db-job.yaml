@@ -23,12 +23,12 @@ spec:
         - name: PGPASSWORD_RPS
           valueFrom:
             secretKeyRef:
-              name: rps-local-postgresql  # This should be the secret storing RPS password
+              name: rps-{{ .Values.postgresql.type }}-postgresql  # This should be the secret storing RPS password
               key: PGPASSWORD
         - name: PGPASSWORD_MPS
           valueFrom:
             secretKeyRef:
-              name: mps-local-postgresql  # This should be the secret storing MPS password
+              name: mps-{{ .Values.postgresql.type }}-postgresql  # This should be the secret storing MPS password
               key: PGPASSWORD
         command:
           - "/bin/bash"

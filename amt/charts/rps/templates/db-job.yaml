@@ -20,26 +20,40 @@ spec:
         image: postgres:16.4
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-        - name: PGPASSWORD_RPS
+        - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
-              name: rps-{{ .Values.postgresql.type }}-postgresql  # This should be the secret storing RPS password
+              name: rps-{{ .Values.postgresql.type }}-postgresql
               key: PGPASSWORD
-        - name: PGPASSWORD_MPS
+        - name: PGPORT
           valueFrom:
             secretKeyRef:
-              name: mps-{{ .Values.postgresql.type }}-postgresql  # This should be the secret storing MPS password
-              key: PGPASSWORD
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGPORT
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGUSER
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGDATABASE
+        - name: PGHOST
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGHOST
         command:
           - "/bin/bash"
           - "-c"
           - |
-            export PGPASSWORD=$PGPASSWORD_RPS
-            until psql -h postgresql.orch-database -d postgres -p 5432 -U orch-infra-rps_user -c "SELECT 1"; do
+            until psql -W -c "SELECT 1"; do
               echo "Waiting for PostgreSQL to be ready for RPS user..."
               sleep 1
             done
-            psql -h postgresql.orch-database -p 5432 -d orch-infra-rps -U orch-infra-rps_user -f /rps/init.sql
+            psql -W -f /rps/init.sql
         volumeMounts:
           - name: rps-volume
             mountPath: /rps

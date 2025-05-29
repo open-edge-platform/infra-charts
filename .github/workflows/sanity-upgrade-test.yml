@@ -67,7 +67,7 @@ jobs:
 
       - name: Temporarly set fixed git hash of the infra-charts PR
         id: get-git-hash-charts
-        run: echo "GIT_HASH_CHARTS=53f3ee63ae72537a1a5e5b7eacfcc11752b61d39" >> "$GITHUB_ENV"
+        run: echo "GIT_HASH_CHARTS=a81dabce1fa860008c71719ade4ac1704fc25cd6" >> "$GITHUB_ENV"
 
       - name: Print current git hash of the infra-charts PR
         run: echo "Current infra-charts git hash is ${{ env.GIT_HASH_CHARTS }}"

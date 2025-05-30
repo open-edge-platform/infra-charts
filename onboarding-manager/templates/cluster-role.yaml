@@ -12,7 +12,7 @@ rules:
     verbs: ["get", "list", "watch", "create", "delete"]
   - apiGroups: ["tinkerbell.org"]
     resources: ["templates", "templates/status"]
-    verbs: ["get", "list", "watch", "create", "delete"]
+    verbs: ["get", "list", "watch", "create", "delete", "deletecollection"]
   - apiGroups: ["tinkerbell.org"]
     resources: ["workflows", "workflows/status"] 
     verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]

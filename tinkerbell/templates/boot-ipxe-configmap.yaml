@@ -28,6 +28,7 @@ data:
     :kernelloop
     imgfetch --timeout=-1 ${download-url}/vmlinuz-${arch} && goto initboot || iseq ${idx} ${retry_limit} && goto error || inc idx && echo Unable to load ${download-url}/vmlinuz-${arch} && echo RETRY NO ${idx} && goto kernelloop
     :initboot
+    set vmlinuz_download_end ${unixtime}
     set idx:int32 0
     set retry_limit:int32 5
     set initramfs_download_start ${unixtime}
@@ -35,11 +36,14 @@ data:
     initrd --timeout=-1 ${download-url}/initramfs-${arch} && goto bootfinal || iseq ${idx} ${retry_limit} && goto error || inc idx && echo Unable to load ${download-url}/initramfs-${arch} && echo RETRY NO ${idx} && goto initloop
     :bootfinal
     set initramfs_download_end ${unixtime}
+    set network_scan_duration:expr ${network_scan_start} - ${network_scan_end}
+    set vmlinuz_download_duration:expr ${vmlinuz_download_end} - ${vmlinuz_download_start}
+    set initramfs_download_duration:expr ${initramfs_download_end} - ${initramfs_download_start}
     imgargs vmlinuz-${arch} tink_worker_image=${tink_worker_image} grpc_authority=${grpc_authority} tinkerbell_tls=false worker_id=${bootdevmac} \
     IP=${bootdevip} \
     $ADDITIONAL_KERNEL_ARGS \
     modules=loop,squashfs,sd-mod,usb-storage intel_iommu=on iommu=pt initrd=initramfs-${arch} console=tty0 console=ttyS1,115200 loglevel=2 \
-    s_vmlinux_start=${vmlinuz_download_start} s_initramfs_start=${initramfs_download_start} s_initramfs_end=${initramfs_download_end} s_netconf_start=${network_scan_start} s_netconf_end=${network_scan_end}
+    s_net_scan_duration=${network_scan_duration} s_vmlinux_download=${vmlinuz_download_duration} s_initramfs_download=${initramfs_download_duration}
     imgselect vmlinuz-${arch}
     echo The Micro-OS image downloaded successfully, booting into the Micro-OS...
     boot

@@ -5,8 +5,6 @@
 name: Sanity Tests
 
 on:
-  pull_request_review_comment:
-    types: [created]  # Run on PR review comment "sanity-tests"
   schedule:
     - cron: "0 0 * * *" # Run every day at midnight
   workflow_dispatch:  # Run on manual trigger
@@ -27,9 +25,6 @@ jobs:
     permissions:
       contents: read
     name: Deploy Kind Orchestrator and Run Sanity Tests
-    if: |
-      github.event_name != 'pull_request_review_comment' || 
-      (github.event.comment.body && contains(github.event.comment.body, 'sanity-tests'))
     runs-on: ubuntu-24.04-16core-64GB
     timeout-minutes: 90
     env:

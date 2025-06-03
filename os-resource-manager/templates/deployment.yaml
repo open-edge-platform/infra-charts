@@ -71,7 +71,9 @@ spec:
           - "--oamServerAddress={{ .Values.managerArgs.oamServerAddress }}"
           - "--manualMode={{ .Values.managerArgs.manualMode }}"
           - "--osProfileRevision={{ .Values.managerArgs.osProfileRevision }}"
+          {{- if .Values.autoProvision.enabled }}
           - "--defaultProfile={{ .Values.autoProvision.defaultProfile }}"
+          {{- end }}
           - "--autoProvisionEnabled={{ .Values.autoProvision.enabled }}"
           - "--osSecurityFeatureEnable={{ .Values.managerArgs.osSecurityFeatureEnable }}"
           {{- if .Values.managerArgs.enableTracing }}

@@ -32,7 +32,6 @@ spec:
     kind: Rule
     middlewares:
        - name: {{ include "rps.fullname" . }}-websocket-server
-       - name: validate-jwt
     services:
       - name: {{ include "rps.fullname" . }}
         port: {{ .Values.service.websocketServerport }}

@@ -17,7 +17,7 @@ dependencies:
     condition: import.mps.enabled
     repository: "file://charts/mps"
   - name: rps
-    version: "0.0.7"
+    version: "0.0.6"
     condition: import.rps.enabled
     repository: "file://charts/rps"
   - name: dm-manager

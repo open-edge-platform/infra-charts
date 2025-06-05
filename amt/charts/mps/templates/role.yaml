@@ -23,4 +23,27 @@ subjects:
 - kind: ServiceAccount
   name: "{{ .Values.rbac.serviceaccount }}"
   namespace: {{ .Release.Namespace }}
-
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "amt-kyverno-restart"
+  namespace: kyverno
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: "amt-{{ include "mps.fullname" . }}-kyverno-restart"
+subjects:
+- kind: ServiceAccount
+  name: "kyverno-background-controller"
+  namespace: kyverno
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "amt-{{ include "mps.fullname" . }}-kyverno-restart"
+  namespace: kyverno
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployment"]
+  verbs: ["create", "get","update", "list", "watch"]

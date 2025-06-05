@@ -29,7 +29,7 @@ fullnameOverride: "mps"
 
 job:
   name: amt-vault-job
-  schedule: "0 * * * *"
+  schedule: "*/50 * * * *"
   secretjob:
     name: amt-dbpassword-secret-job
     configmap: mps-db-configmap

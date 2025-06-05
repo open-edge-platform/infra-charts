@@ -5,17 +5,17 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: amt-configmap
+  name: amt-vault-script
 data:
   amt.sh: |
     #!/bin/bash
 
     # DO NOT MODIFY - SEE DESCRIPTION
 
-    # Script Name: amt-vault.sh
-    # Description: This script will accquire the service token to login to vault,
+    # Script Name: amt.sh
+    # Description: This script will acquire the service token to login to vault,
     #              fetch the vault token to create secret.
-    # Usage: ./onboard_fm_credentials.sh <KEYCLOAK_URL> <VAULT_URL>
+    # Usage: ./amt.sh <KEYCLOAK_URL> <VAULT_URL>
     #    -h:             help (optional)
 
     set -xe
@@ -40,7 +40,7 @@ data:
       $(basename "$0") <KEYCLOAK_URL> <VAULT_URL>
 
     ex:
-    ./onboard_fm_credentials.sh http://localhost:8090 http://localhost:8200
+    ./amt.sh http://localhost:8090 http://localhost:8200
 
     Options:
         -h:             help (optional)
@@ -80,30 +80,53 @@ data:
       exit 1
     fi
 
-      retry_count=0
-      while [ "$retry_count" -lt $max_retries ]; do
-        if curl -k -X POST \
-          "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/orch-infra/secrets" \
-          -H "Authorization: Bearer $TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{
-              "apiVersion": "v1",
-              "kind": "Secret",
-              "metadata": {
-                "name": "vault-token"
-              },
-              "data": {
-                "vault-token": "'$(echo -n "$VAULT_TOKEN" | base64 -w0)'"
-              }
-            }'; then
-          echo "Vault token secret created successfully!"
-          break
-        else
-          echo "Error creating vault token secret, retrying..."
-          sleep 10
-          retry_count=$((retry_count + 1))
+    retry_count=0
+    while [ "$retry_count" -lt $max_retries ]; do
+      POST_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" -k -X POST \
+        "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/{{ .Release.Namespace }}/secrets" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {
+              "name": "vault-token"
+            },
+            "data": {
+              "vault-token": "'$(echo -n "$VAULT_TOKEN" | base64 -w0)'"
+            }
+          }')
+
+      if [[ "${POST_RETURN_CODE}" =~ "201" ]]; then
+        echo "Vault token created successfully!"
+        break
+      else
+        if [[ "${POST_RETURN_CODE}" =~ "409" ]]; then
+          PUT_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" -k -X PUT \
+            "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/{{ .Release.Namespace }}/secrets/vault-token" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+                "apiVersion": "v1",
+                "kind": "Secret",
+                "metadata": {
+                  "name": "vault-token"
+                },
+                "data": {
+                  "vault-token": "'$(echo -n "$VAULT_TOKEN" | base64 -w0)'"
+                }
+              }')
+          if [[ "${PUT_RETURN_CODE}" =~ "200" ]]; then
+            echo "Vault token updated successfully!"
+            break
+          else
+            echo "Error creating vault token secret, retrying..."
+            sleep 10
+            retry_count=$((retry_count + 1))
+          fi
         fi
-      done
+      fi
+    done
 
     
     # If Istio proxy is available, quit sidecar

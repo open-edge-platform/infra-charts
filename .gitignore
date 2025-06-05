@@ -7,6 +7,7 @@ venv_charts
 .vscode
 vendor
 .DS_Store
+amt/Chart.lock
 infra-core/Chart.lock
 infra-core/charts/*.tgz
 infra-external/Chart.lock

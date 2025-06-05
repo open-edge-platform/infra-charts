@@ -28,7 +28,8 @@ nameOverride: ""
 fullnameOverride: "mps"
 
 job:
-  name: amt-job
+  name: amt-vault-job
+  schedule: "0 * * * *"
   secretjob:
     name: amt-dbpassword-secret-job
     configmap: mps-db-configmap

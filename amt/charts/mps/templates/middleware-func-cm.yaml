@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mps-middleware-configmap
+data:
+  multiTenancyMiddleware.js: |
+    import express from 'express'
+
+    const multiTenancyMiddleware = async (req, res, next) => {
+      next()
+    }
+
+    export default multiTenancyMiddleware

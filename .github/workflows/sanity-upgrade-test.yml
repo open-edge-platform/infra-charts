@@ -232,19 +232,16 @@ jobs:
           sed -i "s/targetRevision: [a-zA-Z0-9.]\+/targetRevision: ${INFRA_CHARTS_REV}/" argocd/applications/templates/infra-core.yaml
           sed -i "s/targetRevision: [a-zA-Z0-9.]\+/targetRevision: ${INFRA_CHARTS_REV}/" argocd/applications/templates/infra-managers.yaml
           sed -i "s/targetRevision: [a-zA-Z0-9.]\+/targetRevision: ${INFRA_CHARTS_REV}/" argocd/applications/templates/infra-onboarding.yaml
-          sed -i "s/targetRevision: [a-zA-Z0-9.]\+/targetRevision: ${INFRA_CHARTS_REV}/" argocd/applications/templates/infra-external.yaml
 
           # Replaces chart: infra/charts/{{$appName}} with path: {{$appName}}
           sed -i 's|chart: infra/charts/{{$appName}}|path: {{$appName}}|g' argocd/applications/templates/infra-core.yaml
           sed -i 's|chart: infra/charts/{{$appName}}|path: {{$appName}}|g' argocd/applications/templates/infra-managers.yaml
           sed -i 's|chart: infra/charts/{{$appName}}|path: {{$appName}}|g' argocd/applications/templates/infra-onboarding.yaml
-          sed -i 's|chart: infra/charts/{{$appName}}|path: {{$appName}}|g' argocd/applications/templates/infra-external.yaml
 
           # Replaces repoURL with git URL of infra-charts repository
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-core.yaml
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-managers.yaml
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-onboarding.yaml
-          sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-external.yaml
 
           git commit -a -m "Upgrade EIM infra-charts-upgr-test PR ${INFRA_CHARTS_REV}"
           

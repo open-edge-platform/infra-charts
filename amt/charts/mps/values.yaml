@@ -34,8 +34,8 @@ job:
     name: amt-dbpassword-secret-job
     configmap: mps-db-configmap
 rbac:
-  cluster_role: amt-role
-  cluster_role_binding: amt-rolebinding
+  role: amt-role
+  role_binding: amt-rolebinding
   serviceaccount: orch-svc
 
 

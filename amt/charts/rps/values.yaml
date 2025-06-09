@@ -94,3 +94,6 @@ affinity: {}
 
 postgresql:
   type: "local"
+
+oidc:
+  oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"

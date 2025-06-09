@@ -9,9 +9,78 @@ metadata:
 data:
   multiTenancyMiddleware.js: |
     import express from 'express'
+    import jwtDecode from 'jwt-decode'
+    import verify from 'jsonwebtoken'
+    import jwksClient from 'jwks-rsa'
 
-    const multiTenancyMiddleware = async(req, res, next) => {
-      next()
+    const multiTenancyMiddleware = async (req, res, next) => {
+        // Check if auth header in request
+        const authHeader = req.headers['Authorization']
+        if ( authHeader === null || authHeader === '' ) {
+            res.status(401).send('Unauthorized')
+            return
+        }
+
+        // Validate auth header in request
+        const authHeaderContents = authHeader.split(" ")
+        if ( authHeaderContents.length !== 3 ) {
+            res.status(401).send('Unauthorized')
+            return
+        }
+        const authScheme = authHeaderContents[1]
+        const authToken = authHeaderContents[2]
+        if ( !authScheme.includes('bearer') ) {
+            res.status(401).send('Unauthorized')
+            return
+        }
+
+        // Validate token
+        const tokenHeader = jwtDecode(authToken, { header: true })
+        if ( tokenHeader === null || tokenHeader === '' ) {
+            res.status(401).send('Unauthorized')
+            return
+        }
+        const tokenClaims = jwtDecode(authToken, { payload: true })
+        if ( tokenClaims === null || tokenClaims === '' ) {
+            res.status(401).send('Unauthorized')
+            return
+        }
+
+        const algMethod = tokenHeader['alg']
+        if ( algMethod === null || algMethod === '' ) {
+            res.status(401).send('Unauthorized')
+            return
+        }
+        if ( !algMethod.includes('HS') && !algMethod.includes('RS') && !algMethod.includes('PS') ) {
+            res.status(401).send('Unauthorized')
+            return
+        }
+
+        if ( algMethod.includes('HS') ) {
+            const envKey = process.env.SHARED_SECRET_KEY
+            const verifyResult = verify(authToken, envKey)
+            if ( verifyResult === null || verifyResult === '' ) {
+                res.status(401).send('Unauthorized')
+                return
+            }
+        } else if ( algMethod.includes('RS') || algMethod.includes('PS') ) {
+            const keyId = tokenHeader['kid']
+            const keyClient = jwksClient({
+                jwksUri: process.env.OIDC_SERVER_URL
+            })
+            const key = keyClient.getSigningKey(keyId)
+            const signingPublicKey = key.getPublicKey()
+            const verifyResult = verify(authToken, signingPublicKey)
+            if ( verifyResult === null || verifyResult === '' ) {
+                res.status(401).send('Unauthorized')
+                return
+            }
+        } else {
+            res.status(401).send('Unauthorized')
+            return
+        }
+
+        next()
     }
 
     export default multiTenancyMiddleware

@@ -71,6 +71,8 @@ spec:
                   key: vault-token
             - name: "RPS_VAULT_ROLE" # Added Vault role
               value: "{{ .Values.rps.vaultRole }}"
+            - name: OIDC_SERVER_URL
+              value: "{{ .Values.oidc.oidc_server_url }}"
           ports:
             - containerPort: {{ .Values.service.websocketServerport }}
               name: rps

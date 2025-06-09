@@ -79,6 +79,8 @@ spec:
                   key: vault-token
             - name: "MPS_JWT_SECRET"
               value: "notUsed"
+            - name: OIDC_SERVER_URL
+              value: "{{ .Values.oidc.oidc_server_url }}"
           ports:
             - containerPort: 3000
               name: mps

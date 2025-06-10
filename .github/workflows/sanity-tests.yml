@@ -333,7 +333,6 @@ jobs:
       - name: Get diagnostic information
         id: diagnostic-info
         if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
-        shell: bash
         run: |
           kubectl get pods -o wide -A | tee pods-list.txt
           kubectl describe pods -A | tee pods-describe.txt
@@ -357,7 +356,7 @@ jobs:
           done
 
       - name: Upload diagnostic artifacts
-        if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
+        if: ${{ always()  && steps.diagnostic-info.conclusion == 'success' && steps.diagnostic-info-logs.conclusion == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: pods-apps-logs

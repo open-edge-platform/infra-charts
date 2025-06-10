@@ -5,22 +5,17 @@
 name: Upgrade Test
 
 on:
-  pull_request:
-    branches:
-      - main
-      - release-*
-
   workflow_dispatch:
-#  pull_request_review_comment:
-#    types: [created]  # Run on PR review comment "upgrade-test"
-#  schedule:
-#    - cron: "0 0 * * *" # Run every day at midnight
-#  workflow_dispatch:  # Run on manual trigger
-#    inputs:
-#      run-upgrade-test:
-#        description: 'Run upgrade test'
-#        required: true
-#        default: 'false'
+  pull_request_review_comment:
+    types: [created]  # Run on PR review comment "upgrade-test"
+  schedule:
+    - cron: "0 0 * * *" # Run every day at midnight
+  workflow_dispatch:  # Run on manual trigger
+    inputs:
+      run-upgrade-test:
+        description: 'Run upgrade test'
+        required: true
+        default: 'false'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -32,7 +27,7 @@ jobs:
   upgrade-test:
     permissions:
       contents: read
-    name: Upgrade  deployed Infra charts and test Orchestrator
+    name: Upgrade deployed Infra charts and test Orchestrator
     if: |
       github.event_name != 'pull_request_review_comment' || 
       (github.event.comment.body && contains(github.event.comment.body, 'upgrade-test'))

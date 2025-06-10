@@ -333,7 +333,9 @@ jobs:
       - name: Get diagnostic information
         id: diagnostic-info
         if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
+        shell: bash
         run: |
+          set +x
           kubectl get pods -o wide -A | tee pods-list.txt
           kubectl describe pods -A | tee pods-describe.txt
           mage logutils:collectArgoDiags | tee argo-diag.txt

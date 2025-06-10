@@ -5,7 +5,6 @@
 name: Upgrade Test
 
 on:
-  workflow_dispatch:
   pull_request_review_comment:
     types: [created]  # Run on PR review comment "upgrade-test"
   schedule:

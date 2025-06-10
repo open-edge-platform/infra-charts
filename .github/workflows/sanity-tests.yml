@@ -5,8 +5,6 @@
 name: Sanity Tests
 
 on:
-  pull_request_review_comment:
-    types: [created]  # Run on PR review comment "sanity-tests"
   schedule:
     - cron: "0 0 * * *" # Run every day at midnight
   workflow_dispatch:  # Run on manual trigger
@@ -27,9 +25,6 @@ jobs:
     permissions:
       contents: read
     name: Deploy Kind Orchestrator and Run Sanity Tests
-    if: |
-      github.event_name != 'pull_request_review_comment' || 
-      (github.event.comment.body && contains(github.event.comment.body, 'sanity-tests'))
     runs-on: ubuntu-24.04-16core-64GB
     timeout-minutes: 90
     env:
@@ -208,39 +203,38 @@ jobs:
           PROJECT: 'sample-project'
         shell: bash
         run: |
-          PROJECT_ID=$(kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID")
           echo "Set port-forward to ensim/api"
           kubectl port-forward svc/ensim -n orch-infra --address 0.0.0.0 3196:3196 &
-          kubectl port-forward svc/api -n orch-infra --address 0.0.0.0 8080:8080 &
+          kubectl port-forward svc/apiv2-proxy -n orch-infra --address 0.0.0.0 8080:8080 &
 
           echo "Runs day0 tests"
           # Runs day0 integration tests
           ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-day0" ./test/infra -- \
-            -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
           echo "Runs day1 tests"
           # Runs day1 integration tests
           ginkgo -v -r --fail-fast --race --json-report infra-tests-day1.json --output-dir . --label-filter="infra-tests-day1" ./test/infra -- \
-            -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
           echo "Runs day2 tests"
           # Runs day2 integration tests
           ginkgo -v -r --fail-fast --race --json-report infra-tests-day2.json --output-dir . --label-filter="infra-tests-day2" ./test/infra --  \
-            -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
           echo "Run hosts/locations cleanup"
           ginkgo -v -r --fail-fast --race --label-filter="cleanup" ./test/infra --  \
-            -project=${PROJECT} -projectID=${PROJECT_ID} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
+            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
           
@@ -269,48 +263,44 @@ jobs:
           token: ${{ secrets.SYS_ORCH_GITHUB }}
           persist-credentials: false
 
-      - name: Checkout latest released tag of infra-core/api repository
+      - name: Checkout latest released tag of infra-core/apiv2 repository
         working-directory: infra-core
         shell: bash
         run: |
           echo "Fetching all tags..."
           git fetch --tags
-          echo "Finding the latest tag matching 'api/v*'..."
-          LATEST_TAG=$(git tag -l "api/v*" | sort -V | tail -n 1)
+          echo "Finding the latest tag matching 'apiv2/v*'..."
+          LATEST_TAG=$(git tag -l "apiv2/v*" | sort -V | tail -n 1)
           if [ -z "$LATEST_TAG" ]; then
-            echo "No tags found matching 'api/v*'. Exiting."
+            echo "No tags found matching 'apiv2/v*'. Exiting."
             exit 1
           fi
           echo "Checking out the latest tag: $LATEST_TAG"
           git checkout $LATEST_TAG
 
       - name: Run API integration tests
-        working-directory: infra-core/api
+        working-directory: infra-core/apiv2
         env:
           KEYCLOAK_URL: "https://keycloak.kind.internal"
           USERNAME: "sample-project-api-user"
           PASSWORD: 'ChangeMeOn1stLogin!'
-          API_URL: "http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1"
+          API_URL: "http://127.0.0.1:8080/"
           CA_PATH: ${{ github.workspace }}/orch-ca.crt
         shell: bash
         run: |
           JWT_TOKEN=$(curl -k --location --request POST ${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'grant_type=password' --data-urlencode 'client_id=system-client' --data-urlencode username=${USERNAME} --data-urlencode password=${PASSWORD} --data-urlencode 'scope=openid profile email groups' | jq -r '.access_token')
           PROJECT_ID=$(kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID")
           
-          echo "Init port-forward to api"
-          kubectl port-forward svc/api -n orch-infra --address 0.0.0.0 8080:8080 &
+          echo "Init port-forward to apiv2-proxy"
+          kubectl port-forward svc/apiv2-proxy -n orch-infra --address 0.0.0.0 8080:8080 &
 
           echo "Run API integration tests"
-          # Runs compute integration tests from test/client
-          make int-test-compute JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
           # Runs host integration tests from test/client
           make int-test-host JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
           # Runs phy location integration tests from test/client
           make int-test-location JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
           # Runs os integration tests from test/client
           make int-test-os JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
-          # Runs ou integration tests from test/client
-          make int-test-ou JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
           # Runs repeated schedule integration tests from test/client
           make int-test-sr JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
           # Runs repeated schedule integration tests from test/client
@@ -323,11 +313,9 @@ jobs:
           make int-test-provider JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
           # Runs telemetry integration tests from test/client
           make int-test-telemetry JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
-          # Runs integration tests for ECM and Observability test clients from test/client
-          make int-test-non-auth JWT_TOKEN=${JWT_TOKEN} PROJECT_ID=${PROJECT_ID} API_URL=${API_URL} CA_PATH=${CA_PATH}
-          
-          echo "Kill port-forward to api"
-          kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/api' | awk '{print $2}')
+
+          echo "Kill port-forward to apiv2-proxy"
+          kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/apiv2-proxy' | awk '{print $2}')
 
       - name: Clean custom branch dev/infra-charts
         if: ${{ always() && steps.custom-charts-branch.conclusion == 'success' }}

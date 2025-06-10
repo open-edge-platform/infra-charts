@@ -339,6 +339,15 @@ jobs:
           mage logutils:collectArgoDiags | tee argo-diag.txt
           kubectl get applications -o yaml -A | tee argocd-applications.yaml
 
+          ## Collect logs from all pods in orch-infra namespace
+          for pod in $(kubectl get pods -n orch-infra -o name | cut -d'/' -f2); do
+            mkdir -p logs/$pod
+            containers=$(kubectl get pod $pod -n orch-infra -o jsonpath='{.spec.containers[*].name}')
+            for container in $containers; do
+              kubectl logs $pod -c $container -n orch-infra > "logs/$pod/${container}.log"
+            done
+          done
+
       - name: Upload diagnostic artifacts
         if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -349,3 +358,4 @@ jobs:
             pods-describe.txt
             pods-list.txt
             argocd-applications.yaml
+            logs/**

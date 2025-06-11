@@ -42,11 +42,13 @@ metrics:
 
 env:
   # hookOSRepo defines Release Service artifact storing HookOS
-  hookOSRepo: "edge-orch/en/files/provisioning-hook-os"
+  uOSRepo: "files-edge-orch/repository/microvisor/uos/"
   # profileScriptRepo defines Release Service path where EN profile scripts are stored
   profileScriptRepo: "edge-orch/en/files/profile-scripts/"
   # hookVersion specifies the version of HookOS to be downloaded from the artifact
-  hookOSVersion: "2.2.1"
+  uOSVersion: "20250604"
+  rsProxyFilesAddress: "rs-proxy-files.orch-platform.svc.cluster.local:8081/"
+  
 
   rs_proxy_address: "rs-proxy.orch-platform.svc.cluster.local:8081/"
   mode: prod

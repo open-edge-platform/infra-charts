@@ -76,12 +76,14 @@ spec:
           env:
           - name: MODE
             value: "{{ .Values.env.mode }}"
-          - name: RS_HOOK_OS_REPO
-            value: "{{ .Values.env.hookOSRepo }}"
+          - name: UOS_REPO
+            value: "{{ .Values.env.uOSRepo }}"
           - name: RS_PROFILE_SCRIPTS_REPO
             value: "{{ .Values.env.profileScriptRepo }}"
-          - name: HOOK_OS_VERSION
-            value: "{{ .Values.env.hookOSVersion }}"
+          - name: UOS_VERSION
+            value: "{{ .Values.env.uOSVersion }}"
+          - name: RSPROXY_FILES_ADDRESS
+            value: "{{ .Values.env.rsProxyFilesAddress }}"
           - name: http_proxy
             value: "{{ .Values.proxies.http_proxy }}"
           - name: https_proxy

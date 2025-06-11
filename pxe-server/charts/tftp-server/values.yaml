@@ -8,6 +8,11 @@ global:
     imagePullSecrets:
       - name: ""
 
+image:
+  repository: alpine
+  tag: latest
+  pullPolicy: IfNotPresent
+
 podSecurityContext:
   seccompProfile:
     type: RuntimeDefault

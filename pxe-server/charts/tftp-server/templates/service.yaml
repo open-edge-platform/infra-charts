@@ -15,4 +15,4 @@ spec:
       protocol: UDP
       targetPort: {{ .Values.service.port }}
   selector:
-    {{- include "rps.selectorLabels" . | nindent 4 }}
+    {{- include "tftp-server.selectorLabels" . | nindent 4 }}

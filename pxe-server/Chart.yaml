@@ -6,7 +6,16 @@ name: pxe-server
 description: Edge Infrastructure Manager PXE Server
 type: application
 version: 0.1.0
-appVersion: "2.90-r3"
+appVersion: "0.1.0"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team
+dependencies:
+  - name: tftp-server
+    version: "0.1.0"
+    condition: import.tftp-server.enabled
+    repository: "file://charts/tftp-server"
+  - name: proxy-dhcp
+    version: "0.1.0"
+    condition: import.proxy-dhcp.enabled
+    repository: "file://charts/proxy-dhcp"

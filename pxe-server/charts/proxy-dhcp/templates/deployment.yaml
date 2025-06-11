@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "proxy-dhcp.fullname" . }}
+  labels:
+    {{- include "proxy-dhcp.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "proxy-dhcp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "proxy-dhcp.selectorLabels" . | nindent 8 }}
+    spec:
+      hostNetwork: true
+      # Do not import any DNS configuration (nether from host nor from the cluster)
+      dnsPolicy: None
+      dnsConfig:
+        nameservers: ["127.0.0.1"] # it effectively disables DNS resolution
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: dnsmasq-pid-directory
+              mountPath: /var/run/eim-dnsmasq
+            - name: config
+              mountPath: /etc/dnsmasq.conf
+              subPath: dnsmasq.conf
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              # Install dnsmasq for DHCP server and PXE boot options
+              apk add --no-cache dnsmasq
+              
+              dnsmasq --keep-in-foreground --conf-file=/etc/dnsmasq.conf
+      volumes:
+        - name: dnsmasq-pid-directory
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: dhcp-server-config

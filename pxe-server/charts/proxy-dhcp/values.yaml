@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+image:
+  repository: alpine
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "proxy-dhcp"
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+    # dnsmasq will drop privileges to the nobody user/group, but it requires certain permissions
+    add: ["NET_ADMIN", "NET_BIND_SERVICE", "SETGID", "SETUID", "CHOWN"]
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+config:
+  # Configure DHCP server to print debug logs. Do not use in production!
+  debug: false
+  # Name of interface in the host OS that is connected to local subnet where PXE DHCP requests are coming from
+  interface:
+  # IP address assigned to the interface
+  bootServerIP:
+  # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
+  subnetAddress:
+
+

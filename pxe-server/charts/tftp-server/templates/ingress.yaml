@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+{{- if .Values.traefikReverseProxy.enabled }}
+# TCP IngressRoute
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteUDP
+metadata:
+  name: "{{ .Values.ingress.name }}"
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints:
+    - udp-custom  # must match a UDP entryPoint defined in Traefik static config
+  routes:
+    - services:
+        - name: {{ include "tftp-server.fullname" . }}
+          port: {{ .Values.service.port }}
+          namespace: {{ .Release.Namespace }}
+{{- end }}

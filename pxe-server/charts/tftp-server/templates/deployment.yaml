@@ -4,13 +4,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "pxe-server.fullname" . }}
+  name: {{ include "tftp-server.fullname" . }}
   labels:
-    {{- include "pxe-server.labels" . | nindent 4 }}
+    {{- include "tftp-server.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "pxe-server.selectorLabels" . | nindent 6 }}
+      {{- include "tftp-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "pxe-server.selectorLabels" . | nindent 8 }}
+        {{- include "tftp-server.selectorLabels" . | nindent 8 }}
     spec:
-      hostNetwork: true
-      # Do not import any DNS configuration (nether from host nor from the cluster)
-      dnsPolicy: None
-      dnsConfig:
-        nameservers: ["127.0.0.1"] # it effectively disables DNS resolution
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       # init container is used to prepare mounted ipxe.efi to be served with tftp-secure option.
@@ -67,9 +62,12 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          command: ["sh", "-c"]
           args:
-            - "-k"  # Keep in foreground
-            - "--conf-file=/etc/dnsmasq.conf"
+            - |
+              apk add --no-cache tftp-hpa
+
+              in.tftpd --listen --address :6969 --secure /var/lib/tftp
       volumes:
         - name: tftp-storage
           emptyDir: {}
@@ -77,7 +75,7 @@ spec:
           emptyDir: {}
         - name: config
           configMap:
-            name: pxe-server-config
+            name: tftp-server-config
         {{- if .Values.standaloneMode.enabled }}
         - name: local-path
           hostPath:

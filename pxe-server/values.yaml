@@ -2,43 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 
-image:
-  repository: 4km3/dnsmasq
-  pullPolicy: IfNotPresent
-
-nameOverride: ""
-fullnameOverride: "pxe-server"
-
-resources:
-  requests:
-    cpu: "50m"
-    memory: "64Mi"
-  limits:
-    cpu: "100m"
-    memory: "128Mi"
-
-podSecurityContext:
-  seccompProfile:
-    type: RuntimeDefault
-
-initContainerSecurityContext:
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-    add:
-      - CHOWN
-  seccompProfile:
-    type: RuntimeDefault
-
-securityContext:
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop: ["ALL"]
-    # dnsmasq will drop privileges to the nobody user/group, but it requires certain permissions
-    add: ["NET_ADMIN", "NET_BIND_SERVICE", "SETGID", "SETUID", "CHOWN"]
+import:
+  proxy-dhcp:
+    enabled: true
+  tftp-server:
+    enabled: true
 
 standaloneMode:
   # Enable/disable standalone mode
@@ -55,7 +23,3 @@ config:
   bootServerIP:
   # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
   subnetAddress:
-
-pvc:
-  # PVC to mount EMF's ipxe.efi from. Used only if standaloneMode is not enabled.
-  claimName: dkam-tink-shared-pvc

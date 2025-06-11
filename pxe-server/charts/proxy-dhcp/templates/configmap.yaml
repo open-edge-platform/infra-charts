@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: pxe-server-config
+  name: dhcp-server-config
 data:
   dnsmasq.conf: |
     interface={{ required "config.interface is mandatory!" .Values.config.interface }}
@@ -29,9 +29,6 @@ data:
     log-facility=-
     log-debug
     {{- end }}
-    enable-tftp
-    tftp-root=/var/lib/tftp
-    tftp-secure
 
     dhcp-match=set:pxe,60,PXEClient
     dhcp-match=set:efi64,option:client-arch,7

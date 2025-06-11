@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+initContainerSecurityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - CHOWN
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+    # dnsmasq will drop privileges to the nobody user/group, but it requires certain permissions
+    add: ["NET_ADMIN", "NET_BIND_SERVICE", "SETGID", "SETUID", "CHOWN"]
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+pvc:
+  # PVC to mount EMF's ipxe.efi from. Used only if standaloneMode is not enabled.
+  claimName: dkam-tink-shared-pvc
+
+ingress:
+  name: pxe-server-tftp-endpoint
+
+traefikReverseProxy:
+  # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
+  gatewayNamespace: orch-gateway
+

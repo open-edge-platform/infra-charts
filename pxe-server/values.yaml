@@ -7,19 +7,3 @@ import:
     enabled: true
   tftp-server:
     enabled: true
-
-standaloneMode:
-  # Enable/disable standalone mode
-  enabled: false
-  # ipxePath specifies the local host path to the EMF's ipxe.efi. Used only for standalone mode.
-  ipxePath:
-
-config:
-  # Configure DHCP server to print debug logs. Do not use in production!
-  debug: false
-  # Name of interface in the host OS that is connected to local subnet where PXE DHCP requests are coming from
-  interface:
-  # IP address assigned to the interface
-  bootServerIP:
-  # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
-  subnetAddress:

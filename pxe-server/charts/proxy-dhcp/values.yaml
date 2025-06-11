@@ -45,5 +45,3 @@ config:
   bootServerIP:
   # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
   subnetAddress:
-
-

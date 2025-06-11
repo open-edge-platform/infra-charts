@@ -54,3 +54,8 @@ traefikReverseProxy:
   # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
   gatewayNamespace: orch-gateway
 
+standaloneMode:
+  # Enable/disable standalone mode
+  enabled: false
+  # ipxePath specifies the local host path to the EMF's ipxe.efi. Used only for standalone mode.
+  ipxePath:

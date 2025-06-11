@@ -43,6 +43,10 @@ pvc:
   # PVC to mount EMF's ipxe.efi from. Used only if standaloneMode is not enabled.
   claimName: dkam-tink-shared-pvc
 
+service:
+  type: ClusterIP
+  port: 6969
+
 ingress:
   name: pxe-server-tftp-endpoint
 

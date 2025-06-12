@@ -93,6 +93,9 @@ jobs:
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-onboarding.yaml
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-external.yaml
 
+          # Temporary disable infra-external chart
+          sed -i 's|    enabled: true|    enabled: false|g' argocd/applications/configs/infra-external.yaml
+
           sed -i '/var githubRepos = \[\]/a\    "https://github.com/open-edge-platform/infra-charts",' mage/Magefile.go
 
           git commit -a -m "Custom infra-charts PR ${INFRA_CHARTS_REV}"

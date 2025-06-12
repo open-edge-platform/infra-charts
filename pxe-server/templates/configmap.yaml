@@ -13,7 +13,7 @@ data:
     # subnetAddress is a network address of an IP subnet that is used to match
     # incoming DHCP requests. Only DHCP requests coming from hosts in the subnet will be handled.
     # The line below is used to turn dnsmasq into ProxyDHCP mode. 
-{{- if .Values.config.proxy-dhcp }}
+{{- if .Values.config.proxydhcp }}
     dhcp-range={{ required "config.subnetAddress is mandatory!" .Values.config.subnetAddress }},proxy
     dhcp-match=set:pxe,60,PXEClient
     dhcp-match=set:efi64,option:client-arch,7

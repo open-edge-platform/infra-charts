@@ -49,7 +49,7 @@ standaloneMode:
 
 config:
   # Disable or enable ProxyDHCP. If disabled, PXE server will run as TFTP server to serve iPXE script only.
-  proxy-dhcp: true
+  proxydhcp: true
   # Configure DHCP server to print debug logs. Do not use in production!
   debug: false
   # Name of interface in the host OS that is connected to local subnet where PXE DHCP requests are coming from

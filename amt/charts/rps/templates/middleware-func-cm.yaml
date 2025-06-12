@@ -7,5 +7,5 @@ kind: ConfigMap
 metadata:
   name: rps-middleware-configmap
 data:
-  multiTenancyMiddleware.js: |
+  multiTenancyMiddleware.js: |-
     {{ .Files.Get "multiTenancyMiddleware.js" }}

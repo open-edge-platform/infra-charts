@@ -34,7 +34,7 @@ data:
     tftp-root=/var/lib/tftp
     tftp-secure
     tftp-no-blocksize
-
+    tftp-port-range={{ .Values.config.tftp.portRangeStart }},{{ .Values.config.tftp.portRangeEnd }}
     {{- if .Values.config.debug }}
     log-dhcp
     log-queries

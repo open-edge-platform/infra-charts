@@ -65,6 +65,10 @@ config:
   # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
   # Required only if proxy-dhcp=true.
   subnetAddress:
+  tftp:
+    # 50 concurrent TFTP connections. Note that iPXE downloads are short-lived connections, so it's the worst case scale limit.
+    portRangeStart: 40000
+    portRangeEnd: 40049
 
 pvc:
   # PVC to mount EMF's ipxe.efi from. Used only if standaloneMode is not enabled.

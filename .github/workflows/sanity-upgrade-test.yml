@@ -192,7 +192,7 @@ jobs:
         run: |
           echo "Set port-forward to ensim/api"
           kubectl port-forward svc/ensim -n orch-infra --address 0.0.0.0 3196:3196 &
-          kubectl port-forward svc/api -n orch-infra --address 0.0.0.0 8080:8080 &
+          kubectl port-forward svc/apiv2-proxy -n orch-infra --address 0.0.0.0 8080:8080 &
 
           echo "Runs day0 tests - create Virtual Edge Node"
           # Runs day0 integration tests

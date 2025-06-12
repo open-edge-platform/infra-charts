@@ -34,7 +34,6 @@ managerArgs:
   globalLogLevel: "info"
   traceURL: "fluent-bit:4318"
   enableTracing: false
-  legacyMode: false
 
 metrics:
   enabled: false

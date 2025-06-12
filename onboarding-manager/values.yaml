@@ -77,8 +77,9 @@ env:
   onboardingCredentialsSecretKey: "client_secret"
   enCredentialsPrefix: "edgenode-"
   # Override it in orch-deploy to use a different TinkerAction version.
-  tinkerActionsVersion: 1.17.2
+  tinkerActionsVersion: 1.18.2
   tinkerActionsRepo: "edge-orch/infra/tinker-actions"
+  venScaleSupport: false
   # rsProxyRegistryAddress specifies the Release Service proxy address
   # It is defined and loaded as an env variable in the pod container.
   rsProxyRegistryAddress: "rs-proxy.orch-platform.svc.cluster.local:8081/"

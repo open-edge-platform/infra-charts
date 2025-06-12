@@ -65,6 +65,7 @@ spec:
           cmd:
             - "in.tftpd"
             - "--listen"
+            - "-vv"
             - "--address :6969"
             - "--secure"
             - "/var/lib/tftp"

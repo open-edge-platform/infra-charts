@@ -3,8 +3,8 @@
 
     const multiTenancyMiddleware = async (req, res, next) => {
         const isNullOrEmpty = (value) => value === null || value === ''
-        const sendUnauthorizedResponse = () => {
-            res.status(401).send('Unauthorized')
+        const sendUnauthorizedResponse = (message) => {
+            res.status(401).send(message)
         }
         // Check if NB API call
         const apiUrl = req.originalUrl
@@ -12,20 +12,20 @@
             // If NB check if header ActiveProjectID found
             const tenantId = req.headers['ActiveProjectID']
             if ( isNullOrEmpty(tenantId) ) {
-                return sendUnauthorizedResponse()
+                return sendUnauthorizedResponse('ActiveProjectID header not found')
             }
 
             // Check for auth header and decode access roles
-            const authHeader = req.headers['Authorization']
+            const authHeader = req.headers['Authorization'] ?? req.headers['authorization']
             if ( isNullOrEmpty(authHeader) ) {
-                return sendUnauthorizedResponse()
+                return sendUnauthorizedResponse('Unauthorized request')
             }
             const authHeaderContents = authHeader.split(" ")
             if ( authHeaderContents.length !== 3 ) {
-                return sendUnauthorizedResponse()
+                return sendUnauthorizedResponse('Malformed authorization header')
             }
-            if ( !authHeaderContents[1].includes['bearer'] && !authHeaderContents[1].includes('Bearer') ) {
-                return sendUnauthorizedResponse()
+            if ( !authHeaderContents[1].toLowerCase().includes['bearer'] ) {
+                return sendUnauthorizedResponse('Invalid authorization header')
             }
 
             const tokenContents = authHeaderContents[2].split(".")
@@ -34,19 +34,19 @@
             const access = claimPayload.realm_access.roles
             const accessRoles = access.split(",")
             if ( isNullOrEmpty(accessRoles) ) {
-                return sendUnauthorizedResponse()
+                return sendUnauthorizedResponse('Malformed token')
             }
 
             // Verify that token has access to tenant roles
             var tenantAccess = false
             for ( let loopCount = 0; loopCount < accessRoles.length; loopCount++ ) {
-                if ( accessRoles[loopCount].includes(tenantId) ) {
+                if ( accessRoles[loopCount].startsWith(tenantId) ) {
                     tenantAccess = true
                     loopCount = accessRoles.length
                 }
             }
             if ( !tenantAccess ) {
-                return sendUnauthorizedResponse()
+                return sendUnauthorizedResponse('Access not found')
             }
 
             // Verify correct access for method
@@ -54,21 +54,21 @@
             var roleCheck = true
             if ( apiMethod === 'DELETE' || apiMethod === 'PATCH' || apiMethod === 'POST' ) {
                 for ( let loopCount = 0; loopCount < accessRoles.length; loopCount++ ) {
-                    if ( accessRoles[loopCount].includes('im-rw') ) {
+                    if ( accessRoles[loopCount].includes('im-rw') && accessRoles[loopCount].startsWith(tenantId) ) {
                         roleCheck = true
                         loopCount = accessRoles.length
                     }
                 }
             } else if ( apiMethod === 'GET' ) {
                 for ( let loopCount = 0; loopCount < accessRoles.lenth; loopCount++ ) {
-                    if ( accessRoles[loopCount].includes('im-r') ) {
+                    if ( accessRoles[loopCount].includes('im-r') && accessRoles[loopCount].startsWith(tenantId) ) {
                         roleCheck = true
                         loopCount = accessRoles.length
                     }
                 }
             }
             if ( !roleCheck ) {
-                return sendUnauthorizedResponse()
+                return sendUnauthorizedResponse('Required access not found')
             }
         }
 

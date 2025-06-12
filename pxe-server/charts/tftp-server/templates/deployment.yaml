@@ -62,7 +62,7 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          args:
+          cmd:
             - "in.tftpd"
             - "--listen"
             - "--address :6969"

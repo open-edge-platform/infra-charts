@@ -9,7 +9,7 @@ global:
       - name: ""
 
 image:
-  repository: 3x3cut0r/tftpd-hpa
+  repository: danrue/tftpd-hpa
   tag: 5.2
   pullPolicy: IfNotPresent
 

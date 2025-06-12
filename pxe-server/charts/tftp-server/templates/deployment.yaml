@@ -66,7 +66,8 @@ spec:
             - "in.tftpd"
             - "--listen"
             - "-vv"
-            - "--address :6969"
+            - "--address"
+            - ":6969"
             - "--secure"
             - "/var/lib/tftp"
       volumes:

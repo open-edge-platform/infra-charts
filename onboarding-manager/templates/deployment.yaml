@@ -86,6 +86,8 @@ spec:
             value: "{{ .Values.env.tinkerActionsVersion }}"
           - name: TINKER_ARTIFACT_NAME
             value: "{{ .Values.env.tinkerActionsRepo }}"
+          - name: VEN_SCALE_SUPPORT
+            value: "{{ .Values.env.venScaleSupport }}"
           - name: ONBMGR_PORT
             value: "{{ .Values.service.onboardingmgr.port }}"
           - name: VAULT_URL

@@ -35,8 +35,8 @@ securityContext:
   runAsUser: 65534
   capabilities:
     drop: ["ALL"]
-#    # dnsmasq will drop privileges to the nobody user/group, but it requires certain permissions
-#    add: ["NET_ADMIN", "NET_BIND_SERVICE", "SETGID", "SETUID", "CHOWN"]
+    # dnsmasq will drop privileges to the nobody user/group, but it requires certain permissions
+    add: ["NET_ADMIN", "NET_BIND_SERVICE"]
 
 resources:
   requests:

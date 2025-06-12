@@ -62,14 +62,14 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          command:
-            - "in.tftpd"
-            - "--listen"
-            - "-vv"
-            - "--address"
-            - ":6969"
-            - "--secure"
-            - "/var/lib/tftp"
+#          command:
+#            - "in.tftpd"
+#            - "--listen"
+#            - "-vv"
+#            - "--address"
+#            - ":6969"
+#            - "--secure"
+#            - "/var/lib/tftp"
       volumes:
         - name: tftp-storage
           emptyDir: {}

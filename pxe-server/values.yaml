@@ -22,16 +22,20 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
-initContainerSecurityContext:
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-    add:
-      - CHOWN
-  seccompProfile:
-    type: RuntimeDefault
+initContainer:
+  image:
+    repository: busybox
+    tag: 1.36.1
+  securityContext:
+    readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+        add:
+          - CHOWN
+      seccompProfile:
+        type: RuntimeDefault
 
 securityContext:
   readOnlyRootFilesystem: true

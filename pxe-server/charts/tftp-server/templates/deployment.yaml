@@ -67,7 +67,7 @@ spec:
             - "-L"
             - "-vv"
             - "--address"
-            - ":69"
+            - ":6969"
             - "--secure"
             - "/var/lib/tftp"
       volumes:

@@ -3,7 +3,8 @@
 ---
 
 image:
-  repository: 4km3/dnsmasq
+  repository: pxe-server
+  tag: latest
   pullPolicy: IfNotPresent
 
 nameOverride: ""
@@ -47,13 +48,17 @@ standaloneMode:
   ipxePath:
 
 config:
+  # Disable or enable ProxyDHCP. If disabled, PXE server will run as TFTP server to serve iPXE script only.
+  proxy-dhcp: true
   # Configure DHCP server to print debug logs. Do not use in production!
   debug: false
   # Name of interface in the host OS that is connected to local subnet where PXE DHCP requests are coming from
+  # Must always be provided.
   interface:
-  # IP address assigned to the interface
+  # IP address assigned to the interface. Required only if proxy-dhcp=true.
   bootServerIP:
   # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
+  # Required only if proxy-dhcp=true.
   subnetAddress:
 
 pvc:

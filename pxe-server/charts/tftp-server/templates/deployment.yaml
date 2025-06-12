@@ -62,12 +62,12 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          command: ["sh", "-c"]
           args:
-            - |
-              apk add --no-cache tftp-hpa
-
-              in.tftpd --listen --address :6969 --secure /var/lib/tftp
+            - "in.tftpd"
+            - "--listen"
+            - "--address :6969"
+            - "--secure"
+            - "/var/lib/tftp"
       volumes:
         - name: tftp-storage
           emptyDir: {}

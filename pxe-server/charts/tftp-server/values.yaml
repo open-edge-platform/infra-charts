@@ -9,8 +9,8 @@ global:
       - name: ""
 
 image:
-  repository: alpine
-  tag: latest
+  repository: 3x3cut0r/tftpd-hpa
+  tag: 5.2
   pullPolicy: IfNotPresent
 
 podSecurityContext:

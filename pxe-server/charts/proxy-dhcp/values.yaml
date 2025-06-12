@@ -9,8 +9,8 @@ global:
       - name: ""
 
 image:
-  repository: alpine
-  tag: latest
+  repository: 4km3/dnsmasq
+  tag: 2.90-r3
   pullPolicy: IfNotPresent
 
 nameOverride: ""

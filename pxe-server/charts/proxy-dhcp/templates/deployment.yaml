@@ -41,13 +41,9 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          command: ["sh", "-c"]
           args:
-            - |
-              # Install dnsmasq for DHCP server and PXE boot options
-              apk add --no-cache dnsmasq
-              
-              dnsmasq --keep-in-foreground --conf-file=/etc/dnsmasq.conf
+            - "-k"  # Keep in foreground
+            - "--conf-file=/etc/dnsmasq.conf"
       volumes:
         - name: dnsmasq-pid-directory
           emptyDir: {}

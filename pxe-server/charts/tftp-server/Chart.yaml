@@ -3,7 +3,7 @@
 ---
 
 apiVersion: v2
-name: pxe-server-tftp-server
+name: tftp-server
 description: Edge Infrastructure Manager TFTP server for PXE
 type: application
 version: 0.1.0

@@ -3,6 +3,7 @@
 ---
 
 image:
+  # FIXME: replace and remove tag once pxe-server Docker image is ready
   repository: pxe-server
   tag: latest
   pullPolicy: IfNotPresent
@@ -28,14 +29,14 @@ initContainer:
     tag: 1.36.1
   securityContext:
     readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-          - ALL
-        add:
-          - CHOWN
-      seccompProfile:
-        type: RuntimeDefault
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - CHOWN
+    seccompProfile:
+      type: RuntimeDefault
 
 securityContext:
   readOnlyRootFilesystem: true

@@ -30,6 +30,6 @@ dependencies:
     repository: "file://../loca-templates-manager"
   - name: amt
     condition: import.amt.enabled
-    version: "0.0.10"
+    version: "0.0.11"
     repository: "file://../amt"
 

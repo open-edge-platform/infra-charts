@@ -214,7 +214,7 @@ jobs:
           # Runs day0 integration tests
           ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-day0" ./test/infra -- \
             -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
+            -clusterFQDN=kind.internal \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
@@ -222,7 +222,7 @@ jobs:
           # Runs day1 integration tests
           ginkgo -v -r --fail-fast --race --json-report infra-tests-day1.json --output-dir . --label-filter="infra-tests-day1" ./test/infra -- \
             -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
+            -clusterFQDN=kind.internal \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
@@ -230,14 +230,14 @@ jobs:
           # Runs day2 integration tests
           ginkgo -v -r --fail-fast --race --json-report infra-tests-day2.json --output-dir . --label-filter="infra-tests-day2" ./test/infra --  \
             -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
+            -clusterFQDN=kind.internal \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
           echo "Run hosts/locations cleanup"
           ginkgo -v -r --fail-fast --race --label-filter="cleanup" ./test/infra --  \
             -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -clusterFQDN=kind.internal -infraURL=http://127.0.0.1:8080/ \
+            -clusterFQDN=kind.internal \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
           
@@ -342,8 +342,24 @@ jobs:
           mage logutils:collectArgoDiags | tee argo-diag.txt
           kubectl get applications -o yaml -A | tee argocd-applications.yaml
 
+      - name: Get logs from pods - diagnostic information
+        id: diagnostic-info-logs
+        if: ${{ always() && steps.deploy-orch.conclusion == 'success' }}
+        shell: bash
+        run: |
+          echo "Collect logs from all pods in orch-infra namespace"
+          pods=$(kubectl get pods -n orch-infra -o name | cut -d'/' -f2)
+          echo "$pods"
+          for pod in $pods; do
+            mkdir -p logs/$pod
+            containers=$(kubectl get pod $pod -n orch-infra -o jsonpath='{.spec.containers[*].name}')
+            for container in $containers; do
+              kubectl logs $pod -c $container -n orch-infra > "logs/$pod/${container}.log"
+            done
+          done
+
       - name: Upload diagnostic artifacts
-        if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
+        if: ${{ always()  && steps.diagnostic-info.conclusion == 'success' && steps.diagnostic-info-logs.conclusion == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: pods-apps-logs
@@ -352,3 +368,4 @@ jobs:
             pods-describe.txt
             pods-list.txt
             argocd-applications.yaml
+            logs/**

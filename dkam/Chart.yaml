@@ -5,7 +5,7 @@ apiVersion: v2
 name: dkam
 description: Edge Infrastructure Manager DKAM
 type: application
-version: 1.28.1
+version: 1.28.2
 appVersion: "1.29.1"
 annotations: {}
 home: edge-orchestrator.intel.com

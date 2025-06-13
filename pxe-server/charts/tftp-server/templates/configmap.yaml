@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tftp-server-config
+data:
+  dnsmasq.conf: |
+    port=0
+    # disabled DHCP
+    dhcp-range=
+    
+    user=nobody
+    group=nobody
+    
+    pid-file=/var/run/eim-dnsmasq/dnsmasq.pid
+
+    {{- if .Values.config.debug }}
+    log-dhcp
+    log-queries
+    log-facility=-
+    log-debug
+    {{- end }}
+    
+    enable-tftp
+    tftp-root=/var/lib/tftp
+    tftp-secure
+    tftp-no-blocksize

@@ -51,7 +51,7 @@
             for ( let loopCount = 0; loopCount < accessRoles.length; loopCount++ ) {
                 if ( accessRoles[loopCount].startsWith(tenantId) ) {
                     tenantAccess = true
-                    loopCount = accessRoles.length
+                    break
                 }
             }
             if ( !tenantAccess ) {
@@ -65,14 +65,14 @@
                 for ( let loopCount = 0; loopCount < accessRoles.length; loopCount++ ) {
                     if ( accessRoles[loopCount].includes('im-rw') && accessRoles[loopCount].startsWith(tenantId) ) {
                         roleCheck = true
-                        loopCount = accessRoles.length
+                        break
                     }
                 }
             } else if ( apiMethod === 'GET' ) {
                 for ( let loopCount = 0; loopCount < accessRoles.length; loopCount++ ) {
                     if ( accessRoles[loopCount].includes('im-r') && accessRoles[loopCount].startsWith(tenantId) ) {
                         roleCheck = true
-                        loopCount = accessRoles.length
+                        break
                     }
                 }
             }

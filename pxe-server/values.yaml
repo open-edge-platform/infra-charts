@@ -3,9 +3,7 @@
 ---
 
 image:
-  # FIXME: replace and remove tag once pxe-server Docker image is ready
-  repository: pxe-server
-  tag: latest
+  repository: infra/pxe-server
   pullPolicy: IfNotPresent
 
 nameOverride: ""

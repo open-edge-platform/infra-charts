@@ -5,7 +5,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: "amt-{{ include "rps.fullname" . }}-kyverno-restart"
-  namespace: kyverno
+  namespace: orch-infra
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -19,7 +19,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: "amt-{{ include "rps.fullname" . }}-kyverno-restart"
-  namespace: kyverno
+  namespace: orch-infra
 rules:
 - apiGroups: ["apps"]
   resources: ["deployment"]

@@ -3,6 +3,7 @@
 
     const multiTenancyMiddleware = async (req, res, next) => {
         const isNullOrEmpty = (value) => value === null || value === ''
+        const isUndefined = (value) => value === undefined
         const sendUnauthorizedResponse = (message) => {
             res.status(401).send(message)
         }
@@ -19,30 +20,31 @@
         }
         if ( apiUrl.includes('generalSettings') || ( deviceApi && deviceIdApi ) ) {
             // If NB check if header ActiveProjectID found
-            const tenantId = req.headers['ActiveProjectID']
-            if ( isNullOrEmpty(tenantId) ) {
+            const tenantId = req.get('ActiveProjectID')
+            if ( isNullOrEmpty(tenantId) || isUndefined(tenantId) ) {
                 return sendUnauthorizedResponse('ActiveProjectID header not found')
             }
 
             // Check for auth header and decode access roles
-            const authHeader = req.headers['Authorization'] ?? req.headers['authorization']
-            if ( isNullOrEmpty(authHeader) ) {
+            const authHeader = req.get('Authorization')
+            if ( isNullOrEmpty(authHeader) || isUndefined(authHeader) ) {
                 return sendUnauthorizedResponse('Unauthorized request')
             }
             const authHeaderContents = authHeader.split(" ")
-            if ( authHeaderContents.length !== 3 ) {
+            if ( authHeaderContents.length !== 2 ) {
                 return sendUnauthorizedResponse('Malformed authorization header')
             }
-            if ( !authHeaderContents[1].toLowerCase().includes['bearer'] ) {
+            if ( authHeaderContents[0].toLowerCase() !== 'bearer' ) {
                 return sendUnauthorizedResponse('Invalid authorization header')
             }
 
-            const tokenContents = authHeaderContents[2].split(".")
+            const tokenContents = authHeaderContents[1].split(".")
             const claims = Buffer.from(tokenContents[1], 'base64').toString()
             const claimPayload = JSON.parse(claims)
             const access = claimPayload.realm_access.roles
-            const accessRoles = access.split(",")
-            if ( isNullOrEmpty(accessRoles) ) {
+            const accessList = new String(access)
+            const accessRoles = accessList.split(",")
+            if ( isNullOrEmpty(accessRoles) || isUndefined(accessRoles) ) {
                 return sendUnauthorizedResponse('Malformed token')
             }
 

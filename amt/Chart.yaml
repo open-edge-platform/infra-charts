@@ -6,8 +6,13 @@ apiVersion: v2
 name: amt
 description: Edge Infrastructure Manager AMT
 type: application
+<<<<<<< amt-multitenancy-middleware
 version: 0.0.11
 appVersion: "0.0.11"
+=======
+version: 0.1.0
+appVersion: "0.1.0"
+>>>>>>> main
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team
@@ -21,6 +26,6 @@ dependencies:
     condition: import.rps.enabled
     repository: "file://charts/rps"
   - name: dm-manager
-    version: "0.0.2"
+    version: "0.1.0"
     condition: import.dm-manager.enabled
     repository: "file://charts/dm-manager"

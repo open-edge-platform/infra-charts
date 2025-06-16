@@ -6,13 +6,8 @@ apiVersion: v2
 name: amt
 description: Edge Infrastructure Manager AMT
 type: application
-<<<<<<< amt-multitenancy-middleware
-version: 0.0.11
-appVersion: "0.0.11"
-=======
-version: 0.1.0
-appVersion: "0.1.0"
->>>>>>> main
+version: 0.1.1
+appVersion: "0.1.1"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

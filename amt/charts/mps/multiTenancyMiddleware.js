@@ -9,12 +9,12 @@
         }
         // Check if NB API call
         const apiUrl = req.originalUrl
-        const deviceApi = apiUrl.includes('devices')
-        const deviceIdApi = true
+        const deviceApi = apiUrl.includes('devices/')
+        var deviceIdApi = true
         if ( deviceApi ) {
             if ( apiUrl.includes('stats') || apiUrl.includes('redirectStatus') || apiUrl.includes('disconnect') || apiUrl.includes('refresh') ) {
                 deviceIdApi = false
-            } else if ( !apiUrl.includes('devices/') ) {
+            } else if ( apiUrl === 'devices' ) {
                 deviceIdApi = false
             }
         }

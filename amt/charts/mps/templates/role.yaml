@@ -45,5 +45,5 @@ metadata:
   namespace: orch-infra
 rules:
 - apiGroups: ["apps"]
-  resources: ["deployment"]
+  resources: ["deployments"]
   verbs: ["create", "get","update", "list", "watch"]

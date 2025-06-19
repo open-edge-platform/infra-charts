@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- $registry := .Values.global.registry -}}
+{{ if .Values.image.registry }}
+  {{- $registry = .Values.image.registry -}}
+{{ end}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pxe-server.fullname" . }}
+  labels:
+    {{- include "pxe-server.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "pxe-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "pxe-server.selectorLabels" . | nindent 8 }}
+    spec:
+      hostNetwork: true
+      # Do not import any DNS configuration (nether from host nor from the cluster)
+      dnsPolicy: None
+      dnsConfig:
+        nameservers: ["127.0.0.1"] # it effectively disables DNS resolution
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      # init container is used to prepare mounted ipxe.efi to be served with tftp-secure option.
+      # tftp-secure assumes that file permissions must be the same as user running inside the Pod.
+      # Otherwise, PXE server rejects the PXE clients' requests.
+      # This init container mounts the global PV, copies the ipxe.efi to a dedicated location with
+      # allowed file permissions.
+      initContainers:
+        - name: tftp-permissions
+          image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+          command: [ "/bin/sh" ]
+          args: [ "-c", "cp /tmp/ipxe.efi /tftp-storage && chmod 640 /tftp-storage/ipxe.efi && chown 65534:65534 /tftp-storage/ipxe.efi" ]
+          volumeMounts:
+            {{- if .Values.standaloneMode.enabled }}
+            - name: local-path
+              mountPath: "/tmp/ipxe.efi"
+            {{- else }}
+            - name: nginx-pvc
+              mountPath: "/tmp/ipxe.efi"
+              subPath: "signed_ipxe.efi"
+            {{- end }}
+            - name: tftp-storage
+              mountPath: /tftp-storage
+          securityContext:
+            {{- toYaml .Values.initContainer.securityContext | nindent 12 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- if hasKey $registry "name" }}
+          image: "{{ $registry.name }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: dnsmasq-pid-directory
+              mountPath: /var/run/eim-dnsmasq
+            - name: config
+              mountPath: /etc/dnsmasq.conf
+              subPath: dnsmasq.conf
+            - name: tftp-storage
+              mountPath: /var/lib/tftp/ipxe.efi
+              subPath: ipxe.efi
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          args:
+            - "-k"  # Keep in foreground
+            - "--conf-file=/etc/dnsmasq.conf"
+      volumes:
+        - name: tftp-storage
+          emptyDir: {}
+        - name: dnsmasq-pid-directory
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: pxe-server-config
+        {{- if .Values.standaloneMode.enabled }}
+        - name: local-path
+          hostPath:
+            path: "{{- required "standaloneMode.ipxePath is mandatory!" .Values.standaloneMode.ipxePath }}"
+            type: File
+        {{- else }}
+        - name: nginx-pvc
+          persistentVolumeClaim:
+            claimName: "{{ .Values.pvc.claimName }}"
+        {{- end }}

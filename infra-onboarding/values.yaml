@@ -17,6 +17,8 @@ import:
     enabled: true
   infra-config:
     enabled: true
+  pxe-server:
+    enabled: false
 
 # Global values overrides
 # global:

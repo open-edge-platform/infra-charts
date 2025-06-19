@@ -28,3 +28,7 @@ dependencies:
     condition: import.infra-config.enabled
     version: "0.6.1"
     repository: "file://../infra-config"
+  - name: pxe-server
+    condition: import.pxe-server.enabled
+    version: "0.1.0"
+    repository: "file://../pxe-server"

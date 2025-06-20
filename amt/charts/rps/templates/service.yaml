@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name:  {{ include "rps.fullname" . }}
+  labels:
+    {{- include "rps.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.service.websocketServerport }}
+    name: websockets
+    protocol: TCP
+    targetPort: {{ .Values.service.websocketServerport }}
+  - port: {{ .Values.service.webapiport }}
+    name: webapi
+    protocol: TCP
+    targetPort: {{ .Values.service.webapiport }}
+  selector:
+    {{- include "rps.selectorLabels" . | nindent 4 }}

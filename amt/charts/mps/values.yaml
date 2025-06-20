@@ -1,0 +1,101 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: intel/oact-mps
+  tag: latest
+  pullPolicy: IfNotPresent
+
+mps:
+  commonName: 
+  vault_url: "http://vault.orch-platform.svc:8200"
+  vault_role: "orch-svc"
+  secretpath: "secret/data"
+  port: "4433"
+  auth_enabled: "false"
+  logLevel: "silly"
+
+nameOverride: ""
+fullnameOverride: "mps"
+
+job:
+  name: amt-vault-job
+  schedule: "*/50 * * * *"
+  secretjob:
+    name: amt-dbpassword-secret-job
+    configmap: mps-db-configmap
+rbac:
+  role: amt-role
+  role_binding: amt-rolebinding
+  serviceaccount: orch-svc
+
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  ciraport: 4433
+  webapiport: 3000
+
+ingress:
+  name: amt-api-mps
+
+serviceAccount:
+  enabled: true
+  name: orch-svc
+
+traefikReverseProxy:
+  host:
+    cira:
+      name: ""
+    webport:
+      name: ""
+  dnsname: 
+  # -- enabled is a switch to turn on/off the Traefik reverse proxy resource; Traefik MUST be deployed to gateway-system ns before enabling it here.
+  enabled: false 
+  # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
+  gatewayNamespace: orch-gateway
+  # -- secretName is name of k8s secret containing TLS server cert.
+  secretName: tls-demo
+  # -- matchRoute defines routing rules (e.g. Host(`http.sample.com`))
+  matchRoute:
+  # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
+  tlsOption: gateway-tls
+
+
+podAnnotations:
+  traffic.sidecar.istio.io/excludeInboundPorts: "4433"
+  traffic.sidecar.istio.io/excludeOutboundPorts: "4433"
+
+
+imagePullSecrets: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+postgresql:
+  type: "local"
+  ssl: "false"

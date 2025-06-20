@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.job.name }}
+spec:
+  template:
+    spec:
+      serviceAccountName: db-role-amt-sa
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 65534
+      containers:
+      - name: db-setup
+        image: postgres:16.4
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGPASSWORD
+        - name: PGPORT
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGPORT
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGUSER
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGDATABASE
+        - name: PGHOST
+          valueFrom:
+            secretKeyRef:
+              name: rps-{{ .Values.postgresql.type }}-postgresql
+              key: PGHOST
+        command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            until psql -W -c "SELECT 1"; do
+              echo "Waiting for PostgreSQL to be ready for RPS user..."
+              sleep 1
+            done
+            psql -W -f /rps/init.sql
+        volumeMounts:
+          - name: rps-volume
+            mountPath: /rps
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+      restartPolicy: Never
+      volumes:
+        - name: rps-volume
+          configMap:
+            name: {{ .Values.job.configmap }}

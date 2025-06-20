@@ -1,0 +1,139 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amt-vault-script
+data:
+  amt.sh: |
+    #!/bin/bash
+
+    # DO NOT MODIFY - SEE DESCRIPTION
+
+    # Script Name: amt.sh
+    # Description: This script will acquire the service token to login to vault,
+    #              fetch the vault token to create secret.
+    # Usage: ./amt.sh <KEYCLOAK_URL> <VAULT_URL>
+    #    -h:             help (optional)
+
+    set -xe
+    set -o pipefail
+
+    HELP=""
+
+    while getopts 'h' flag; do
+      case "${flag}" in
+        h) HELP='true' ;;
+        *) HELP='true' ;;
+      esac
+    done
+    shift $((OPTIND -1))
+
+    function usage {
+        cat >&2 <<EOF
+    Purpose:
+    Creation of secret for MPS and RPS services.
+
+    Usage:
+      $(basename "$0") <KEYCLOAK_URL> <VAULT_URL>
+
+    ex:
+    ./amt.sh http://localhost:8090 http://localhost:8200
+
+    Options:
+        -h:             help (optional)
+    EOF
+    }
+
+    KEYCLOAK_URL=$1
+    VAULT_URL=$2
+
+    if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$VAULT_URL" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
+        usage
+        exit 1
+    fi
+
+    # Operation in vault are retried up to $max_retries times
+    max_retries=5
+    retry_count=0
+    # Login to Vault
+    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    while [ "$retry_count" -lt $max_retries ]; do
+      if vault_login_output=$(curl -k -X PUT \
+             "$VAULT_URL/v1/auth/kubernetes/login" \
+             -H "Authorization: Bearer $TOKEN" \
+             -d '{"jwt": "'"${TOKEN}"'", "role": "orch-svc"}') && \
+          [[ ! "$vault_login_output" =~ "errors" ]]; then
+        echo "Vault login successful!"
+        VAULT_TOKEN=$(echo "$vault_login_output" | jq -r  '.auth.client_token')
+        break
+      fi
+      echo "ERROR: $vault_login_output"
+      sleep 10
+      retry_count=$((retry_count + 1))
+    done
+
+    if [ $retry_count -eq $max_retries ]; then
+      echo "ERROR: Too many errors in logging into Vault!"
+      exit 1
+    fi
+
+    retry_count=0
+    while [ "$retry_count" -lt $max_retries ]; do
+      POST_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" -k -X POST \
+        "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/{{ .Release.Namespace }}/secrets" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {
+              "name": "vault-token"
+            },
+            "data": {
+              "vault-token": "'$(echo -n "$VAULT_TOKEN" | base64 -w0)'"
+            }
+          }')
+
+      if [[ "${POST_RETURN_CODE}" =~ "201" ]]; then
+        echo "Vault token created successfully!"
+        break
+      else
+        if [[ "${POST_RETURN_CODE}" =~ "409" ]]; then
+          PUT_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" -k -X PUT \
+            "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/{{ .Release.Namespace }}/secrets/vault-token" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+                "apiVersion": "v1",
+                "kind": "Secret",
+                "metadata": {
+                  "name": "vault-token"
+                },
+                "data": {
+                  "vault-token": "'$(echo -n "$VAULT_TOKEN" | base64 -w0)'"
+                }
+              }')
+          if [[ "${PUT_RETURN_CODE}" =~ "200" ]]; then
+            echo "Vault token updated successfully!"
+            break
+          else
+            echo "Error creating vault token secret, retrying..."
+            sleep 10
+            retry_count=$((retry_count + 1))
+          fi
+        fi
+      fi
+    done
+
+    
+    # If Istio proxy is available, quit sidecar
+    if curl -s -f http://127.0.0.1:15020/healthz/ready; then
+       response=$(curl -o /dev/null -w "%{http_code}" --location  -v --request POST http://127.0.0.1:15000/quitquitquit --header 'Content-Type: text/plain')
+       if [[ ! "${response}" =~ "200" ]]; then
+          echo "ERROR: Error while quiting Istio proxy"
+          exit 1
+       fi
+    fi

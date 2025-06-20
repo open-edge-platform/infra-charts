@@ -4,9 +4,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "loca-dm-manager.fullname" . }}
+  name: {{ include "dm-manager.fullname" . }}
   labels:
-    {{- include "loca-dm-manager.labels" . | nindent 4 }}
+    {{- include "dm-manager.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   ports:
@@ -15,5 +15,5 @@ spec:
     targetPort: metrics
     protocol: TCP
   selector:
-    {{- include "loca-dm-manager.selectorLabels" . | nindent 4 }}
+    {{- include "dm-manager.selectorLabels" . | nindent 4 }}
 {{- end }}

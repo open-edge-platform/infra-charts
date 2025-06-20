@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{ .Values.rbac.role }}"
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create", "get","update", "list", "watch", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{ .Values.rbac.role_binding }}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: "{{ .Values.rbac.role }}"
+subjects:
+- kind: ServiceAccount
+  name: "{{ .Values.rbac.serviceaccount }}"
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "amt-{{ include "mps.fullname" . }}-kyverno-restart"
+  namespace: orch-infra
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: "amt-{{ include "mps.fullname" . }}-kyverno-restart"
+subjects:
+- kind: ServiceAccount
+  name: "kyverno-background-controller"
+  namespace: kyverno
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "amt-{{ include "mps.fullname" . }}-kyverno-restart"
+  namespace: orch-infra
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["create", "get","update", "list", "watch"]

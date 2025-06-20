@@ -66,10 +66,16 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes: {}
+volumes:
+- name: infra-config-volume
+  configMap:
+    name: infra-config
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: {}
+volumeMounts:
+- name: infra-config-volume
+  mountPath: "/etc/infra-config"
+  readOnly: true
 
 nodeSelector: {}
 
@@ -83,3 +89,13 @@ serviceArgs: {}
 
 metrics:
   enabled: false
+
+jobAnnotations:
+  "argocd.argoproj.io/hook": PostSync
+  "argocd.argoproj.io/hook-delete-policy": HookSucceeded
+
+# User-provided password
+# Should have One uppercase letter, one lowercase letter, one digit, one special character, and be at least 8 characters long.
+params:
+  password: "P@ssw0rd"
+  vaultUrl: "http://vault.orch-platform.svc:8200"

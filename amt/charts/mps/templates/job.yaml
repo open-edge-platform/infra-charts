@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ .Values.job.name }}"
+spec:
+  schedule: "{{ .Values.job.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          {{- with .Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          labels:
+            {{- include "mps.labels" . | nindent 12 }}
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ .Values.rbac.serviceaccount }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: amt
+              image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092
+              command: ["/bin/sh"]
+              args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
+              securityContext:
+                capabilities:
+                  drop:
+                    - ALL
+                allowPrivilegeEscalation: false
+              env:
+                - name: ADMIN_USER
+                  value: admin
+                - name: ADMIN_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: platform-keycloak
+                      key: admin-password
+                - name: ADMIN_CLIENT
+                  value: system-client
+              volumeMounts:
+                - mountPath: /amt.sh
+                  subPath: amt.sh
+                  name: amt-vol
+          volumes:
+            - name: amt-vol
+              configMap:
+                name: amt-vault-script
+                defaultMode: 0777
+---
+# FIXME: ITEP-70124 This job is only a temporary solution to run the amt.sh script once at the beginning of the deployment.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "init-{{ .Values.job.name }}"
+spec:
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "mps.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.rbac.serviceaccount }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: amt
+          image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092
+          command: ["/bin/sh"]
+          args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+          env:
+            - name: ADMIN_USER
+              value: admin
+            - name: ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: platform-keycloak
+                  key: admin-password
+            - name: ADMIN_CLIENT
+              value: system-client
+          volumeMounts:
+            - mountPath: /amt.sh
+              subPath: amt.sh
+              name: amt-vol
+      volumes:
+        - name: amt-vol
+          configMap:
+            name: amt-vault-script
+            defaultMode: 0777

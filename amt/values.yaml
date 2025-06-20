@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+import:
+  mps:
+    enabled: true
+  rps:
+    enabled: true
+  dm-manager:
+    enabled: true
+
+mps:
+  postgresql:
+    type: "local"
+  image:
+    registry:
+      name: docker.io/
+    repository: intel/oact-mps
+    tag: v2.14.2
+    pullPolicy: IfNotPresent
+    # Image specific takes precedence
+    # registry:
+    #   name: null
+    #   imagePullSecrets:
+    #     - name: ""
+
+rps:
+  postgresql:
+    type: "local"
+  image:
+    registry:
+      name: docker.io/
+    repository: intel/oact-rps
+    tag: v2.24.0
+    pullPolicy: IfNotPresent
+    # Image specific takes precedence
+    # registry:
+    #   name: null
+    #   imagePullSecrets:
+    #     - name: ""

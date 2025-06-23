@@ -52,7 +52,7 @@
             }
 
             // Verify correct access for method
-            const apiMethod = req.apiMehtod
+            const apiMethod = req.method
             var roleCheck = true
             if ( apiMethod === 'DELETE' || apiMethod === 'PATCH' || apiMethod === 'POST' ) {
                 for ( let loopCount = 0; loopCount < accessRoles.length; loopCount++ ) {
@@ -72,6 +72,7 @@
             if ( !roleCheck ) {
                 return sendUnauthorizedResponse('Required access not found')
             }
+            req.tenantId = tenantId
         }
 
         next()

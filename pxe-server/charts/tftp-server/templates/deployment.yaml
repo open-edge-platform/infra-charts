@@ -27,37 +27,32 @@ spec:
       # Otherwise, PXE server rejects the PXE clients' requests.
       # This init container mounts the global PV, copies the ipxe.efi to a dedicated location with
       # allowed file permissions.
-      initContainers:
-        - name: tftp-permissions
-          image: busybox:1.36.1
-          command: [ "/bin/sh" ]
-          args: [ "-c", "cp /tmp/ipxe.efi /tftp-storage && chmod 640 /tftp-storage/ipxe.efi && chown 65534:65534 /tftp-storage/ipxe.efi" ]
-          volumeMounts:
-            {{- if .Values.standaloneMode.enabled }}
-            - name: local-path
-              mountPath: "/tmp/ipxe.efi"
-            {{- else }}
-            - name: nginx-pvc
-              mountPath: "/tmp/ipxe.efi"
-              subPath: "signed_ipxe.efi"
-            {{- end }}
-            - name: tftp-storage
-              mountPath: /tftp-storage
-          securityContext:
-            {{- toYaml .Values.initContainerSecurityContext | nindent 12 }}
+#      initContainers:
+#        - name: tftp-permissions
+#          image: busybox:1.36.1
+#          command: [ "/bin/sh" ]
+#          args: [ "-c", "cp /tmp/ipxe.efi /tftp-storage && chmod 640 /tftp-storage/ipxe.efi && chown 65534:65534 /tftp-storage/ipxe.efi" ]
+#          volumeMounts:
+#            {{- if .Values.standaloneMode.enabled }}
+#            - name: local-path
+#              mountPath: "/tmp/ipxe.efi"
+#            {{- else }}
+#            - name: nginx-pvc
+#              mountPath: "/tmp/ipxe.efi"
+#              subPath: "signed_ipxe.efi"
+#            {{- end }}
+#            - name: tftp-storage
+#              mountPath: /tftp-storage
+#          securityContext:
+#            {{- toYaml .Values.initContainerSecurityContext | nindent 12 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
-            - name: dnsmasq-pid-directory
-              mountPath: /var/run/eim-dnsmasq
-            - name: config
-              mountPath: /etc/dnsmasq.conf
-              subPath: dnsmasq.conf
-            - name: tftp-storage
+            - name: nginx-pvc
               mountPath: /var/lib/tftp/ipxe.efi
-              subPath: ipxe.efi
+              subPath: signed_ipxe.efi
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
@@ -67,13 +62,11 @@ spec:
             - "-L"
             - "-vv"
             - "--address"
-            - ":69"
+            - ":6969"
             - "--secure"
             - "/var/lib/tftp"
       volumes:
         - name: tftp-storage
-          emptyDir: {}
-        - name: dnsmasq-pid-directory
           emptyDir: {}
         - name: config
           configMap:

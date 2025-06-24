@@ -68,9 +68,6 @@ spec:
       volumes:
         - name: tftp-storage
           emptyDir: {}
-        - name: config
-          configMap:
-            name: tftp-server-config
         {{- if .Values.standaloneMode.enabled }}
         - name: local-path
           hostPath:

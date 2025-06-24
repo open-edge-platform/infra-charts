@@ -3,7 +3,7 @@
 ---
 {{- $registry := .Values.global.registry -}}
 {{ if .Values.image.registry }}
-{{- $registry = .Values.image.registry -}}
+  {{- $registry = .Values.image.registry -}}
 {{ end}}
 apiVersion: apps/v1
 kind: Deployment

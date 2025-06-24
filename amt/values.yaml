@@ -13,8 +13,12 @@ import:
     enabled: true
   rps:
     enabled: true
+  dm-manager:
+    enabled: true
 
 mps:
+  postgresql:
+    type: "local"
   image:
     registry:
       name: docker.io/
@@ -28,6 +32,8 @@ mps:
     #     - name: ""
 
 rps:
+  postgresql:
+    type: "local"
   image:
     registry:
       name: docker.io/

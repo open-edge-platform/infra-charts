@@ -13,6 +13,9 @@ image:
   tag: 5.2
   pullPolicy: IfNotPresent
 
+nameOverride: ""
+fullnameOverride: "tftp-server"
+
 podSecurityContext:
   seccompProfile:
     type: RuntimeDefault

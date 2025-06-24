@@ -49,10 +49,10 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          volumeMounts:
-            - name: nginx-pvc
-              mountPath: /var/lib/tftp/ipxe.efi
-              subPath: signed_ipxe.efi
+#          volumeMounts:
+#            - name: nginx-pvc
+#              mountPath: /var/lib/tftp/ipxe.efi
+#              subPath: signed_ipxe.efi
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
@@ -65,7 +65,7 @@ spec:
 #            - ":6969"
 #            - "--secure"
 #            - "/var/lib/tftp"
-      volumes:
+#      volumes:
 #        - name: tftp-storage
 #          emptyDir: {}
 #        {{- if .Values.standaloneMode.enabled }}
@@ -74,7 +74,7 @@ spec:
 #            path: "{{- required "standaloneMode.ipxePath is mandatory!" .Values.standaloneMode.ipxePath }}"
 #            type: File
 #        {{- else }}
-        - name: nginx-pvc
-          persistentVolumeClaim:
-            claimName: "{{ .Values.pvc.claimName }}"
+#        - name: nginx-pvc
+#          persistentVolumeClaim:
+#            claimName: "{{ .Values.pvc.claimName }}"
 #        {{- end }}

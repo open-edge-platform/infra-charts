@@ -3,7 +3,7 @@
 ---
 
 {{- if .Values.traefikReverseProxy.enabled }}
-# TCP IngressRoute
+# UDP IngressRoute
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRouteUDP
 metadata:
@@ -11,7 +11,7 @@ metadata:
   namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
 spec:
   entryPoints:
-    - udp-custom  # must match a UDP entryPoint defined in Traefik static config
+    - tftp-server  # must match a UDP entryPoint defined in Traefik static config
   routes:
     - services:
         - name: {{ include "tftp-server.fullname" . }}

@@ -9,7 +9,7 @@ global:
       - name: ""
 
 image:
-  repository: pxe-server
+  repository: infra/pxe-server
   pullPolicy: IfNotPresent
 
 nameOverride: ""

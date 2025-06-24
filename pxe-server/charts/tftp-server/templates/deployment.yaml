@@ -26,7 +26,32 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: nginx-pvc
+              mountPath: /var/lib/tftp/ipxe.efi
+              subPath: signed_ipxe.efi
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          command: ["in.tftpd"]
+          args:
+            - "-L"
+            - "-vv"
+            - "--address"
+            - ":6969"
+            - "--secure"
+            - "/var/lib/tftp"
+      volumes:
+        - name: tftp-storage
+          emptyDir: {}
+        {{- if .Values.standaloneMode.enabled }}
+        - name: local-path
+          hostPath:
+            path: "{{- required "standaloneMode.ipxePath is mandatory!" .Values.standaloneMode.ipxePath }}"
+            type: File
+        {{- else }}
+        - name: nginx-pvc
+          persistentVolumeClaim:
+            claimName: "{{ .Values.pvc.claimName }}"
+        {{- end }}

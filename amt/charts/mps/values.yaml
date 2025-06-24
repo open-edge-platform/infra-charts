@@ -28,13 +28,14 @@ nameOverride: ""
 fullnameOverride: "mps"
 
 job:
-  name: amt-job
+  name: amt-vault-job
+  schedule: "*/50 * * * *"
   secretjob:
     name: amt-dbpassword-secret-job
     configmap: mps-db-configmap
 rbac:
-  cluster_role: amt-role
-  cluster_role_binding: amt-rolebinding
+  role: amt-role
+  role_binding: amt-rolebinding
   serviceaccount: orch-svc
 
 
@@ -94,3 +95,7 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+postgresql:
+  type: "local"
+  ssl: "false"

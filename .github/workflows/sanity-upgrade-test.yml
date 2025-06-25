@@ -72,7 +72,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch
-          git checkout v3.0.0
+          # git checkout v3.0.0
           git checkout -b dev/infra-charts-upgr-test-${INFRA_CHARTS_REV}
 
           sed -i 's/^mage 1\.14\.0$/mage 1.15.0/' .tool-versions

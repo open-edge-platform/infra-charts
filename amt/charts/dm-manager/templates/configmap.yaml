@@ -1,0 +1,109 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amt-password
+data:
+  amt-password.sh: |
+    #!/bin/bash
+
+    exit_istio()
+    {
+      # If Istio proxy is available, quit sidecar
+      if curl -s -f http://127.0.0.1:15020/healthz/ready; then
+        response=$(curl -o /dev/null -w "%{http_code}" --location  -v --request POST http://127.0.0.1:15000/quitquitquit --header 'Content-Type: text/plain')
+        if [[ ! "${response}" =~ "200" ]]; then
+            echo -e "ERROR: Error while quiting Istio proxy"
+            exit 1
+        fi
+      fi
+      exit 0 # exit successfully
+    }
+
+    # DO NOT MODIFY - SEE DESCRIPTION
+
+    # Script Name: amt-password.sh
+    # Description: This script creates secret in Vault with user-provided AMT password
+    # (if static password management is selected by user) or empty string (if dynamic password management is selected by user).
+    # Usage: ./amt-password
+
+    set -xe
+    set -o pipefail
+
+    HELP=""
+
+    while getopts 'h' flag; do
+      case "${flag}" in
+        h) HELP='true' ;;
+        *) HELP='true' ;;
+      esac
+    done
+    shift $((OPTIND -1))
+
+    # Operation in vault are retried up to $max_retries times
+    max_retries=5
+    retry_count=0
+    # Login to Vault
+    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    while [ "$retry_count" -lt $max_retries ]; do
+      if vault_login_output=$(curl -k -X PUT \
+             "{{ .Values.params.vaultUrl }}/v1/auth/kubernetes/login" \
+             -H "Authorization: Bearer $TOKEN" \
+             -d '{"jwt": "'"${TOKEN}"'", "role": "'"{{ include "dm-manager.serviceAccountName" . }}"'"}') && \
+          [[ ! "$vault_login_output" =~ "errors" ]]; then
+        echo "Vault login successful!"
+        VAULT_TOKEN=$(echo "$vault_login_output" | jq -r  '.auth.client_token')
+        break
+      fi
+      echo "ERROR: $vault_login_output"
+      sleep 10
+      retry_count=$((retry_count + 1))
+    done
+
+    if [ $retry_count -eq $max_retries ]; then
+      echo "ERROR: Too many errors in logging into Vault!"
+      exit 1
+    fi
+
+    # Query the client secret, if already there quit the job as successful
+    if vault_create_output=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" \
+           "{{ .Values.params.vaultUrl }}/v1/secret/data/amt-password") && \
+      [[ ! "$vault_create_output" =~ "errors" ]]; then
+      echo "Secret already created in vault!"
+      CREATED_TIME=$(echo "$vault_create_output" | jq -r '.data.metadata.created_time')
+      echo "SUCCESS: Secrets have been successfully created at ${CREATED_TIME} in Vault!"
+      exit_istio
+    fi
+
+    # Create a secret in Vault
+    retry_count=0
+    while [ "$retry_count" -lt $max_retries ]; do
+      if vault_create_output=$(curl -s -H "Content-Type: application/json" \
+             -H "X-Vault-Token: ${VAULT_TOKEN}" \
+             --data "{\"data\":{\"password\":\"{{.Values.params.password | default "" }}\"}}" \
+             "{{ .Values.params.vaultUrl }}/v1/secret/data/amt-password") && \
+        [[ ! "$vault_create_output" =~ "errors" ]]; then
+        echo "Vault create secret successful!"
+        CREATED_TIME=$(echo "$vault_create_output" | jq -r '.data.created_time')
+        break
+      fi
+      echo "ERROR: $vault_create_output"
+      sleep 10
+      retry_count=$((retry_count + 1))
+    done
+
+    if [ $retry_count -eq $max_retries ]; then
+      echo "ERROR: Too many errors in creating secret in Vault!"
+      exit 1
+    fi
+
+    if [[ -z "${CREATED_TIME}" ]]; then
+      echo "ERROR: Failed to store secrets in Vault: {{ .Values.params.vaultUrl }}"
+      exit 1
+    fi
+
+    echo "SUCCESS: Secrets have been successfully created at ${CREATED_TIME} in Vault!"
+
+    exit_istio

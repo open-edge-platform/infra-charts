@@ -75,6 +75,8 @@ clean-core: ## clean generated files of infra-core
 clean-external: ## clean generated files of infra-external
 	rm -rf ./infra-external/Chart.lock
 	rm -rf ./infra-external/charts/*.tgz
+	rm -rf ./infra-external/amt/Chart.lock
+	rm -rf ./infra-external/amt/charts/*.tgz
 
 clean-managers: ## clean generated files of infra-managers
 	rm -rf ./infra-managers/Chart.lock

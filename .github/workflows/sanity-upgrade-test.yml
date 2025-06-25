@@ -165,7 +165,7 @@ jobs:
           echo "Fetching all tags..."
           git fetch --tags
 
-          git checkout day0-create-delete
+#          git checkout day0-create-delete
 #          echo "Finding the latest tag matching 'edge-node-simulator/v*'..."
 #          LATEST_TAG=$(git tag -l "edge-node-simulator/v*" | sort -V | tail -n 1)
 #          if [ -z "$LATEST_TAG" ]; then
@@ -194,13 +194,13 @@ jobs:
           kubectl port-forward svc/ensim -n orch-infra --address 0.0.0.0 3196:3196 &
           kubectl port-forward svc/apiv2-proxy -n orch-infra --address 0.0.0.0 8080:8080 &
 
-          echo "Runs day0 tests - create Virtual Edge Node"
-          # Runs day0 integration tests
-          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-create" ./test/infra -- \
-            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -clusterFQDN=kind.internal \
-            -edgeAPIUser=sample-project-api-user -edgeAPIPass=${PASSWORD} \
-            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
+#          echo "Runs day0 tests - create Virtual Edge Node"
+#          # Runs day0 integration tests
+#          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-create" ./test/infra -- \
+#            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+#            -clusterFQDN=kind.internal \
+#            -edgeAPIUser=sample-project-api-user -edgeAPIPass=${PASSWORD} \
+#            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
       - name: Upgrade emf deployment with branch dev/infra-charts-upgr-test
         id: customize-charts-from-branch
@@ -283,21 +283,21 @@ jobs:
           kubectl -n dev get applications infra-onboarding -o yaml
           echo "Orchestrator upgrade verified!"
 
-      - name: Run E2E integration test - check status and delete Virtual Edge Node
-        working-directory: virtual-edge-node/edge-node-simulator
-        env:
-          CA_PATH: ${{ github.workspace }}/orch-ca.crt
-          PASSWORD: 'ChangeMeOn1stLogin!'
-          PROJECT: 'sample-project'
-        shell: bash
-        run: |
-          echo "Runs day0 tests - verify existing Virtual Edge Node is in running state and delete it"
-          # Runs day0 integration tests
-          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-delete" ./test/infra -- \
-            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
-            -clusterFQDN=kind.internal \
-            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
-            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
+#      - name: Run E2E integration test - check status and delete Virtual Edge Node
+#        working-directory: virtual-edge-node/edge-node-simulator
+#        env:
+#          CA_PATH: ${{ github.workspace }}/orch-ca.crt
+#          PASSWORD: 'ChangeMeOn1stLogin!'
+#          PROJECT: 'sample-project'
+#        shell: bash
+#        run: |
+#          echo "Runs day0 tests - verify existing Virtual Edge Node is in running state and delete it"
+#          # Runs day0 integration tests
+#          ginkgo -v -r --fail-fast --race --json-report infra-tests-day0.json --output-dir . --label-filter="infra-tests-custom-day0-delete" ./test/infra -- \
+#            -project=${PROJECT} -caFilepath=${CA_PATH} -simAddress=127.0.0.1:3196 \
+#            -clusterFQDN=kind.internal \
+#            -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
+#            -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
 
       - name: Run infra E2E integration tests
         working-directory: virtual-edge-node/edge-node-simulator

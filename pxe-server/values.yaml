@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+image:
+  repository: infra/pxe-server
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "pxe-server"
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+initContainer:
+  image:
+    repository: busybox
+    tag: 1.36.1
+  securityContext:
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - CHOWN
+    seccompProfile:
+      type: RuntimeDefault
+
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+    # dnsmasq will drop privileges to the nobody user/group, but it requires certain permissions
+    add: ["NET_ADMIN", "NET_BIND_SERVICE", "SETGID", "SETUID", "CHOWN"]
+
+standaloneMode:
+  # Enable/disable standalone mode
+  enabled: false
+  # ipxePath specifies the local host path to the EMF's ipxe.efi. Used only for standalone mode.
+  ipxePath:
+
+config:
+  # Disable or enable ProxyDHCP. If disabled, PXE server will run as TFTP server to serve iPXE script only.
+  proxydhcp: true
+  # Configure DHCP server to print debug logs. Do not use in production!
+  debug: false
+  # Name of interface in the host OS that is connected to local subnet where PXE DHCP requests are coming from
+  # Must always be provided.
+  interface:
+  # IP address assigned to the interface. Required only if proxy-dhcp=true.
+  bootServerIP:
+  # subnetAddress specifies network address of a local IP subnet (e.g., 192.168.1.0 for 192.168.1.0/24 subnet)
+  # Required only if proxy-dhcp=true.
+  subnetAddress:
+  tftp:
+    # 50 concurrent TFTP connections. Note that iPXE downloads are short-lived connections, so it's the worst case scale limit.
+    portRangeStart: 40000
+    portRangeEnd: 40049
+
+pvc:
+  # PVC to mount EMF's ipxe.efi from. Used only if standaloneMode is not enabled.
+  claimName: dkam-tink-shared-pvc

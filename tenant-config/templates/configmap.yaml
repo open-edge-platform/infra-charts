@@ -1,0 +1,111 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tenant-config.name" . }}-script
+data:
+  configure-tenants.sh: |
+    #!/bin/bash
+    
+    exit_istio() 
+    {
+      # If Istio proxy is available, quit sidecar
+      if curl -s -f http://127.0.0.1:15020/healthz/ready; then
+        response=$(curl -o /dev/null -w "%{http_code}" --location  -v --request POST http://127.0.0.1:15000/quitquitquit --header 'Content-Type: text/plain')
+        if [[ ! "${response}" =~ "200" ]]; then
+            echo -e "ERROR: Error while quiting Istio proxy"
+            exit 1
+        fi
+      fi
+      exit 0 # exit successfully
+    }
+
+    # DO NOT MODIFY - SEE DESCRIPTION
+
+    # Script Name: configure-tenants.sh
+    # Description: This script creates default tenancy configuration based on 
+    #              It expects curl to be available on the container.
+    #              ADMIN_USER, ADMIN_PASS and ADMIN_CLIENT are expected to be available as env variable.
+    # Usage: ./configure-tenants.sh <KEYCLOAK_URL> <SVC_ACCOUNT> <DEFAULT_ORG> <DEFAULT_TENANT> <DEFAULT_USER>
+    #    -h:             help (optional)
+
+    set -xe
+    set -o pipefail
+
+    HELP=""
+
+    while getopts 'h' flag; do
+      case "${flag}" in
+        h) HELP='true' ;;
+        *) HELP='true' ;;
+      esac
+    done
+    shift $((OPTIND -1))
+
+    function usage {
+        cat >&2 <<EOF
+    Purpose:
+    Configure default tenancy configuration
+
+    Usage:
+      $(basename "$0") <KEYCLOAK_URL> <SVC_ACCOUNT> <DEFAULT_ORG> <DEFAULT_TENANT> <DEFAULT_USER>
+
+    ex:
+    ./configure-tenants.sh http://localhost:8090 orch-svc default-org default-project default-user
+
+    Options:
+        -h:             help (optional)
+    EOF
+    }
+
+    KEYCLOAK_URL=$1
+    SVC_ACCOUNT=$2
+    DEFAULT_ORG=$3
+    DEFAULT_TENANT=$4
+    DEFAULT_USER=$5
+
+    if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$DEFAULT_ORG" || -z "$DEFAULT_TENANT" || -z "$DEFAULT_USER" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
+        usage
+        exit 1
+    fi
+
+    # Login with admin user to Keycloak
+    IDP_AT=$(curl -s --location --request POST "${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token" \
+      --header 'Content-Type: application/x-www-form-urlencoded' \
+      --data-urlencode 'grant_type=password' \
+      --data-urlencode "client_id=${ADMIN_CLIENT}" \
+      --data-urlencode "username=${ADMIN_USER}" \
+      --data-urlencode "password=${ADMIN_PASS}" \
+      --data-urlencode 'scope=openid profile email groups' \
+      | jq -r '.access_token')
+
+    if [[ -z "${IDP_AT}" ]]; then
+      echo "ERROR: Failed to obtain admin user JWT token!"
+      exit 1
+    fi
+    
+    ADMIN_USER_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/users?username=$ADMIN_CLIENT" \
+    -H "Authorization: Bearer $TOKEN" | jq -r '.[0].id')
+    
+    if [[ -z "${ADMIN_USER_ID}" ]]; then
+      echo "ERROR: Failed to obtain admin user ID!"
+      exit 1
+    fi
+    
+    TARGET_GROUP="Org-Admin-Group"
+    GROUP_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/groups" \
+    -H "Authorization: Bearer $TOKEN" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
+    
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
+    "$KEYCLOAK_URL/admin/realms/master/users/$ADMIN_USER_ID/groups/$GROUP_ID" \
+    -H "Authorization: Bearer $TOKEN")
+    
+    if [[ "$RESP" == "204" ]]; then
+      echo "✅ Successfully assigned '$TARGET_GROUP' to '$TARGET_USERNAME'."
+    else
+      echo "❌ Failed to assign group. HTTP code: $RESP"
+      exit 1
+    fi

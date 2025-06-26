@@ -83,7 +83,7 @@ data:
       | jq -r '.access_token')
 
     if [[ -z "${IDP_AT}" ]]; then
-      echo "ERROR: Failed to obtain admin user JWT token!"
+      echo "❌ Failed to obtain admin user JWT token!"
       exit 1
     fi
     
@@ -91,7 +91,7 @@ data:
     -H "Authorization: Bearer $IDP_AT" | jq -r '.[0].id')
     
     if [[ -z "${ADMIN_USER_ID}" ]]; then
-      echo "ERROR: Failed to obtain admin user ID!"
+      echo "❌ Failed to obtain admin user ID!"
       exit 1
     fi
     
@@ -121,5 +121,27 @@ data:
       echo "❌ Failed to create organization. HTTP code: $RESP"
       exit 1
     fi
+    
+    ORG_UID=$(curl -s -X GET "${API_URL}/v1/orgs/${DEFAULT_ORG}" \
+    -H "Content-Type: application/json" \
+    -H "accept: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" \
+    | jq -r '.status.orgStatus.uID')
+    
+    TARGET_GROUP="${ORG_UID}_Project-Manager-Group"
+    GROUP_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/groups" \
+    -H "Authorization: Bearer $IDP_AT" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
+    
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
+    "$KEYCLOAK_URL/admin/realms/master/users/$ADMIN_USER_ID/groups/$GROUP_ID" \
+    -H "Authorization: Bearer $IDP_AT")
+    
+    if [[ "$RESP" == "204" ]]; then
+      echo "✅ Successfully assigned '$TARGET_GROUP' to '$TARGET_USERNAME'."
+    else
+      echo "❌ Failed to assign group. HTTP code: $RESP"
+      exit 1
+    fi
+
     
     

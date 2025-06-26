@@ -55,6 +55,6 @@ spec:
       volumes:
         - name: tenant-config
           configMap:
-            name: {{ include "tenant-config" . }}-script
+            name: {{ include "tenant-config.name" . }}-script
             defaultMode: 0777
 

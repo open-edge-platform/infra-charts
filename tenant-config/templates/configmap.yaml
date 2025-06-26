@@ -86,7 +86,7 @@ data:
       exit 1
     fi
     
-    ADMIN_USER_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/users?username=$ADMIN_CLIENT" \
+    ADMIN_USER_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/users?username=$ADMIN_USER" \
     -H "Authorization: Bearer $TOKEN" | jq -r '.[0].id')
     
     if [[ -z "${ADMIN_USER_ID}" ]]; then

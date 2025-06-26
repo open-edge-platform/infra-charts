@@ -2,9 +2,6 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-serviceAccount:
-  name: orch-svc
-
 keycloakAdmin:
   user: admin
   client: system-client

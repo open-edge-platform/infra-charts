@@ -62,10 +62,9 @@ data:
     }
 
     KEYCLOAK_URL=$1
-    SVC_ACCOUNT=$2
-    DEFAULT_ORG=$3
-    DEFAULT_TENANT=$4
-    DEFAULT_USER=$5
+    DEFAULT_ORG=$2
+    DEFAULT_TENANT=$3
+    DEFAULT_USER=$4
 
     if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$DEFAULT_ORG" || -z "$DEFAULT_TENANT" || -z "$DEFAULT_USER" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
         usage

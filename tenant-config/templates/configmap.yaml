@@ -87,7 +87,7 @@ data:
     fi
     
     ADMIN_USER_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/users?username=$ADMIN_USER" \
-    -H "Authorization: Bearer $TOKEN" | jq -r '.[0].id')
+    -H "Authorization: Bearer $IDP_AT" | jq -r '.[0].id')
     
     if [[ -z "${ADMIN_USER_ID}" ]]; then
       echo "ERROR: Failed to obtain admin user ID!"
@@ -96,11 +96,11 @@ data:
     
     TARGET_GROUP="Org-Admin-Group"
     GROUP_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/groups" \
-    -H "Authorization: Bearer $TOKEN" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
+    -H "Authorization: Bearer $IDP_AT" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
     
     RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
     "$KEYCLOAK_URL/admin/realms/master/users/$ADMIN_USER_ID/groups/$GROUP_ID" \
-    -H "Authorization: Bearer $TOKEN")
+    -H "Authorization: Bearer $IDP_AT")
     
     if [[ "$RESP" == "204" ]]; then
       echo "✅ Successfully assigned '$TARGET_GROUP' to '$TARGET_USERNAME'."

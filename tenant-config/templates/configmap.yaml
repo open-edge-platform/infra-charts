@@ -104,7 +104,7 @@ data:
     -H "Authorization: Bearer $IDP_AT")
     
     if [[ "$RESP" == "204" ]]; then
-      echo "✅ Successfully assigned '$TARGET_GROUP' to '$TARGET_USERNAME'."
+      echo "✅ Successfully assigned '$TARGET_GROUP' to '$ADMIN_USER'."
     else
       echo "❌ Failed to assign group. HTTP code: $RESP"
       exit 1
@@ -137,11 +137,34 @@ data:
     -H "Authorization: Bearer $IDP_AT")
     
     if [[ "$RESP" == "204" ]]; then
-      echo "✅ Successfully assigned '$TARGET_GROUP' to '$TARGET_USERNAME'."
+      echo "✅ Successfully assigned '$TARGET_GROUP' to '$ADMIN_USER'."
     else
       echo "❌ Failed to assign group. HTTP code: $RESP"
       exit 1
     fi
 
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT ${API_URL}/v1/projects/${DEFAULT_TENANT} \
+    -H "Content-Type: application/json" -H "accept: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" \
+    -d "{\"description\": \"${DEFAULT_TENANT}\"}")
     
+    if [[ "$RESP" == "200" ]]; then
+      echo "✅ Successfully created '$DEFAULT_TENANT' project."
+    else
+      echo "❌ Failed to create project. HTTP code: $RESP"
+      exit 1
+    fi
     
+    PROJ_UUID=$(curl --location ${API_URL}/v1/projects/${DEFAULT_TENANT} \
+    -H "Content-Type: application/json" -H "accept: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" | jq -r .status.projectStatus.uID)
+
+    while [ $(curl -s --location ${API_URL}/v1/projects/${PROJ_NAME} \
+        -H "accept: application/json" -H "Content-Type: application" \
+        -H "Authorization: Bearer ${IDP_AT}" | jq -r .status.projectStatus.statusIndicator) \
+        != "STATUS_INDICATION_IDLE" ]; do
+      echo "Waiting for ${PROJ_NAME} to be provisioned..."
+      sleep 5
+    done
+    
+    echo "✅ Successfully instantiated '$DEFAULT_TENANT' project."

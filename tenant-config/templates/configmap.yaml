@@ -110,7 +110,7 @@ data:
       exit 1
     fi
     
-    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT https://api.${CLUSTER_FQDN}/v1/orgs/${DEFAULT_ORG} \
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT ${API_URL}/v1/orgs/${DEFAULT_ORG} \
      -H "Content-Type: application/json" -H "accept: application/json" \
      -H "Authorization: Bearer ${IDP_AT}" \
      -d "{\"description\": \"${DEFAULT_ORG}\"}")

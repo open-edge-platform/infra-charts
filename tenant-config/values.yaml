@@ -31,5 +31,6 @@ securityContext:
 
 config:
   defaultUser: default
+  defaultUserPassword: default
   defaultOrganization: default
   defaultTenant: default

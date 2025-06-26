@@ -94,7 +94,7 @@ data:
       exit 1
     fi
     
-    TARGET_GROUP="Org-Admin-Group"
+    TARGET_GROUP="org-admin-group"
     GROUP_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/groups" \
     -H "Authorization: Bearer $IDP_AT" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
     
@@ -106,5 +106,17 @@ data:
       echo "✅ Successfully assigned '$TARGET_GROUP' to '$TARGET_USERNAME'."
     else
       echo "❌ Failed to assign group. HTTP code: $RESP"
+      exit 1
+    fi
+    
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT https://api.${CLUSTER_FQDN}/v1/orgs/${DEFAULT_ORG} \
+     -H "Content-Type: application/json" -H "accept: application/json" \
+     -H "Authorization: Bearer ${IDP_AT}" \
+     -d "{\"description\": \"${DEFAULT_ORG}\"}")
+    
+    if [[ "$RESP" == "204" ]]; then
+      echo "✅ Successfully created '$DEFAULT_ORG' organization."
+    else
+      echo "❌ Failed to create organization. HTTP code: $RESP"
       exit 1
     fi

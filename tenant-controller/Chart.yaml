@@ -6,7 +6,7 @@ name: tenant-controller
 description: Edge Infrastructure Manager Tenant Controller
 type: application
 version: 0.21.0
-appVersion: "0.19.0"
+appVersion: "0.20.0"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

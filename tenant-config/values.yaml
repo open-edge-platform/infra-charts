@@ -11,6 +11,7 @@ keycloakAdmin:
 
 params:
   keycloakUrl: "http://platform-keycloak.orch-platform:8080"
+  apiUrl: "http://svc-iam-nexus-api-gw.orch-iam:8082"
 
 jobAnnotations:
   "argocd.argoproj.io/hook": PostSync

@@ -62,9 +62,10 @@ data:
     }
 
     KEYCLOAK_URL=$1
-    DEFAULT_ORG=$2
-    DEFAULT_TENANT=$3
-    DEFAULT_USER=$4
+    API_URL=$2
+    DEFAULT_ORG=$3
+    DEFAULT_TENANT=$4
+    DEFAULT_USER=$5
 
     if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$DEFAULT_ORG" || -z "$DEFAULT_TENANT" || -z "$DEFAULT_USER" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
         usage
@@ -114,9 +115,11 @@ data:
      -H "Authorization: Bearer ${IDP_AT}" \
      -d "{\"description\": \"${DEFAULT_ORG}\"}")
     
-    if [[ "$RESP" == "204" ]]; then
+    if [[ "$RESP" == "200" ]]; then
       echo "✅ Successfully created '$DEFAULT_ORG' organization."
     else
       echo "❌ Failed to create organization. HTTP code: $RESP"
       exit 1
     fi
+    
+    

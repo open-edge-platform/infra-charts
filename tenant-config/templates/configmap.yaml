@@ -159,10 +159,10 @@ data:
     -H "Content-Type: application/json" -H "accept: application/json" \
     -H "Authorization: Bearer ${IDP_AT}" | jq -r .status.projectStatus.uID)
 
-    while [ $(curl -s --location ${API_URL}/v1/projects/${PROJ_NAME} \
-        -H "accept: application/json" -H "Content-Type: application" \
-        -H "Authorization: Bearer ${IDP_AT}" | jq -r .status.projectStatus.statusIndicator) \
-        != "STATUS_INDICATION_IDLE" ]; do
+    while [ "$(curl -s --location ${API_URL}/v1/projects/${PROJ_NAME} \
+      -H "accept: application/json" -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${IDP_AT}" \
+      | jq -r '.[0].status.projectStatus.statusIndicator')" != "STATUS_INDICATION_IDLE" ]; do
       echo "Waiting for ${PROJ_NAME} to be provisioned..."
       sleep 5
     done

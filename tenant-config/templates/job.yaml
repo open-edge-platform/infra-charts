@@ -23,7 +23,6 @@ spec:
         {{- include "tenant-config.selectorLabels" . | nindent 8 }}
     spec:
       restartPolicy: OnFailure
-      serviceAccountName:  {{ .Values.serviceAccount.name }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

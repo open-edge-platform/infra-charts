@@ -30,7 +30,7 @@ securityContext:
   allowPrivilegeEscalation: false
 
 config:
-  defaultUser: default
-  defaultUserPassword: default
+  defaultUser: local-admin
+  defaultUserPassword: local-admin
   defaultOrganization: default
   defaultTenant: default

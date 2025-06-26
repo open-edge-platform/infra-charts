@@ -175,6 +175,8 @@ data:
       -H "Authorization: Bearer ${IDP_AT}" \
       -d "{
       \"username\": \"${DEFAULT_USER}\",
+      \"email\": \"${DEFAULT_USER}@example.org\",
+      \"emailVerified\": true
       \"enabled\": true
     }")
     

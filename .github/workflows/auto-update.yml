@@ -37,3 +37,7 @@ jobs:
         uses: open-edge-platform/orch-ci/.github/actions/pr_updater@f341738d975c38b2b91f25d405baeb2d39bf2ddb  # 0.1.14
         with:
           github_token: ${{ secrets.SYS_ORCH_GITHUB }}
+
+permissions:
+  contents: read
+  pull-requests: write

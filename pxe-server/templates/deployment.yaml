@@ -40,15 +40,14 @@ spec:
         - name: tftp-permissions
           image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
           command: [ "/bin/sh" ]
-          args: [ "-c", "cp /tmp/ipxe.efi /tftp-storage && chmod 640 /tftp-storage/ipxe.efi && chown 65534:65534 /tftp-storage/ipxe.efi" ]
+          args: [ "-c", "cp /pvc/signed_ipxe.efi /tftp-storage/ipxe.efi && chmod 640 /tftp-storage/ipxe.efi && chown 65534:65534 /tftp-storage/ipxe.efi" ]
           volumeMounts:
             {{- if .Values.standaloneMode.enabled }}
             - name: local-path
               mountPath: "/tmp/ipxe.efi"
             {{- else }}
             - name: nginx-pvc
-              mountPath: "/tmp/ipxe.efi"
-              subPath: "signed_ipxe.efi"
+              mountPath: "/pvc"
             {{- end }}
             - name: tftp-storage
               mountPath: /tftp-storage

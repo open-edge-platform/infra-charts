@@ -170,7 +170,7 @@ data:
     
     echo "✅ Successfully instantiated '$DEFAULT_TENANT' project."
     
-    EXISTING_USER=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${DEFAULT_USER}" \
+    EXISTING_USER=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/master/users?username=${DEFAULT_USER}" \
       -H "Authorization: Bearer ${IDP_AT}" \
       -H "Content-Type: application/json")
       
@@ -181,7 +181,7 @@ data:
       USER_ID=$(echo "$EXISTING_USER" | jq -r '.[0].id')
     else
       echo "🔧 Creating user '${DEFAULT_USER}'..."
-      CREATE_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${KEYCLOAK_URL}/admin/realms/${REALM}/users" \
+      CREATE_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${KEYCLOAK_URL}/admin/realms/master/users" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer ${IDP_AT}" \
       -d "{
@@ -199,7 +199,7 @@ data:
       echo "✅ User '${DEFAULT_USER}' created."
   
       # Fetch the new user ID
-      USER_ID=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${DEFAULT_USER}" \
+      USER_ID=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/master/users?username=${DEFAULT_USER}" \
       -H "Authorization: Bearer ${IDP_AT}" | jq -r '.[0].id')
   
       if [[ -z "$USER_ID" || "$USER_ID" == "null" ]]; then
@@ -210,7 +210,7 @@ data:
 
     echo "🔐 Setting password for user ID: $USER_ID..."
       
-    PASS_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM}/users/${USER_ID}/reset-password" \
+    PASS_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "${KEYCLOAK_URL}/admin/realms/master/users/${USER_ID}/reset-password" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${IDP_AT}" \
       -d "{

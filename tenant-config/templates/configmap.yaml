@@ -176,7 +176,7 @@ data:
       -d "{
       \"username\": \"${DEFAULT_USER}\",
       \"email\": \"${DEFAULT_USER}@example.org\",
-      \"emailVerified\": true
+      \"emailVerified\": true,
       \"enabled\": true
     }")
     

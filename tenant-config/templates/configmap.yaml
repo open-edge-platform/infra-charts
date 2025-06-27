@@ -170,44 +170,58 @@ data:
     
     echo "✅ Successfully instantiated '$DEFAULT_TENANT' project."
     
-    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${KEYCLOAK_URL}/admin/realms/master/users" \
+    EXISTING_USER=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${DEFAULT_USER}" \
+      -H "Authorization: Bearer ${IDP_AT}" \
+      -H "Content-Type: application/json")
+      
+    USER_EXISTS=$(echo "$EXISTING_USER" | jq 'length > 0')
+    
+    if [[ "$USER_EXISTS" == "true" ]]; then
+      echo "ℹ️  User '${DEFAULT_USER}' already exists. Skipping creation."
+      USER_ID=$(echo "$EXISTING_USER" | jq -r '.[0].id')
+    else
+      echo "🔧 Creating user '${DEFAULT_USER}'..."
+      CREATE_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${KEYCLOAK_URL}/admin/realms/${REALM}/users" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer ${IDP_AT}" \
       -d "{
-      \"username\": \"${DEFAULT_USER}\",
-      \"email\": \"${DEFAULT_USER}@example.org\",
-      \"emailVerified\": true,
-      \"enabled\": true
-    }")
-    
-    if [[ "$RESP" -ne 201 ]]; then
-      echo "❌ Failed to create user. HTTP status: $RESP"
-      exit 1
-    fi
-
-    echo "✅ User '${DEFAULT_USER}' created."
-    
-    USER_ID=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/master/users?username=${DEFAULT_USER}" \
+        \"username\": \"${DEFAULT_USER}\",
+        \"email\": \"${DEFAULT_USER}@example.org\",
+        \"emailVerified\": true,
+        \"enabled\": true
+      }")
+  
+      if [[ "$CREATE_RESP" -ne 201 ]]; then
+        echo "❌ Failed to create user. HTTP status: $CREATE_RESP"
+        exit 1
+      fi
+  
+      echo "✅ User '${DEFAULT_USER}' created."
+  
+      # Fetch the new user ID
+      USER_ID=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${DEFAULT_USER}" \
       -H "Authorization: Bearer ${IDP_AT}" | jq -r '.[0].id')
-
-    if [[ -z "$USER_ID" || "$USER_ID" == "null" ]]; then
-      echo "❌ Could not fetch user ID"
-      exit 1
+  
+      if [[ -z "$USER_ID" || "$USER_ID" == "null" ]]; then
+        echo "❌ Could not fetch user ID after creation."
+        exit 1
+      fi
     fi
-    
-    PASS_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "${KEYCLOAK_URL}/admin/realms/master/users/${USER_ID}/reset-password" \
-      -H "Content-Type: application/json" \
-      -H "Authorization: Bearer ${IDP_AT}" \
+
+    echo "🔐 Setting password for user ID: $USER_ID..."
+      
+    PASS_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM}/users/${USER_ID}/reset-password" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" \
       -d "{
-        \"type\": \"password\",
-        \"temporary\": false,
-        \"value\": \"${DEFAULT_USER_PASS}\"
+      \"type\": \"password\",
+      \"temporary\": false,
+      \"value\": \"${DEFAULT_USER_PASS}\"
     }")
 
     if [[ "$PASS_RESPONSE" -eq 204 ]]; then
       echo "✅ Password set successfully."
-    else
-      echo "❌ Failed to set password. HTTP status: $PASS_RESPONSE"
+      else
+    echo "❌ Failed to set password. HTTP status: $PASS_RESPONSE"
       exit 1
     fi
-    

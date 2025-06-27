@@ -31,6 +31,6 @@ securityContext:
 
 config:
   defaultUser: local-admin
-  defaultUserPassword: local-admin
+  defaultUserPassword: ChangeMeOn1stLogin!
   defaultOrganization: default
   defaultTenant: default

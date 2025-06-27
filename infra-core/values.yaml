@@ -21,6 +21,8 @@ import:
     enabled: true
   apiv2:
     enabled: true
+  tenant-config:
+    enabled: false
 
 # Global values overrides
 # global:

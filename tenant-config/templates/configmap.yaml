@@ -1,0 +1,241 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tenant-config.name" . }}-script
+data:
+  configure-tenants.sh: |
+    #!/bin/bash
+    
+    exit_istio() 
+    {
+      # If Istio proxy is available, quit sidecar
+      if curl -s -f http://127.0.0.1:15020/healthz/ready; then
+        response=$(curl -o /dev/null -w "%{http_code}" --location  -v --request POST http://127.0.0.1:15000/quitquitquit --header 'Content-Type: text/plain')
+        if [[ ! "${response}" =~ "200" ]]; then
+            echo -e "ERROR: Error while quiting Istio proxy"
+            exit 1
+        fi
+      fi
+      exit 0 # exit successfully
+    }
+
+    # DO NOT MODIFY - SEE DESCRIPTION
+
+    # Script Name: configure-tenants.sh
+    # Description: This script creates default tenancy configuration based on 
+    #              It expects curl to be available on the container.
+    #              ADMIN_USER, ADMIN_PASS and ADMIN_CLIENT are expected to be available as env variable.
+    # Usage: ./configure-tenants.sh <KEYCLOAK_URL> <SVC_ACCOUNT> <DEFAULT_ORG> <DEFAULT_TENANT> <DEFAULT_USER>
+    #    -h:             help (optional)
+
+    set -xe
+    set -o pipefail
+
+    HELP=""
+
+    while getopts 'h' flag; do
+      case "${flag}" in
+        h) HELP='true' ;;
+        *) HELP='true' ;;
+      esac
+    done
+    shift $((OPTIND -1))
+
+    function usage {
+        cat >&2 <<EOF
+    Purpose:
+    Configure default tenancy configuration
+
+    Usage:
+      $(basename "$0") <KEYCLOAK_URL> <SVC_ACCOUNT> <DEFAULT_ORG> <DEFAULT_TENANT> <DEFAULT_USER>
+
+    ex:
+    ./configure-tenants.sh http://localhost:8090 orch-svc default-org default-project default-user
+
+    Options:
+        -h:             help (optional)
+    EOF
+    }
+
+    KEYCLOAK_URL=$1
+    API_URL=$2
+    DEFAULT_ORG=$3
+    DEFAULT_TENANT=$4
+    DEFAULT_USER=$5
+
+    if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$DEFAULT_ORG" || -z "$DEFAULT_TENANT" || -z "$DEFAULT_USER" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
+        usage
+        exit 1
+    fi
+
+    # Login with admin user to Keycloak
+    IDP_AT=$(curl -s --location --request POST "${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token" \
+      --header 'Content-Type: application/x-www-form-urlencoded' \
+      --data-urlencode 'grant_type=password' \
+      --data-urlencode "client_id=${ADMIN_CLIENT}" \
+      --data-urlencode "username=${ADMIN_USER}" \
+      --data-urlencode "password=${ADMIN_PASS}" \
+      --data-urlencode 'scope=openid profile email groups' \
+      | jq -r '.access_token')
+
+    if [[ -z "${IDP_AT}" ]]; then
+      echo "❌ Failed to obtain admin user JWT token!"
+      exit 1
+    fi
+    
+    ADMIN_USER_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/users?username=$ADMIN_USER" \
+    -H "Authorization: Bearer $IDP_AT" | jq -r '.[0].id')
+    
+    if [[ -z "${ADMIN_USER_ID}" ]]; then
+      echo "❌ Failed to obtain admin user ID!"
+      exit 1
+    fi
+    
+    TARGET_GROUP="org-admin-group"
+    GROUP_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/groups" \
+    -H "Authorization: Bearer $IDP_AT" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
+    
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
+    "$KEYCLOAK_URL/admin/realms/master/users/$ADMIN_USER_ID/groups/$GROUP_ID" \
+    -H "Authorization: Bearer $IDP_AT")
+    
+    if [[ "$RESP" == "204" ]]; then
+      echo "✅ Successfully assigned '$TARGET_GROUP' to '$ADMIN_USER'."
+    else
+      echo "❌ Failed to assign group. HTTP code: $RESP"
+      exit 1
+    fi
+    
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT ${API_URL}/v1/orgs/${DEFAULT_ORG} \
+     -H "Content-Type: application/json" -H "accept: application/json" \
+     -H "Authorization: Bearer ${IDP_AT}" \
+     -d "{\"description\": \"${DEFAULT_ORG}\"}")
+    
+    if [[ "$RESP" == "200" ]]; then
+      echo "✅ Successfully created '$DEFAULT_ORG' organization."
+    else
+      echo "❌ Failed to create organization. HTTP code: $RESP"
+      exit 1
+    fi
+    
+    ORG_UID=$(curl -s -X GET "${API_URL}/v1/orgs/${DEFAULT_ORG}" \
+    -H "Content-Type: application/json" \
+    -H "accept: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" \
+    | jq -r '.status.orgStatus.uID')
+    
+    TARGET_GROUP="${ORG_UID}_Project-Manager-Group"
+    GROUP_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/groups" \
+    -H "Authorization: Bearer $IDP_AT" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
+    
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
+    "$KEYCLOAK_URL/admin/realms/master/users/$ADMIN_USER_ID/groups/$GROUP_ID" \
+    -H "Authorization: Bearer $IDP_AT")
+    
+    if [[ "$RESP" == "204" ]]; then
+      echo "✅ Successfully assigned '$TARGET_GROUP' to '$ADMIN_USER'."
+    else
+      echo "❌ Failed to assign group. HTTP code: $RESP"
+      exit 1
+    fi
+
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT ${API_URL}/v1/projects/${DEFAULT_TENANT} \
+    -H "Content-Type: application/json" -H "accept: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" \
+    -d "{\"description\": \"${DEFAULT_TENANT}\"}")
+    
+    if [[ "$RESP" == "200" ]]; then
+      echo "✅ Successfully created '$DEFAULT_TENANT' project."
+    else
+      echo "❌ Failed to create project. HTTP code: $RESP"
+      exit 1
+    fi
+    
+    PROJ_UUID=$(curl --location ${API_URL}/v1/projects/${DEFAULT_TENANT} \
+    -H "Content-Type: application/json" -H "accept: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" | jq -r .status.projectStatus.uID)
+
+    while [ "$(curl -s --location ${API_URL}/v1/projects/${PROJ_NAME} \
+      -H "accept: application/json" -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${IDP_AT}" \
+      | jq -r '.[0].status.projectStatus.statusIndicator')" != "STATUS_INDICATION_IDLE" ]; do
+      echo "Waiting for ${PROJ_NAME} to be provisioned..."
+      sleep 5
+    done
+    
+    echo "✅ Successfully instantiated '$DEFAULT_TENANT' project."
+    
+    EXISTING_USER=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/master/users?username=${DEFAULT_USER}" \
+      -H "Authorization: Bearer ${IDP_AT}" \
+      -H "Content-Type: application/json")
+      
+    USER_EXISTS=$(echo "$EXISTING_USER" | jq 'length > 0')
+    
+    if [[ "$USER_EXISTS" == "true" ]]; then
+      echo "ℹ️  User '${DEFAULT_USER}' already exists. Skipping creation."
+      USER_ID=$(echo "$EXISTING_USER" | jq -r '.[0].id')
+    else
+      echo "🔧 Creating user '${DEFAULT_USER}'..."
+      CREATE_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${KEYCLOAK_URL}/admin/realms/master/users" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${IDP_AT}" \
+      -d "{
+        \"username\": \"${DEFAULT_USER}\",
+        \"email\": \"${DEFAULT_USER}@example.org\",
+        \"emailVerified\": true,
+        \"enabled\": true
+      }")
+  
+      if [[ "$CREATE_RESP" -ne 201 ]]; then
+        echo "❌ Failed to create user. HTTP status: $CREATE_RESP"
+        exit 1
+      fi
+  
+      echo "✅ User '${DEFAULT_USER}' created."
+  
+      # Fetch the new user ID
+      USER_ID=$(curl -s -X GET "${KEYCLOAK_URL}/admin/realms/master/users?username=${DEFAULT_USER}" \
+      -H "Authorization: Bearer ${IDP_AT}" | jq -r '.[0].id')
+  
+      if [[ -z "$USER_ID" || "$USER_ID" == "null" ]]; then
+        echo "❌ Could not fetch user ID after creation."
+        exit 1
+      fi
+    fi
+
+    echo "🔐 Setting password for user ID: $USER_ID..."
+      
+    PASS_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "${KEYCLOAK_URL}/admin/realms/master/users/${USER_ID}/reset-password" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${IDP_AT}" \
+      -d "{
+      \"type\": \"password\",
+      \"temporary\": false,
+      \"value\": \"${ADMIN_PASS}\"
+    }")
+
+    if [[ "$PASS_RESPONSE" -eq 204 ]]; then
+      echo "✅ Password set successfully."
+      else
+    echo "❌ Failed to set password. HTTP status: $PASS_RESPONSE"
+      exit 1
+    fi
+
+    TARGET_GROUP="${PROJ_UUID}_Host-Manager-Group"
+    GROUP_ID=$(curl -s -X GET "$KEYCLOAK_URL/admin/realms/master/groups" \
+    -H "Authorization: Bearer $IDP_AT" | jq -r ".[] | select(.name==\"$TARGET_GROUP\") | .id")
+
+    RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
+    "$KEYCLOAK_URL/admin/realms/master/users/$USER_ID/groups/$GROUP_ID" \
+    -H "Authorization: Bearer $IDP_AT")
+
+    if [[ "$RESP" == "204" ]]; then
+      echo "✅ Successfully assigned '$TARGET_GROUP' to '$DEFAULT_USER'."
+    else
+      echo "❌ Failed to assign group. HTTP code: $RESP"
+      exit 1
+    fi

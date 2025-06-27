@@ -1,0 +1,35 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+keycloakAdmin:
+  user: admin
+  client: system-client
+  passwordSecret:
+    name: platform-keycloak  # name of the secret
+    key: admin-password  # key of the secret
+
+params:
+  keycloakUrl: "http://platform-keycloak.orch-platform:8080"
+  apiUrl: "http://svc-iam-nexus-api-gw.orch-iam:8082"
+
+jobAnnotations:
+  "argocd.argoproj.io/hook": PostSync
+  "argocd.argoproj.io/hook-delete-policy": HookSucceeded
+
+podAnnotations: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: false
+
+config:
+  defaultUser: local-admin # password will be same as keycloakAdmin
+  defaultOrganization: default
+  defaultTenant: default

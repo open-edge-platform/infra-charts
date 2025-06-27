@@ -66,9 +66,8 @@ data:
     DEFAULT_ORG=$3
     DEFAULT_TENANT=$4
     DEFAULT_USER=$5
-    DEFAULT_USER_PASS=$6
 
-    if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$DEFAULT_ORG" || -z "$DEFAULT_TENANT" || -z "$DEFAULT_USER" || -z "$DEFAULT_USER_PASS" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
+    if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$DEFAULT_ORG" || -z "$DEFAULT_TENANT" || -z "$DEFAULT_USER" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
         usage
         exit 1
     fi
@@ -216,7 +215,7 @@ data:
       -d "{
       \"type\": \"password\",
       \"temporary\": false,
-      \"value\": \"${DEFAULT_USER_PASS}\"
+      \"value\": \"${ADMIN_PASS}\"
     }")
 
     if [[ "$PASS_RESPONSE" -eq 204 ]]; then

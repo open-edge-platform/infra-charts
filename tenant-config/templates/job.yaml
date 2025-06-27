@@ -38,7 +38,6 @@ spec:
             - "{{.Values.config.defaultOrganization }}"
             - "{{.Values.config.defaultTenant }}"
             - "{{.Values.config.defaultUser }}"
-            - "{{.Values.config.defaultUserPassword }}"
           env:
             - name: ADMIN_USER
               value: "{{ .Values.keycloakAdmin.user }}"

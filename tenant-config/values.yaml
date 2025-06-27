@@ -30,7 +30,6 @@ securityContext:
   allowPrivilegeEscalation: false
 
 config:
-  defaultUser: local-admin
-  defaultUserPassword: ChangeMeOn1stLogin!
+  defaultUser: local-admin # password will be same as keycloakAdmin
   defaultOrganization: default
   defaultTenant: default

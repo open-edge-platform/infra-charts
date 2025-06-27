@@ -3,7 +3,7 @@
 ---
 apiVersion: v2
 name: tenant-config
-description: Default Tenant Configuration Job
+description: Default EIM-only Tenant Configuration Job
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

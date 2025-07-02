@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License_Identifier: Apcahe-2.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "keycloak-inventory"
+data:
+  oidc_server_url: {{ .Values.oidc.oidc_server_url }}
+  oidc_tls_insecure_skip_verify_env_name: {{ .Values.oidc.oidc_tls_insecure_skip_verify_env_name }}
+  oidc_tls_insecure_skip_verify_value: "{{ .Values.oidc.oidc_tls_insecure_skip_verify_value }}"

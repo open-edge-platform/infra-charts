@@ -79,6 +79,16 @@ spec:
                   key: vault-token
             - name: "MPS_JWT_SECRET"
               value: "notUsed"
+            - name: OIDC_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-inventory"
+                  key: oidc_server_url
+            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-inventory"
+                  key: oidc_tls_insecure_skip_verify_value
           ports:
             - containerPort: 3000
               name: mps

@@ -87,6 +87,10 @@ podAnnotations:
   traffic.sidecar.istio.io/excludeInboundPorts: "4433"
   traffic.sidecar.istio.io/excludeOutboundPorts: "4433"
 
+oidc:
+  oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
+  oidc_tls_insecure_skip_verify_env_name: "OIDC_TLS_INSECURE_SKIP_VERIFY"
+  oidc_tls_insecure_skip_verify_value: "true"
 
 imagePullSecrets: {}
 

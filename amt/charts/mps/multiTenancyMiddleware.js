@@ -27,17 +27,7 @@
 
             // Check for auth header and decode access roles
             const authHeader = req.get('Authorization')
-            if ( isNullOrEmpty(authHeader) || isUndefined(authHeader) ) {
-                return sendUnauthorizedResponse('Unauthorized request')
-            }
             const authHeaderContents = authHeader.split(" ")
-            if ( authHeaderContents.length !== 2 ) {
-                return sendUnauthorizedResponse('Malformed authorization header')
-            }
-            if ( authHeaderContents[0].toLowerCase() !== 'bearer' ) {
-                return sendUnauthorizedResponse('Invalid authorization header')
-            }
-
             const tokenContents = authHeaderContents[1].split(".")
             const claims = Buffer.from(tokenContents[1], 'base64').toString()
             const claimPayload = JSON.parse(claims)

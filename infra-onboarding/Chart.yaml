@@ -14,7 +14,7 @@ maintainers:
 dependencies:
   - name: onboarding-manager
     condition: import.onboarding-manager.enabled
-    version: "1.39.1"
+    version: "1.39.2"
     repository: "file://../onboarding-manager"
   - name: dkam
     condition: import.dkam.enabled

@@ -82,12 +82,12 @@ spec:
             - name: OIDC_SERVER_URL
               valueFrom:
                 configMapKeyRef:
-                  name: "keycloak-inventory"
+                  name: "keycloak-mps"
                   key: oidc_server_url
             - name: OIDC_TLS_INSECURE_SKIP_VERIFY
               valueFrom:
                 configMapKeyRef:
-                  name: "keycloak-inventory"
+                  name: "keycloak-mps"
                   key: oidc_tls_insecure_skip_verify_value
           ports:
             - containerPort: 3000

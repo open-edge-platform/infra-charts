@@ -1,6 +1,42 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
     // SPDX-License-Identifier: Apache-2.0
 
+    async function queryOidcUrl(url, tlsOptions) {
+        if ( tlsOptions !== '' ) {
+            return new Promise((resolve) => {
+                https.get(url, tlsOptions, resp => {
+                    let respData = ''
+                    resp.on('data', data => {
+                        respData += data
+                    })
+
+                    resp.on('end', () => {
+                        resolve(JSON.parse(respData))
+                    })
+                })
+                .on('error', err => {
+                    resolve(err)
+                })
+            })
+        } else {
+            return new Promise((resolve) => {
+                https.get(url, resp => {
+                    let respData = ''
+                    resp.on('data', data => {
+                        respData += data
+                    })
+
+                    resp.on('end', () => {
+                        resolve(JSON.parse(respData))
+                    })
+                })
+                .on('error', err => {
+                    resolve(err)
+                })
+            })
+        }
+    }
+
     const authMiddleware = async (req, res, next) => {
         const isUnset = (value) => value === null || value === '' || value === undefined
         const sendUnauthorizedResponse = (message) => {
@@ -14,7 +50,7 @@
         }
 
         // Check that auth header type is Bearer
-        const authHeaderContents = authHeader.Split(" ")
+        const authHeaderContents = authHeader.split(" ")
         if ( authHeaderContents.length !== 2 ) {
             return sendUnauthorizedResponse('Malformed authorization header')
         }
@@ -68,7 +104,7 @@
         if ( isUnset(issueTimeSecs) ) {
             return sendUnauthorizedResponse('Token missing issued time')
         }
-        if (issueTimeSecs >= currentTimeSecs || issueTimeSecs >= expTimeSecs ) {
+        if ( issueTimeSecs >= currentTimeSecs || issueTimeSecs >= expTimeSecs ) {
             return sendUnauthorizedResponse('Token issue time malformed')
         }
 
@@ -96,7 +132,7 @@
         // Validate token signature
         var key = ''
         if ( tokenAlg.startsWith('HS') ) {
-            key = ProcessingInstruction.env.SHARED_SECRET_KEY
+            key = process.env.SHARED_SECRET_KEY
         } else if ( tokenAlg.startsWith('ES') || tokenAlg.startsWith('PS') || tokenAlg.startsWith('RS') ) {
             const keyId = tokenHeader.kid
             if ( isUnset(keyId) ) {
@@ -106,60 +142,43 @@
             const oidcUrl = process.env.OIDC_SERVER_URL
             const oidcTlsInsecureSkipVerify = process.env.OIDC_TLS_INSECURE_SKIP_VERIFY
             var openIdProvider = new Object()
+            const url = oidcUrl+'/well-known/openid-configuration'
             if ( oidcTlsInsecureSkipVerify ) {
                 const tlsOptions = {
-                    secureContext: tls.createSecureContext({minVersion: 'TLSV1.2'})
+                    secureContext: tls.createSecureContext({minVersion: 'TLSv1.2'})
                 }
-                https.get(oidcUrl+'/well-known/openid-configuration', tlsOptions, resp => {
-                    let urls = ''
-
-                    resp.on('data', data => {
-                        urls += data
+                const oidcResponse = await queryOidcUrl(url, tlsOptions)
+                oidcResponse
+                    .then((result) => {
+                        openIdProvider = result
                     })
-
-                    resp.on('end', () => {
-                        openIdProvider = JSON.parse(urls)
+                    .catch((error) => {
+                        return sendUnauthorizedResponse('Failed to read OIDC URL' + error)
                     })
-                })
-                .on('error', _ => {
-                    return sendUnauthorizedResponse('Failed to read OIDC URL')
-                })
             } else {
-                https.get(oidcUrl+'/well-known/openid-configuration', resp => {
-                    let urls = ''
-
-                    resp.on('data', data => {
-                        urls += data
+                const oidcResponse = await queryOidcUrl(url, '')
+                oidcResponse
+                    .then((result) => {
+                        openIdProvider = result
                     })
-
-                    resp.on('end', () => {
-                        openIdProvider = JSON.parse(urls)
+                    .catch((error) => {
+                        return sendUnauthorizedResponse('Failed to read OIDC URL' + error)
                     })
-                })
-                .on('error', _ => {
-                    return sendUnauthorizedResponse('Failed to read OIDC URL')
-                })
             }
 
             var keyList = new Object()
-            https.get(openIdProvider.jwks_uri, resp => {
-                let keys = ''
-
-                resp.on('data', data => {
-                    keys += data
+            const oidcKeyResponse = await queryOidcUrl(openIdProvider.jwks_uri, '')
+            oidcKeyResponse
+                .then((result) => {
+                    openIdProvider = result
                 })
-
-                resp.on('end', () => {
-                    keyList = JSON.parse(keys)
+                .catch((error) => {
+                    return sendUnauthorizedResponse('Failed to read keys: ' + error)
                 })
-            })
-            .on('error', _ => {
-                return sendUnauthorizedResponse('Failed to read keys')
-            })
 
             for ( let loopCount = 0; loopCount < keyList.length; loopCount++ ) {
                 if ( keyList[loopCount].keys.kid === keyId ) {
-                    key = KeyList[loopCount].keys.key
+                    key = keyList[loopCount].keys.key
                     break
                 }
             }
@@ -175,7 +194,7 @@
 
         const hashList = crypto.getHashes()
         var algHash = ''
-        for ( let loopCount = 0; loopCount , hashList.length; loopCount++ ) {
+        for ( let loopCount = 0; loopCount < hashList.length; loopCount++ ) {
             if ( hashList[loopCount].includes('HMAC') && hashList[loopCount].includes(tokenAlgSize) && tokenAlg.startsWith('HS') ) {
                 algHash = hashList[loopCount]
                 break

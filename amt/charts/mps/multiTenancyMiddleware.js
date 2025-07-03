@@ -2,8 +2,7 @@
     // SPDX-License-Identifier: Apache-2.0
 
     const multiTenancyMiddleware = async (req, res, next) => {
-        const isNullOrEmpty = (value) => value === null || value === ''
-        const isUndefined = (value) => value === undefined
+        const isUnset = (value) => value === null || value === '' || value === undefined
         const sendUnauthorizedResponse = (message) => {
             res.status(401).send(message)
         }
@@ -21,12 +20,15 @@
         if ( apiUrl.includes('generalSettings') || ( deviceApi && deviceIdApi ) ) {
             // If NB check if header ActiveProjectID found
             const tenantId = req.get('ActiveProjectID')
-            if ( isNullOrEmpty(tenantId) || isUndefined(tenantId) ) {
+            if ( isUnset(tenantId) ) {
                 return sendUnauthorizedResponse('ActiveProjectID header not found')
             }
 
             // Check for auth header and decode access roles
             const authHeader = req.get('Authorization')
+            if ( isUnset(authHeader) ) {
+                return sendUnauthorizedResponse('Unauthorized request')
+            }
             const authHeaderContents = authHeader.split(" ")
             const tokenContents = authHeaderContents[1].split(".")
             const claims = Buffer.from(tokenContents[1], 'base64').toString()
@@ -34,7 +36,7 @@
             const access = claimPayload.realm_access.roles
             const accessList = new String(access)
             const accessRoles = accessList.split(",")
-            if ( isNullOrEmpty(accessRoles) || isUndefined(accessRoles) ) {
+            if ( isUnset(accessRoles) ) {
                 return sendUnauthorizedResponse('Malformed token')
             }
 

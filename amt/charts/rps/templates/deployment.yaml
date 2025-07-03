@@ -71,6 +71,16 @@ spec:
                   key: vault-token
             - name: "RPS_VAULT_ROLE" # Added Vault role
               value: "{{ .Values.rps.vaultRole }}"
+            - name: OIDC_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-rps"
+                  key: oidc_server_url
+            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
+              valueFrom:
+                configMapKeyRef:
+                  name: "keycloak-rps"
+                  key: oidc_tls_insecure_skip_verify_value
           ports:
             - containerPort: {{ .Values.service.websocketServerport }}
               name: rps

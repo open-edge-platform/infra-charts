@@ -1,8 +1,11 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
     // SPDX-License-Identifier: Apache-2.0
 
-    async function queryOidcUrl(url, tlsOptions) {
-        if ( tlsOptions !== '' ) {
+    async function queryOidcUrl(url, setTls) {
+        if ( setTls === true ) {
+            const tlsOptions = {
+                    secureContext: tls.createSecureContext({minVersion: 'TLSv1.2'})
+            }
             return new Promise((resolve) => {
                 https.get(url, tlsOptions, resp => {
                     let respData = ''
@@ -143,31 +146,17 @@
             const oidcTlsInsecureSkipVerify = process.env.OIDC_TLS_INSECURE_SKIP_VERIFY
             var openIdProvider = new Object()
             const url = oidcUrl+'/well-known/openid-configuration'
-            if ( oidcTlsInsecureSkipVerify ) {
-                const tlsOptions = {
-                    secureContext: tls.createSecureContext({minVersion: 'TLSv1.2'})
-                }
-                const oidcResponse = await queryOidcUrl(url, tlsOptions)
-                oidcResponse
-                    .then((result) => {
-                        openIdProvider = result
-                    })
-                    .catch((error) => {
-                        return sendUnauthorizedResponse('Failed to read OIDC URL' + error)
-                    })
-            } else {
-                const oidcResponse = await queryOidcUrl(url, '')
-                oidcResponse
-                    .then((result) => {
-                        openIdProvider = result
-                    })
-                    .catch((error) => {
-                        return sendUnauthorizedResponse('Failed to read OIDC URL' + error)
-                    })
-            }
+            const oidcResponse = await queryOidcUrl(url, oidcTlsInsecureSkipVerify)
+            oidcResponse
+                .then((result) => {
+                    openIdProvider = result
+                })
+                .catch((error) => {
+                    return sendUnauthorizedResponse('Failed to read OIDC URL' + error)
+                })
 
             var keyList = new Object()
-            const oidcKeyResponse = await queryOidcUrl(openIdProvider.jwks_uri, '')
+            const oidcKeyResponse = await queryOidcUrl(openIdProvider.jwks_uri, false)
             oidcKeyResponse
                 .then((result) => {
                     openIdProvider = result

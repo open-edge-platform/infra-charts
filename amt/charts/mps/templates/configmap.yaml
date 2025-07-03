@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
-# SPDX-License_Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 ---
 apiVersion: v1
 kind: ConfigMap

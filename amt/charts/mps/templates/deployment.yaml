@@ -79,16 +79,6 @@ spec:
                   key: vault-token
             - name: "MPS_JWT_SECRET"
               value: "notUsed"
-            - name: OIDC_SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: "keycloak-mps"
-                  key: oidc_server_url
-            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
-              valueFrom:
-                configMapKeyRef:
-                  name: "keycloak-mps"
-                  key: oidc_tls_insecure_skip_verify_value
           ports:
             - containerPort: 3000
               name: mps
@@ -98,10 +88,15 @@ spec:
           volumeMounts:
           - name: middleware-function
             mountPath: /mps/dist/middleware/custom
+          - name: middleware-constants
+            mountPath: /mps/middleware
       volumes:
         - name: middleware-function
           configMap:
             name: mps-middleware-configmap
+        - name: middleware-constants
+          configMap:
+            name: mps-middleware-constants
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

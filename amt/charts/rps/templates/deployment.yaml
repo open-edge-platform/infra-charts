@@ -71,16 +71,6 @@ spec:
                   key: vault-token
             - name: "RPS_VAULT_ROLE" # Added Vault role
               value: "{{ .Values.rps.vaultRole }}"
-            - name: OIDC_SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: "keycloak-rps"
-                  key: oidc_server_url
-            - name: OIDC_TLS_INSECURE_SKIP_VERIFY
-              valueFrom:
-                configMapKeyRef:
-                  name: "keycloak-rps"
-                  key: oidc_tls_insecure_skip_verify_value
           ports:
             - containerPort: {{ .Values.service.websocketServerport }}
               name: rps
@@ -89,10 +79,15 @@ spec:
           volumeMounts:
           - name: middleware-function
             mountPath: /rps/dist/middleware/custom
+          - name: middleware-constants
+            mountPath: /rps/middleware
       volumes:
         - name: middleware-function
           configMap:
             name: rps-middleware-configmap
+        - name: middleware-constants
+          configMap:
+            name: rps-middleware-constants
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

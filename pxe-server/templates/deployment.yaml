@@ -44,7 +44,7 @@ spec:
           volumeMounts:
             {{- if .Values.standaloneMode.enabled }}
             - name: local-path
-              mountPath: "/tmp/ipxe.efi"
+              mountPath: "/pvc/signed_ipxe.efi"
             {{- else }}
             - name: nginx-pvc
               mountPath: "/pvc"

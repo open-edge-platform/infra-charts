@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
     // SPDX-License-Identifier: Apache-2.0
-    import { getHashes, constants, verify } from "crypto"
+    import { constants, createHmac, createPublicKey, createVerify } from "crypto"
     import { createSecureContext } from "tls"
     import { get } from "http"
     import { OidcServerUrl, OidcTlsInsecureSkipVerify } from '../../../../middleware/middleware-constants.js'
 
+    const allowedOidcUrls = ['http://platform-keylcoak.orch-platform/realms/master', 'http://platform-keycloak.orch-platform.svc/realms/master']
     const publicKeys = new Map()
 
     async function queryOidcUrl(url, setTls) {
@@ -53,7 +54,7 @@
         }
 
         const apiUrl = req.originalUrl
-        if ( !apiUrl.includes('/api/v1/health') ) {
+        if ( !apiUrl.includes('/api/v1/admin/health') ) {
             // Check that auth header exists
             const authHeader = req.get('Authorization')
             if ( isUnset(authHeader) ) {
@@ -151,18 +152,33 @@
 
                 // Check if key already loaded, retrieve if not found
                 if ( !publicKeys.has(keyId) ) {
+                    if ( !allowedOidcUrls.includes(OidcServerUrl) ) {
+                        return sendUnauthorizedResponse('Invalid OIDC Server Url')
+                    }
                     const url = OidcServerUrl+'/.well-known/openid-configuration'
                     const oidcResponse = await queryOidcUrl(url, OidcTlsInsecureSkipVerify)
-                    const oidcKeyResponse = await queryOidcUrl(oidcResponse.jwks_uri, false)
+
+                    const jwksUri = oidcResponse.jwks_uri
+                    var checkUriAllowed = false
+                    for ( let loopCount = 0; loopCount < allowedOidcUrls.length; loopCount++) {
+                        if ( jwksUri.startsWith(allowedOidcUrls[loopCount]) ) {
+                            checkUriAllowed = true
+                            break
+                        }
+                    }
+                    if ( !checkUriAllowed ) {
+                        return sendUnauthorizedResponse('Invalid JWKS URI domain')
+                    }
+                    const oidcKeyResponse = await queryOidcUrl(jwksUri, false)
 
                     // Remove old keys and add updated keys
                     const keyList = oidcKeyResponse.keys
                     publicKeys.clear()
                     for ( let loopCount = 0; loopCount < keyList.length; loopCount++ ) {
-                        publicKeys.set(keyList[loopCount].kid, keyList[loopCount].key)
+                        publicKeys.set(keyList[loopCount].kid, keyList[loopCount])
                     }
-                    key = publicKeys.get(keyId)
                 }
+                key = publicKeys.get(keyId)
             }
             if ( isUnset(key) ) {
                 return sendUnauthorizedResponse('Failed to find public key')
@@ -173,35 +189,53 @@
                 return sendUnauthorizedResponse('Unsupported size')
             }
 
-            const hashList = getHashes()
-            var algHash = ''
-            for ( let loopCount = 0; loopCount < hashList.length; loopCount++ ) {
-                if ( hashList[loopCount].includes('HMAC') && hashList[loopCount].includes(tokenAlgSize) && tokenAlg.startsWith('HS') ) {
-                    algHash = hashList[loopCount]
-                    break
-                } else if ( hashList[loopCount].includes('ecdsa') && hashList[loopCount].includes('SHA'+tokenAlgSize) && tokenAlg.startsWith('ES') ) {
-                    algHash = hashList[loopCount]
-                    break
-                } else if ( hashList[loopCount].includes('RSA-') && hashList[loopCount].includes('SHA'+tokenAlgSize) && tokenAlg.startsWith('PS') ) {
-                    algHash = hashList[loopCount]
-                    break
-                } else if ( hashList[loopCount].startsWith('RSA-') && hashList[loopCount].includes('SHA'+tokenAlgSize) && tokenAlg.startsWith('RS') ) {
-                    algHash = hashList[loopCount]
-                    break
-                }
-            }
-            if ( algHash === '' ) {
-                return sendUnauthorizedResponse('Unsupported hash')
-            }
+            const algHash = `sha${tokenAlgSize}`
+            const headerData = tokenContents[0]
+            const payloadData = tokenContents[1]
+            const tokenData = `${headerData}.${payloadData}`
+            const publicKey = createPublicKey({key: key, format: 'jwk'})
 
-            const tokenData = Buffer.from(tokenHeader+'.'+tokenPayload, 'base64')
-            const keyObject = {
-              key: key,
-              padding: constants.RSA_PKCS1_PSS_PADDING,
-              }
-            signature = Buffer.from(tokenContents[2], 'base64')
-            if ( !verify(algHash, tokenData, keyObject, signature) ) {
-                return sendUnauthorizedResponse('Invalid token')
+            if ( tokenAlg.startsWith('HS') ) {
+                const signVerify = createHmac(algHash, key)
+                signVerify.update(tokenData)
+                signVerify.end()
+                if ( signVerify.digest('hex') !== Buffer.from(tokenContents[2], 'base64').toString() ) {
+                    return sendUnauthorizedResponse('Token verification failed')
+                }
+            } else {
+                if ( tokenAlg.startsWith('ES') ) {
+                    const signVerify = createVerify(algHash)
+                    signVerify.update(tokenData)
+                    signVerify.end()
+                    if ( !signVerify.verify(publicKey, tokenContents[2], 'base64') ) {
+                        return sendUnauthorizedResponse('Token verification failed')
+                    }
+                } else if ( tokenAlg.startsWith('PS') ) {
+                    const signingKey = {
+                        key: publicKey,
+                        padding: constants.RSA_PKCS1_PSS_PADDING,
+                        saltLength: constants.RSA_PSS_SALTLEN_DIGEST
+                    }
+                    const signVerify = createVerify(algHash)
+                    signVerify.update(tokenData)
+                    signVerify.end()
+                    if ( !signVerify.verify(signingKey, tokenContents[2], 'base64') ) {
+                        return sendUnauthorizedResponse('Token verification failed')
+                    }
+                } else if ( tokenAlg.startsWith('RS') ) {
+                    const signingKey = {
+                        key: publicKey,
+                        padding: constants.RSA_PKCS1_PADDING
+                    }
+                    const signVerify = createVerify(algHash)
+                    signVerify.update(tokenData)
+                    signVerify.end()
+                    if ( !signVerify.verify(signingKey, tokenContents[2], 'base64') ) {
+                        return sendUnauthorizedResponse('Token verification failed')
+                    }
+                } else {
+                    return sendUnauthorizedResponse('Token verification failed')
+                }
             }
         }
 

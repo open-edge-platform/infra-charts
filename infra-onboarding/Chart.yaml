@@ -5,8 +5,8 @@ apiVersion: v2
 name: infra-onboarding
 description: Edge Infrastructure Manager Onboarding Umbrella Chart
 type: application
-version: "1.32.5"
-appVersion: "1.32.5"
+version: "1.32.6-dev"
+appVersion: "1.32.6-dev"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:
@@ -30,5 +30,5 @@ dependencies:
     repository: "file://../infra-config"
   - name: pxe-server
     condition: import.pxe-server.enabled
-    version: "0.1.1"
+    version: "0.1.2"
     repository: "file://../pxe-server"

@@ -8,7 +8,6 @@ global:
       - name: ""
 
 image:
-  registry: registry-rs.edgeorchestration.intel.com/edge-orch/
   repository: infra/pxe-server
   pullPolicy: IfNotPresent
 

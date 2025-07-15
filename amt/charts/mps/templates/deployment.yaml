@@ -88,10 +88,26 @@ spec:
           volumeMounts:
           - name: middleware-function
             mountPath: /mps/dist/middleware/custom
+          - name: aws-root-cert
+            mountPath: /usr/local/share/ca-certificates/aws-aurora.pem
+            subPath: aws-aurora.pem
+
+        - name: aws-cert-sidecar
+          image: debian:12-slim
+          command: ["/bin/sh", "-c"]
+          args:
+            - apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && \
+              curl -o /certs/aws-aurora.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem && \
+              sleep 3600
+          volumeMounts:
+            - name: aws-root-cert
+              mountPath: /certs
       volumes:
         - name: middleware-function
           configMap:
             name: mps-middleware-configmap
+        - name: aws-root-cert
+          emptyDir: {}
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

@@ -22,8 +22,8 @@ mps:
   image:
     registry:
       name: docker.io/
-    repository: intel/oact-mps
-    tag: v2.14.2
+    repository: devipriya17/oact-mps
+    tag: v2.14.2-cloud-certs
     pullPolicy: IfNotPresent
     # Image specific takes precedence
     # registry:
@@ -37,8 +37,8 @@ rps:
   image:
     registry:
       name: docker.io/
-    repository: intel/oact-rps
-    tag: v2.24.0
+    repository: devipriya17/oact-rps
+    tag: v2.24.0-cloud-certs
     pullPolicy: IfNotPresent
     # Image specific takes precedence
     # registry:

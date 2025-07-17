@@ -101,6 +101,8 @@ affinity: {}
 
 extraEnv: []
 
+serviceArgs: {}
+
 service:
   dmmgr:
     type: ClusterIP

@@ -13,7 +13,7 @@ maintainers:
   - name: Edge Infrastructure Manager Team
 dependencies:
   - name: mps
-    version: "0.0.12"
+    version: "0.0.13"
     condition: import.mps.enabled
     repository: "file://charts/mps"
   - name: rps

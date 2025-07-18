@@ -88,10 +88,15 @@ spec:
           volumeMounts:
           - name: middleware-function
             mountPath: /mps/dist/middleware/custom
+          - name: middleware-constants
+            mountPath: /mps/middleware
       volumes:
         - name: middleware-function
           configMap:
             name: mps-middleware-configmap
+        - name: middleware-constants
+          configMap:
+            name: mps-middleware-constants
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

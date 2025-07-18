@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: rps-middleware-configmap
 data:
-  multiTenancyMiddleware.js: |-
-    {{ .Files.Get "multiTenancyMiddleware.js" }}
+  {{- $files := .Files }}
+  {{- range tuple "authMiddleware.js" "multiMiddleware.js" }}
+  {{ . }}: |-
+    {{ $files.Get . }}
+  {{- end }}

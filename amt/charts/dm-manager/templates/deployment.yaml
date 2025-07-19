@@ -42,6 +42,12 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           env:
+          - name: KEYCLOAK_SERVER
+            value: {{ .Values.keycloakServer }}
+          - name: VAULT_SERVER
+            value: {{ .Values.vaultServer }}
+          - name: SERVICE_ACCOUNT
+            value: {{ .Values.serviceAccount.name }}
           {{- if .Values.extraEnv }}
           {{- toYaml .Values.extraEnv | nindent 10 }}
           {{- end }}

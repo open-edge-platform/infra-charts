@@ -42,6 +42,8 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           env:
+          - name: USE_M2M_TOKEN
+            value: true
           - name: KEYCLOAK_SERVER
             value: {{ .Values.keycloakServer }}
           - name: VAULT_SERVER

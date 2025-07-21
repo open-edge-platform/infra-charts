@@ -98,4 +98,4 @@ affinity: {}
 
 postgresql:
   type: "local"
-  ssl: "true"
+  ssl: "false"

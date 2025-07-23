@@ -41,15 +41,6 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          env:
-          - name: USE_M2M_TOKEN
-            value: {{ .Values.useToken }}
-          - name: KEYCLOAK_SERVER
-            value: {{ .Values.keycloakServer }}
-          - name: VAULT_SERVER
-            value: {{ .Values.vaultServer }}
-          - name: SERVICE_ACCOUNT
-            value: {{ .Values.serviceAccount.name }}
           {{- if .Values.extraEnv }}
           {{- toYaml .Values.extraEnv | nindent 10 }}
           {{- end }}

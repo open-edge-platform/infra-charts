@@ -34,10 +34,6 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: "orch-svc"
 
-useToken: "true"
-keycloakServer: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
-vaultServer: "http://vault.orch-platform.svc.cluster.local:8200"
-
 podAnnotations: {}
 podLabels: {}
 

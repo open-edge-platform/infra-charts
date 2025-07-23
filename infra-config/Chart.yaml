@@ -5,7 +5,7 @@ apiVersion: v2
 name: infra-config
 description: Edge Infrastructure Manager Shared Configuration
 type: application
-version: 0.6.1
+version: 0.6.2
 appVersion: "1.0.0"
 annotations: {}
 home: edge-orchestrator.intel.com

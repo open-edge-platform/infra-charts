@@ -35,7 +35,7 @@ data:
     initrd --timeout=-1 ${download-url}/initramfs-${arch} && goto bootfinal || iseq ${idx} ${retry_limit} && goto error || inc idx && echo Unable to load ${download-url}/initramfs-${arch} && echo RETRY NO ${idx} && goto initloop
     :bootfinal
     set initramfs_download_end ${unixtime}
-    imgargs vmlinuz-${arch} tink_worker_image=${tink_worker_image} grpc_authority=${grpc_authority} tinkerbell_tls=false worker_id=${bootdevmac} \
+    imgargs vmlinuz-${arch} root=tmpfs rootflags=mode=0755 rd.skipfsck noresume quiet splash modules-load=nbd tink_worker_image=${tink_worker_image} grpc_authority=${grpc_authority} tinkerbell_tls=false worker_id=${bootdevmac} \
     IP=${bootdevip} \
     $ADDITIONAL_KERNEL_ARGS \
     modules=loop,squashfs,sd-mod,usb-storage intel_iommu=on iommu=pt initrd=initramfs-${arch} console=tty0 console=ttyS1,115200 loglevel=2 \

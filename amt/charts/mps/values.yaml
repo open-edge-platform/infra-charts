@@ -11,8 +11,8 @@ global:
 replicaCount: 1
 
 image:
-  repository: intel/oact-mps
-  tag: latest
+  repository: infra/dmt-mps
+  tag: 1.0.4
   pullPolicy: IfNotPresent
 
 mps:

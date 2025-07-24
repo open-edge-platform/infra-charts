@@ -45,6 +45,10 @@ spec:
           {{- if .Values.extraEnv }}
           {{- toYaml .Values.extraEnv | nindent 10 }}
           {{- end }}
+          - name: OIDC_SERVER_URL
+            value: "{{ .Values.env.oidc.oidc_server_url }}"
+          - name: OIDC_TLS_INSECURE_SKIP_VERIFY
+            value: "{{ .Values.env.oidc.oidc_tls_insecure_skip_verify_value }}"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           {{- if hasKey $registry "name" }}

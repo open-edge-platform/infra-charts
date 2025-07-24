@@ -11,8 +11,8 @@ global:
 replicaCount: 1
 
 image:
-  repository: infra/dmt-rps
-  tag: 1.0.4
+  repository: intel/oact-rps
+  tag: latest
   pullPolicy: IfNotPresent
 
 rps:

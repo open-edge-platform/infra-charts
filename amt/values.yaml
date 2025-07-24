@@ -20,8 +20,10 @@ mps:
   postgresql:
     type: "local"
   image:
-    repository: infra/dmt-mps
-    tag: 1.0.4
+    registry:
+      name: docker.io/
+    repository: intel/oact-mps
+    tag: v2.14.2
     pullPolicy: IfNotPresent
     # Image specific takes precedence
     # registry:
@@ -33,8 +35,10 @@ rps:
   postgresql:
     type: "local"
   image:
-    repository: infra/dmt-rps
-    tag: 1.0.4
+    registry:
+      name: docker.io/
+    repository: intel/oact-rps
+    tag: v2.24.0
     pullPolicy: IfNotPresent
     # Image specific takes precedence
     # registry:

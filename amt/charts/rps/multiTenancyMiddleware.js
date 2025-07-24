@@ -64,7 +64,7 @@
                         }
                     }
                 } else if ( apiMethod === 'GET' ) {
-                    for ( let loopCount = 0; loopCount < accessRoles.lenth; loopCount++ ) {
+                    for ( let loopCount = 0; loopCount < accessRoles.length; loopCount++ ) {
                         if ( accessRoles[loopCount].includes('im-r') && accessRoles[loopCount].startsWith(tenantId) ) {
                             roleCheck = true
                             break

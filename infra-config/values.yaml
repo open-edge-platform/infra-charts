@@ -28,10 +28,11 @@ config:
   orchKeycloak: keycloak.kind.internal:443
   orchTelemetry: telemetry-node.kind.internal:443
   # TODO: remove below two lines
-  orchMPSHost: mps-node.kind.internal:4433
-  orchMPSWHost: mps-webport-node.kind.internal:443
-  orchRPSHost: rps-node.kind.internal:443
-  orchRPSWHost: rps-webport-node.kind.internal:443
+  orchMPSHost: mps.kind.internal:4433
+  orchMPSWHost: mps-wss.kind.internal:443
+  orchRPSHost: rps.kind.internal:443
+  orchRPSWHost: rps-wss.kind.internal:443
+  orchDeviceManager: device-manager-node.kind.internal:443
   orchTelemetryHost: telemetry-node.kind.internal
   orchTelemetryPort: 443
   orchRegistry: registry-rs.edgeorchestration.intel.com:9443

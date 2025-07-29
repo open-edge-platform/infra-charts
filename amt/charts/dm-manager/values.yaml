@@ -34,6 +34,12 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: "orch-svc"
 
+env:
+  oidc:
+    oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
+    oidc_tls_insecure_skip_verify_value: "true"
+
+
 traefikReverseProxy:
   host:
     grpc:

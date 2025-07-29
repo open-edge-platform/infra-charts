@@ -49,8 +49,6 @@ spec:
             value: "{{ .Values.env.oidc.oidc_server_url }}"
           - name: OIDC_TLS_INSECURE_SKIP_VERIFY
             value: "{{ .Values.env.oidc.oidc_tls_insecure_skip_verify_value }}"
-          - name: ALLOW_MISSING_AUTH_CLIENTS
-            value: "{{ join "," .Values.env.oidc.clients.bypass | default "" }}"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           {{- if hasKey $registry "name" }}

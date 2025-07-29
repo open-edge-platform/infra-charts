@@ -38,10 +38,7 @@ env:
   oidc:
     oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
     oidc_tls_insecure_skip_verify_value: "true"
-    clients:
-      # REST clients should set the "User-Agent" header to be the client name.
-      bypass:
-        - cdn-boots
+
 
 traefikReverseProxy:
   host:

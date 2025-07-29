@@ -6,8 +6,8 @@ apiVersion: v2
 name: rps
 description: Edge Infrastructure Manager AMT RPS
 type: application
-version: 0.0.11
-appVersion: "0.0.11"
+version: 0.0.12
+appVersion: "0.0.12"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:

@@ -27,6 +27,7 @@ config:
   orchPlatformObsMetricsPort: 443
   orchKeycloak: keycloak.kind.internal:443
   orchTelemetry: telemetry-node.kind.internal:443
+  orchDeviceManager: device-manager-node.kind.internal:443
   # TODO: remove below two lines
   orchMPSHost: mps-node.kind.internal:4433
   orchMPSWHost: mps-webport-node.kind.internal:443

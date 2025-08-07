@@ -6,7 +6,7 @@ name: dm-manager
 description: Edge Infrastructure Device Management Resource Manager
 type: application
 version: 0.3.0
-appVersion: "0.3.0"
+appVersion: "0.3.1"
 home: edge-orchestrator.intel.com
 annotations: {}
 maintainers:

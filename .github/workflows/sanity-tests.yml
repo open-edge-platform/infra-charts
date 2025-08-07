@@ -366,3 +366,6 @@ jobs:
             pods-list.txt
             argocd-applications.yaml
             logs/**
+
+permissions:
+  contents: read

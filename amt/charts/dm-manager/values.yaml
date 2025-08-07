@@ -121,10 +121,13 @@ jobAnnotations:
   "argocd.argoproj.io/hook": PostSync
   "argocd.argoproj.io/hook-delete-policy": HookSucceeded
 
-# User-provided password
+# AMT Password Configuration
+# passwordPolicy: "static" enables password-based authentication
 # Should have One uppercase letter, one lowercase letter, one digit, one special character, and be at least 8 characters long.
+# This password will be stored securely in a Kubernetes secret and passed as an environment variable.
+# If password is empty, a secure random password will be auto-generated.
 params:
   passwordPolicy: "static"
-  password: ""
+  password: ""  # Leave empty to auto-generate a secure random password
   
   vaultUrl: "http://vault.orch-platform.svc:8200"

@@ -28,6 +28,7 @@ data:
     # Description: This script creates secret in Vault with user-provided AMT password
     # (if static password management is selected by user)
     # or empty string (if dynamic password management is selected by user).
+    # AMT_PASSWORD environment variable is provided by Kubernetes secret.
     # Usage: ./amt-password
 
     set -xe
@@ -78,24 +79,6 @@ data:
       exit_istio
     fi
 
-    # Check password policy and set AMT password accordingly
-    PASSWORD_POLICY="{{.Values.params.passwordPolicy | default "dynamic" }}"
-    USER_PASSWORD="{{.Values.params.password | default "" }}"
-    
-    if [[ "$PASSWORD_POLICY" == "static" ]]; then
-      if [[ -n "$USER_PASSWORD" ]]; then
-        AMT_PASSWORD="$USER_PASSWORD"
-        echo "Using user-provided static password for AMT"
-      else
-        AMT_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
-        echo "Generated random static password for AMT"
-      fi
-    else
-      # For dynamic password policy or empty, use empty string.
-      # Tenant controller will set the dynamic password
-      AMT_PASSWORD=""
-      echo "Using dynamic password policy - empty password stored in Vault"
-    fi
 
     # Create a secret in Vault
     retry_count=0

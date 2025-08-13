@@ -25,6 +25,7 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/nginx-configmap.yaml") . | sha256sum }}
+        chart-version: {{ .Chart.Version }}
       labels:
         {{- with .Values.stack.selector }}
         {{- toYaml . | nindent 8 }}

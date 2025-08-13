@@ -5,7 +5,7 @@ apiVersion: v2
 name: infra-onboarding
 description: Edge Infrastructure Manager Onboarding Umbrella Chart
 type: application
-version: "1.33.4"
+version: "1.33.5"
 appVersion: "1.33.5"
 annotations: {}
 home: edge-orchestrator.intel.com

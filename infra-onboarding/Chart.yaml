@@ -6,7 +6,7 @@ name: infra-onboarding
 description: Edge Infrastructure Manager Onboarding Umbrella Chart
 type: application
 version: "1.33.4"
-appVersion: "1.33.4"
+appVersion: "1.33.5"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:
@@ -22,7 +22,7 @@ dependencies:
     repository: "file://../dkam"
   - name: tinkerbell
     condition: import.tinkerbell.enabled
-    version: "2.12.0"
+    version: "2.12.1"
     repository: "file://../tinkerbell"
   - name: infra-config
     condition: import.infra-config.enabled

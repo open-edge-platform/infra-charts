@@ -5,8 +5,8 @@ apiVersion: v2
 name: dm-manager
 description: Edge Infrastructure Device Management Resource Manager
 type: application
-version: 0.3.3
-appVersion: "0.3.3"
+version: 0.3.4
+appVersion: "0.3.4"
 home: edge-orchestrator.intel.com
 annotations: {}
 maintainers:

@@ -7,7 +7,7 @@ name: amt
 description: Edge Infrastructure Manager AMT
 type: application
 version: 0.3.4
-appVersion: "0.3.3"
+appVersion: "0.3.4"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

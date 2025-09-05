@@ -48,9 +48,4 @@ spec:
         namespace: {{ .Release.Namespace }}
   tls:
     secretName: {{ .Values.traefikReverseProxy.secretName }}
-{{- if .Values.traefikReverseProxy.tlsOption }}
-    options:
-      name: {{ .Values.traefikReverseProxy.tlsOption }}
-      namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
-{{- end }}
 {{- end }}

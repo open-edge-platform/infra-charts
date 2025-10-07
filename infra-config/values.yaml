@@ -12,6 +12,7 @@ config:
   enManifestRepo: "edge-orch/en/files/ena-manifest"
   enAgentManifestTag:  latest-dev
   rsType: no-auth
+  maxAgentMemory: 128M
 
   orchInfra: infra-node.kind.internal:443
   orchCluster: cluster-orch-edge-node.kind.internal:443

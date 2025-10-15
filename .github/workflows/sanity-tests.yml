@@ -6,8 +6,8 @@ name: Sanity Tests
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Run every day at midnight
-  workflow_dispatch:  # Run on manual trigger
+    - cron: "0 0 * * *"    # Run every day at midnight
+  workflow_dispatch:     # Run on manual trigger
     inputs:
       run-sanity-tests:
         description: 'Run sanity tests'
@@ -31,7 +31,7 @@ jobs:
       ORCH_DEFAULT_PASSWORD: ${{ secrets.ORCH_DEFAULT_PASSWORD }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683    # v4.2.2
         with:
           repository: open-edge-platform/edge-manageability-framework
           token: ${{ secrets.SYS_ORCH_GITHUB }}
@@ -46,7 +46,7 @@ jobs:
         uses: open-edge-platform/orch-utils/.github/actions/setup-asdf@main  # zizmor: ignore[unpinned-uses]
 
       - name: Checkout infra-charts repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683    # v4.2.2
         with:
           repository: open-edge-platform/infra-charts
           path: infra-charts
@@ -120,7 +120,7 @@ jobs:
           echo "Orchestrator deployment done!"
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
-          
+
           echo "Adds Aargo Github Reopos..."
           mage argo:login
           mage argo:addGithubRepos
@@ -167,7 +167,7 @@ jobs:
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ensim -n orch-infra --timeout=5m
 
       - name: Checkout ensim (virtual-edge-node) repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683     # v4.2.2
         with:
           repository: open-edge-platform/virtual-edge-node
           path: virtual-edge-node
@@ -237,7 +237,7 @@ jobs:
             -clusterFQDN=kind.internal \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
-          
+
           echo "Kill port-forward to ensim/api"
           kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/ensim' | awk '{print $2}')
           kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/api' | awk '{print $2}')
@@ -246,7 +246,7 @@ jobs:
           kubectl -n orch-infra logs deploy/ensim > ensim.logs.txt
 
       - name: Upload E2E integration tests artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02     # v4.6.2
         with:
           name: e2e-int-tests-artifacts
           path: |
@@ -256,7 +256,7 @@ jobs:
             ${{ github.workspace }}/virtual-edge-node/edge-node-simulator/ensim.logs.txt
 
       - name: Checkout infra-core/api repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683     # v4.2.2
         with:
           repository: open-edge-platform/infra-core
           path: infra-core
@@ -290,7 +290,7 @@ jobs:
         run: |
           JWT_TOKEN=$(curl -k --location --request POST ${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'grant_type=password' --data-urlencode 'client_id=system-client' --data-urlencode username=${USERNAME} --data-urlencode password=${PASSWORD} --data-urlencode 'scope=openid profile email groups' | jq -r '.access_token')
           PROJECT_ID=$(kubectl get projects.project -o json | jq -r ".items[0].status.projectStatus.uID")
-          
+
           echo "Init port-forward to apiv2-proxy"
           kubectl port-forward svc/apiv2-proxy -n orch-infra --address 0.0.0.0 8080:8080 &
 
@@ -357,7 +357,7 @@ jobs:
 
       - name: Upload diagnostic artifacts
         if: ${{ always()  && steps.diagnostic-info.conclusion == 'success' && steps.diagnostic-info-logs.conclusion == 'success' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02     # v4.6.2
         with:
           name: pods-apps-logs
           path: |

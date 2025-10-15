@@ -24,15 +24,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683    # v4.2.2
         with:
-          fetch-depth: 0 # Fetch all history, WO sporadic issue with missing tags
-          fetch-tags: true # Fetch tags
-          ref: ${{ github.head_ref }} # Checkout the branch that triggered the workflow to avoid detached HEAD
+          fetch-depth: 0   # Fetch all history, WO sporadic issue with missing tags
+          fetch-tags: true    # Fetch tags
+          ref: ${{ github.head_ref }}    # Checkout the branch that triggered the workflow to avoid detached HEAD
           persist-credentials: false
 
       - name: Checkout action repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683    # v4.2.2
         with:
           repository: open-edge-platform/orch-ci
           path: ci
@@ -41,7 +41,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set enviroment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@7221fef1cf3ce70185cbe8c3f53a85be4e7e7cbd # 0.1.48
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@7221fef1cf3ce70185cbe8c3f53a85be4e7e7cbd     # 0.1.48
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 
@@ -94,45 +94,45 @@ jobs:
           if [ "${INFRA_CORE_RELEASE}" -eq 0 ]; then
             echo "Infra Core dev version"
             CORE_DEV_VALUES=${DEV_VALUES}
-          else 
+          else
             echo "Infra Core release"
           fi
           if [[ "${INFRA_MANAGERS_RELEASE}" -eq 0 ]]; then
             echo "Infra Managers dev version"
             MANAGERS_DEV_VALUES=${DEV_VALUES}
-          else 
+          else
             echo "Infra Managers release"
           fi
           if [ "${INFRA_EXTERNAL_RELEASE}" -eq 0 ]; then
             echo "Infra External dev version"
             EXTERNAL_DEV_VALUES=${DEV_VALUES}
-          else 
+          else
             echo "Infra External release"
           fi
           if [ "${INFRA_ONBOARDING_RELEASE}" -eq 0 ]; then
             echo "Infra Onboarding dev version"
             ONBOARDING_DEV_VALUES=${DEV_VALUES}
-          else 
+          else
             echo "Infra Onboarding release"
           fi
-          
+
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
             --set import.credentials.enabled=false \
             --set import.tenant-controller.enabled=false \
             --set tenant-controller.managerArgs.disableCredentialsManagement=true \
             --set inventory.postgresql.pod.enabled=true ${CORE_DEV_VALUES} \
             infra-core ./infra-core
-          
+
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
             --set loca-manager.serviceArgs.disableCredentialsManagement=true \
             --set loca-metadata-manager.serviceArgs.disableCredentialsManagement=true \
             --set import.loca-credentials.enabled=false ${EXTERNAL_DEV_VALUES} \
             --set import.amt.enabled=false \
             infra-external ./infra-external
-          
+
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" ${MANAGERS_DEV_VALUES} \
             infra-managers ./infra-managers
-          
+
           # TODO: find a way to at least deploy OM, it currently depends on the RS.
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
             --set onboarding-manager.managerArgs.disableCredentialsManagement=true \
@@ -178,7 +178,7 @@ jobs:
 
           results=("pre_merge_pipeline")
           status="OK"
-          
+
           for result in "${results[@]}"; do
             pipeline_result=$(eval echo \$$result)
             echo "${result} result: $pipeline_result"
@@ -186,7 +186,7 @@ jobs:
               status="KO"
             fi
           done
-          
+
           if [[ "$status" == "OK" ]]; then
             echo "Pre-merge check passed successfully."
           else

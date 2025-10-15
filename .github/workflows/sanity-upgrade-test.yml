@@ -8,8 +8,8 @@ on:
   pull_request_review_comment:
     types: [created]  # Run on PR review comment "upgrade-test"
   schedule:
-    - cron: "0 0 * * *" # Run every day at midnight
-  workflow_dispatch:  # Run on manual trigger
+    - cron: "0 0 * * *"    # Run every day at midnight
+  workflow_dispatch:     # Run on manual trigger
     inputs:
       run-upgrade-test:
         description: 'Run upgrade test'
@@ -28,7 +28,7 @@ jobs:
       contents: read
     name: Upgrade deployed Infra charts and test Orchestrator
     if: |
-      github.event_name != 'pull_request_review_comment' || 
+      github.event_name != 'pull_request_review_comment' ||
       (github.event.comment.body && contains(github.event.comment.body, 'upgrade-test'))
     runs-on: ubuntu-24.04-16core-64GB
     timeout-minutes: 90
@@ -36,7 +36,7 @@ jobs:
       ORCH_DEFAULT_PASSWORD: ${{ secrets.ORCH_DEFAULT_PASSWORD }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683    # v4.2.2
         with:
           repository: open-edge-platform/edge-manageability-framework
           token: ${{ secrets.SYS_ORCH_GITHUB }}
@@ -48,7 +48,7 @@ jobs:
           git config --global url."https://${{ secrets.SYS_ORCH_GITHUB }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Setup asdf and install dependencies
-        uses: open-edge-platform/orch-utils/.github/actions/setup-asdf@main # zizmor: ignore[unpinned-uses]
+        uses: open-edge-platform/orch-utils/.github/actions/setup-asdf@main     # zizmor: ignore[unpinned-uses]
 
       - name: Get current git hash of the infra-charts PR
         id: get-git-hash-charts
@@ -102,7 +102,7 @@ jobs:
           echo "Orchestrator deployment done!"
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
-          
+
           echo "Adding Argo Github Repos..."
           mage argo:login
           mage argo:addGithubRepos
@@ -151,7 +151,7 @@ jobs:
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ensim -n orch-infra --timeout=5m
 
       - name: Checkout ensim (virtual-edge-node) repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683     # v4.2.2
         with:
           repository: open-edge-platform/virtual-edge-node
           path: virtual-edge-node
@@ -232,7 +232,7 @@ jobs:
           sed -i 's|repoURL: {{ required "A valid chartRepoURL entry required!" .Values.argo.chartRepoURL }}|repoURL: https://github.com/open-edge-platform/infra-charts.git|g' argocd/applications/templates/infra-onboarding.yaml
 
           git commit -a -m "Upgrade EIM infra-charts-upgr-test PR ${INFRA_CHARTS_REV}"
-          
+
           echo "Apply updates..."
           mage deploy:orchLocal dev
 
@@ -240,7 +240,7 @@ jobs:
         id: verify-emf-status
         timeout-minutes: 20
         run: |
-          echo "Verify deployment..."     
+          echo "Verify deployment..."
           mage deploy:waitUntilComplete
           echo "Orchestrator upgrade done!"
 
@@ -255,7 +255,7 @@ jobs:
           echo "Infra Onboarding App Status:"
           kubectl -n dev get applications infra-onboarding -o yaml
           echo "Orchestrator upgrade verified!"
-  
+
       - name: Synchronize applications
         id: sync-emf-apps
         timeout-minutes: 10
@@ -263,12 +263,12 @@ jobs:
           echo "Sync applications..."
           argocd app sync dev/infra-managers dev/infra-core dev/infra-onboarding --grpc-web
           echo "Applications synchronized"
-      
+
       - name: Verify kind deployment after upgrade
         id: verify-emf-after-upgrade
         timeout-minutes: 10
         run: |
-          echo "Verify deployment..."     
+          echo "Verify deployment..."
           mage deploy:waitUntilComplete
           echo "Root App Status:"
           kubectl -n dev get applications root-app -o yaml
@@ -340,7 +340,7 @@ jobs:
             -orchFQDN=kind.internal -infraURL=http://127.0.0.1:8080/edge-infra.orchestrator.apis/v1 \
             -edgeAPIUser=sample-project-api-user  -edgeAPIPass=${PASSWORD} \
             -edgeOnboardUser=sample-project-onboarding-user -edgeOnboardPass=${PASSWORD}
-          
+
           echo "Kill port-forward to ensim/api"
           kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/ensim' | awk '{print $2}')
           kill $(ps -eaf | grep 'kubectl' | grep 'port-forward svc/api' | awk '{print $2}')
@@ -359,7 +359,7 @@ jobs:
 
       - name: Upload diagnostic artifacts
         if: ${{ always() && steps.diagnostic-info.conclusion == 'success' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02    # v4.6.2
         with:
           name: pods-apps-logs
           path: |

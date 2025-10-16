@@ -184,7 +184,7 @@ jobs:
 #        working-directory: virtual-edge-node/edge-node-simulator
 #        env:
 #          CA_PATH: ${{ github.workspace }}/orch-ca.crt
-#          PASSWORD: 'ChangeMeOn1stLogin!'
+#          PASSWORD: '<REPLACE_WITH_PASSWORD>'
 #          PROJECT: 'sample-project'
 #        shell: bash
 #        run: |
@@ -286,7 +286,7 @@ jobs:
 #        working-directory: virtual-edge-node/edge-node-simulator
 #        env:
 #          CA_PATH: ${{ github.workspace }}/orch-ca.crt
-#          PASSWORD: 'ChangeMeOn1stLogin!'
+#          PASSWORD: '<REPLACE_WITH_PASSWORD>'
 #          PROJECT: 'sample-project'
 #        shell: bash
 #        run: |
@@ -304,7 +304,7 @@ jobs:
         working-directory: virtual-edge-node/edge-node-simulator
         env:
           CA_PATH: ${{ github.workspace }}/orch-ca.crt
-          PASSWORD: 'ChangeMeOn1stLogin!'
+          PASSWORD: ${{ env.ORCH_DEFAULT_PASSWORD }}
           PROJECT: 'sample-project'
         shell: bash
         run: |

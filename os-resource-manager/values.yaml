@@ -53,7 +53,6 @@ managerArgs:
   globalLogLevel: "info"
   traceURL: "fluent-bit:4318"
   enableTracing: false
-  manualMode: false
   # osProfileRevision specifies the release version of OS profiles in RS that we should filter upon
   # Note that it should be overwritten to latest osProfileRevision
   osProfileRevision: main

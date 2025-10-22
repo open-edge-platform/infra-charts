@@ -69,7 +69,6 @@ spec:
           args:
           - "--inventoryAddress={{ .Values.managerArgs.inventoryAddress }}"
           - "--oamServerAddress={{ .Values.managerArgs.oamServerAddress }}"
-          - "--manualMode={{ .Values.managerArgs.manualMode }}"
           - "--osProfileRevision={{ .Values.managerArgs.osProfileRevision }}"
           {{- if .Values.autoProvision.enabled }}
           - "--defaultProfile={{ .Values.autoProvision.defaultProfile }}"

@@ -10,7 +10,7 @@ config:
   enDebianPackagesRepo: "edge-orch/en/deb"
   enFilesRsRoot: "files-edge-orch"
   enManifestRepo: "edge-orch/en/files/ena-manifest"
-  enAgentManifestTag:  latest-dev
+  enAgentManifestTag: "1.3.5"
   rsType: no-auth
 
   orchInfra: infra-node.kind.internal:443

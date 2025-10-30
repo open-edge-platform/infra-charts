@@ -117,9 +117,9 @@ service:
 metrics:
   enabled: false
 
-jobAnnotations:
-  "argocd.argoproj.io/hook": PostSync
-  "argocd.argoproj.io/hook-delete-policy": HookSucceeded
+# jobAnnotations:
+#   "argocd.argoproj.io/hook": PostSync
+#   "argocd.argoproj.io/hook-delete-policy": HookSucceeded
 
 # AMT Password Configuration
 # passwordPolicy: "static" enables password-based authentication

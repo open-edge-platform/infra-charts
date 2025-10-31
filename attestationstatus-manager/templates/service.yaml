@@ -25,7 +25,7 @@ spec:
     {{- include "attestationstatusmgr-manager.selectorLabels" . | nindent 4 }}
 ---
 {{- if .Values.traefikReverseProxy.enabled }}
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:
   name: "attest-api-grpc-node"

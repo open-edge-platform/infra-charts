@@ -4,7 +4,7 @@
 
 {{- if .Values.traefikReverseProxy.enabled }}
 
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: {{ .Values.traefikApiGroup }}
 kind: Middleware
 metadata:
   name: {{ include "rps.fullname" . }}-websocket-server
@@ -19,7 +19,7 @@ spec:
       Upgrade: "websocket"
 
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:
   name: {{ .Values.ingress.name }}

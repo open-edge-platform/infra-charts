@@ -5,7 +5,7 @@ apiVersion: v2
 name: telemetry-manager
 description: Edge Infrastructure Manager Telemetry Manager
 type: application
-version: 1.26.0
+version: 1.26.1
 appVersion: "1.22.0"
 home: edge-orchestrator.intel.com
 maintainers:

@@ -106,6 +106,8 @@ traefikReverseProxy:
   # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
   tlsOption: gateway-tls
 
+traefikApiGroup: "traefik.containo.us/v1alpha1"
+
 oidc:
   oidc_server_url: "http://platform-keycloak.orch-platform/realms/master"
   oidc_tls_insecure_skip_verify_value: "true"

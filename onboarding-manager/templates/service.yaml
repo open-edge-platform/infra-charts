@@ -28,7 +28,7 @@ spec:
     {{- include "onboarding-manager.selectorLabels" . | nindent 4 }}
 ---
 {{- if .Values.traefikReverseProxy.enabled }}
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:
   name: "onboardingmgr-api-grpc"
@@ -59,7 +59,7 @@ spec:
 
 ---
 {{- if .Values.traefikReverseProxy.enabled }}
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:
   name: "onboardingmgr-api-grpc-stream"

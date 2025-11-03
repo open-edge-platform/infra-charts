@@ -140,3 +140,5 @@ traefikReverseProxy:
   matchRoute:
   # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
   tlsOption: gateway-tls
+
+traefikApiGroup: "traefik.containo.us/v1alpha1"

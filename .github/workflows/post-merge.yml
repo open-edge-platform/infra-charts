@@ -40,7 +40,7 @@ jobs:
       contents: read
       security-events: write
       id-token: write
-    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@3bdd409ccf738472c6e1547d14628b51c70dbe99  # 0.1.21
+    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@a9c6e1f125a1a47b3f3b2dc05012bd0650df7b3a  # 0.1.57
     with:
       run_build: false
       run_version_tag: false
@@ -74,7 +74,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set environment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@7221fef1cf3ce70185cbe8c3f53a85be4e7e7cbd    # 0.1.48
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@a9c6e1f125a1a47b3f3b2dc05012bd0650df7b3a    # 0.1.57
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 

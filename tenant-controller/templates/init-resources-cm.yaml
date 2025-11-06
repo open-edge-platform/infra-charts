@@ -53,11 +53,7 @@ data:
             "platform_update_agent",
             "platform_telemetry_agent",
             "apt_install_logs",
-            "inbm",
-            "inbm_dispatcher",
-            "inbm_configuration",
-            "inbm_diagnostic",
-            "inbm_telemetry",
+            "inbd",
             "inbm_update_status_logs"
           ],
           "collectorKind": "COLLECTOR_KIND_HOST"

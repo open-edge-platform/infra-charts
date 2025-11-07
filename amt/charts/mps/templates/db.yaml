@@ -17,8 +17,8 @@ spec:
         runAsUser: 65534
       containers:
       - name: db-setup
-        image: postgres:16.4
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: "{{ .Values.postgresql.image.name }}:{{ .Values.postgresql.image.tag }}"
+        imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
         env:
         - name: PGPASSWORD
           valueFrom:

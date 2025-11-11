@@ -41,7 +41,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set enviroment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@7221fef1cf3ce70185cbe8c3f53a85be4e7e7cbd     # 0.1.48
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@fd197a9812cf15627d347eac2cf7b41fa8b1c3c2     # 0.1.60
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 

@@ -40,14 +40,12 @@ jobs:
       contents: read
       security-events: write
       id-token: write
-    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@3bdd409ccf738472c6e1547d14628b51c70dbe99  # 0.1.21
+    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@50452868e1a7850e3f76e9247e6b6e436a9980e1  # v0.1.61
     with:
       run_build: false
       run_version_tag: false
     secrets:
       SYS_ORCH_GITHUB: ${{ secrets.SYS_ORCH_GITHUB }}
-      COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-      COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
       NO_AUTH_ECR_PUSH_USERNAME: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
       NO_AUTH_ECR_PUSH_PASSWD: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
       MSTEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
@@ -74,7 +72,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set environment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@7221fef1cf3ce70185cbe8c3f53a85be4e7e7cbd    # 0.1.48
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@50452868e1a7850e3f76e9247e6b6e436a9980e1  # v0.1.61
         with:
           gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
 

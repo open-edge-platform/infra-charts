@@ -22,7 +22,7 @@ dependencies:
     repository: "file://../maintenance-manager"
   - name: networking-manager
     condition: import.networking-manager.enabled
-    version: "1.22.0"
+    version: "1.23.0"
     repository: "file://../networking-manager"
   - name: telemetry-manager
     condition: import.telemetry-manager.enabled

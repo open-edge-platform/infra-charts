@@ -12,6 +12,8 @@ config:
   enManifestRepo: "edge-orch/en/files/ena-manifest"
   enAgentManifestTag:  latest-dev
   rsType: no-auth
+  disableCoProfile: false
+  disableO11yProfile: false
 
   orchInfra: infra-node.kind.internal:443
   orchCluster: cluster-orch-edge-node.kind.internal:443

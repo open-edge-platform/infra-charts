@@ -13,7 +13,6 @@ config:
   enAgentManifestTag:  latest-dev
   rsType: no-auth
   disableCoProfile: false
-  disableAoProfile: false
   disableO11yProfile: false
 
   orchInfra: infra-node.kind.internal:443

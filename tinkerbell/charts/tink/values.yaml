@@ -8,7 +8,7 @@ controller:
   enabled: true
   name: tinkerbell-tink-controller
   image:
-    repository: quay.io/tinkerbell/tink-controller:v0.10.0
+    repository: quay.io/tinkerbell/tink-controller:v0.12.2
     pullPolicy: IfNotPresent
   replicas: 1
   args: []
@@ -28,7 +28,7 @@ server:
   enabled: true
   name: tinkerbell-tink-server
   image:
-    repository: quay.io/tinkerbell/tink:v0.10.0
+    repository: quay.io/tinkerbell/tink:v0.12.2
     pullPolicy: IfNotPresent
   replicas: 1
   service:

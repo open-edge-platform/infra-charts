@@ -56,7 +56,7 @@ config:
   cdnSvc: files-rs.edgeorchestration.intel.com
   omSvc: onboarding.kind.internal
   omStreamSvc: onboarding-stream.kind.internal
-  embImageUrl: files-edge-orch/repository/microvisor/uos/emb_uos_x86_64_20250717.tar.gz
+  embImageUrl: files-edge-orch/repository/microvisor/uos/emb_uos_x86_64_20251113.tar.gz
   # For coder deployment, fill all FQDN to point to the coder-deployed orchestrator.
   extraHosts:
   firewallReqAllow: |-

@@ -45,7 +45,7 @@ stack:
   image:
     repository: nginxinc/nginx-unprivileged
     pullPolicy: IfNotPresent
-    tag: "alpine3.21"
+    tag: "alpine3.22"
     # Image specific takes precedence
     # registry:
     #   name: null

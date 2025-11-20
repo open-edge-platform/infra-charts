@@ -18,7 +18,7 @@ dependencies:
     repository: "file://../loca-manager"
   - name: loca-credentials
     condition: import.loca-credentials.enabled
-    version: "1.2.0"
+    version: "1.2.1"
     repository: "file://../loca-credentials"
   - name: loca-metadata-manager
     condition: import.loca-metadata-manager.enabled

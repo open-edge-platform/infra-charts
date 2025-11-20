@@ -5,7 +5,7 @@
 {{- if .Values.traefikReverseProxy.enabled }}
 
 # HTTP IngressRoute
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:
   name: "{{ .Values.ingress.name }}"
@@ -28,7 +28,7 @@ spec:
 
 ---
 # TCP IngressRoute
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRouteTCP
 metadata:
   name: "{{ .Values.ingress.name }}"

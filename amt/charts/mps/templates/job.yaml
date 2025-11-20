@@ -27,7 +27,8 @@ spec:
               type: RuntimeDefault
           containers:
             - name: amt
-              image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092
+              image: "{{ .Values.curlImage.name }}:{{ .Values.curlImage.tag }}"
+              imagePullPolicy: {{ .Values.curlImage.pullPolicy }}
               command: ["/bin/sh"]
               args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
               securityContext:
@@ -79,7 +80,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: amt
-          image: badouralix/curl-jq@sha256:fe8a5ee49f613495df3b57afa86b39f081bd1b3b9ed61248f46c3d3d7df56092
+          image: "{{ .Values.curlImage.name }}:{{ .Values.curlImage.tag }}"
+          imagePullPolicy: {{ .Values.curlImage.pullPolicy }}
           command: ["/bin/sh"]
           args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
           securityContext:

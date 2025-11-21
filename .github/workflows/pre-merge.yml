@@ -85,8 +85,6 @@ jobs:
       - name: Deploy Umbrella Charts
         run: |
           set -x
-          # Generate a random password for CI testing
-          ORCH_DEFAULT_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
           PUBLIC_RS="registry-rs.edgeorchestration.intel.com/edge-orch/"
           DEV_VALUES="-f tools/latest-dev-components.yaml"
           CORE_DEV_VALUES=""
@@ -122,8 +120,7 @@ jobs:
             --set import.credentials.enabled=false \
             --set import.tenant-controller.enabled=false \
             --set tenant-controller.managerArgs.disableCredentialsManagement=true \
-            --set inventory.postgresql.pod.enabled=true \
-            --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" ${CORE_DEV_VALUES} \
+            --set inventory.postgresql.pod.enabled=true ${CORE_DEV_VALUES} \
             infra-core ./infra-core
 
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
@@ -133,7 +130,7 @@ jobs:
             --set import.amt.enabled=false \
             infra-external ./infra-external
 
-          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" ${MANAGERS_DEV_VALUES} \
+          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" ${MANAGERS_DEV_VALUES} \
             infra-managers ./infra-managers
 
           # TODO: find a way to at least deploy OM, it currently depends on the RS.

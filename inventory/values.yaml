@@ -137,9 +137,6 @@ postgresql:
       mountPath: "/var/lib/postgresql/data"
   # secrets with PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT
   secrets: inventory-postgresql-config
-  # Authentication configuration
-  auth:
-    password: ""
   # Configuration for read-only replicas
   readOnlyReplicasEnabled: false
   # secrets for read-only replicas with PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT

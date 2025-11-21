@@ -160,6 +160,12 @@ jobs:
             kubectl get pvc -A
             kubectl describe nodes
             helm ls -A
+            echo "#############################LOGS################################"
+            for pod in $(kubectl get pods -n orch-infra -o jsonpath='{.items[*].metadata.name}'); do
+              echo "Logs for pod: $pod"
+              kubectl logs -n orch-infra "$pod" || echo "No logs for pod: $pod"
+              echo "-----------------------------------------------------"
+            done
             exit "$deploy_failed"
           fi
           echo "All services up and running"

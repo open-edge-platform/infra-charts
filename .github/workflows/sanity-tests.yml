@@ -199,7 +199,7 @@ jobs:
         working-directory: virtual-edge-node/edge-node-simulator
         env:
           CA_PATH: ${{ github.workspace }}/orch-ca.crt
-          PASSWORD: 'ChangeMeOn1stLogin!'
+          PASSWORD: ${{ env.ORCH_DEFAULT_PASSWORD }}
           PROJECT: 'sample-project'
         shell: bash
         run: |
@@ -283,7 +283,7 @@ jobs:
         env:
           KEYCLOAK_URL: "https://keycloak.kind.internal"
           USERNAME: "sample-project-api-user"
-          PASSWORD: 'ChangeMeOn1stLogin!'
+          PASSWORD: ${{ env.ORCH_DEFAULT_PASSWORD }}
           API_URL: "http://127.0.0.1:8080/"
           CA_PATH: ${{ github.workspace }}/orch-ca.crt
         shell: bash

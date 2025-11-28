@@ -6,7 +6,7 @@ apiVersion: v2
 name: mps
 description: Edge Infrastructure Manager AMT MPS
 type: application
-version: 0.0.25
+version: 0.0.26
 appVersion: "0.0.16"
 annotations: {}
 home: edge-orchestrator.intel.com

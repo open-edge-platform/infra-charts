@@ -36,6 +36,7 @@ spec:
                   drop:
                     - ALL
                 allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
               env:
                 - name: ADMIN_USER
                   value: admin
@@ -50,11 +51,15 @@ spec:
                 - mountPath: /amt.sh
                   subPath: amt.sh
                   name: amt-vol
+                - mountPath: /tmp
+                  name: tmp-vol
           volumes:
             - name: amt-vol
               configMap:
                 name: amt-vault-script
                 defaultMode: 0777
+            - name: tmp-vol
+              emptyDir: {}
 ---
 # FIXME: ITEP-70124 This job is only a temporary solution to run the amt.sh script once at the beginning of the deployment.
 apiVersion: batch/v1
@@ -89,6 +94,7 @@ spec:
               drop:
                 - ALL
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           env:
             - name: ADMIN_USER
               value: admin
@@ -103,8 +109,12 @@ spec:
             - mountPath: /amt.sh
               subPath: amt.sh
               name: amt-vol
+            - mountPath: /tmp
+              name: tmp-vol
       volumes:
         - name: amt-vol
           configMap:
             name: amt-vault-script
             defaultMode: 0777
+        - name: tmp-vol
+          emptyDir: {}

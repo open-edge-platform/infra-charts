@@ -23,7 +23,7 @@ mps:
     registry:
       name: docker.io/
     repository: intel/oact-mps
-    tag: v2.20.2
+    tag: v2.14.2
     pullPolicy: IfNotPresent
     # Image specific takes precedence
     # registry:

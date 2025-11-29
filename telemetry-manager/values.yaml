@@ -31,7 +31,7 @@ telemetryMgrArgs:
   inventoryAddress: "inventory:50051"
   ServerAddress: "0.0.0.0:50004"
   oamServerAddress: "0.0.0.0:2379"
-  globalLogLevel: "info"
+  globalLogLevel: "debug"
   traceURL: "fluent-bit:4318"
   enableTracing: false
   enableAuth: true

@@ -50,7 +50,7 @@ autoProvision:
 managerArgs:
   inventoryAddress: "inventory:50051"
   oamServerAddress: "0.0.0.0:2379"
-  globalLogLevel: "info"
+  globalLogLevel: "debug"
   traceURL: "fluent-bit:4318"
   enableTracing: false
   # osProfileRevision specifies the release version of OS profiles in RS that we should filter upon

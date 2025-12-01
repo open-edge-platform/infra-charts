@@ -70,6 +70,7 @@ managerArgs:
   # rsProxyFilesAddress specifies the Release Service File Server proxy address
   rsProxyFilesAddress: "rs-proxy-files.orch-platform.svc.cluster.local:8081/"
   rsEnProfileRepo: "edge-orch/en/files/os-profile/"
+  inventoryTickerPeriod: 12h
 
 metrics:
   enabled: false

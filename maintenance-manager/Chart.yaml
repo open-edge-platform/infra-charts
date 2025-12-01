@@ -5,8 +5,8 @@ apiVersion: v2
 name: maintenance-manager
 description: Edge Infrastructure Manager Maintenance Manager
 type: application
-version: 1.27.0
-appVersion: "1.24.1"
+version: 1.27.1
+appVersion: "1.24.2"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

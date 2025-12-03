@@ -33,6 +33,7 @@ securityContext:
     drop:
       - ALL
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
 
 config:
   defaultUser: local-admin # password will be same as keycloakAdmin

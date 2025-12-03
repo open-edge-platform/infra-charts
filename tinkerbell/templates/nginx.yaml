@@ -57,6 +57,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 1000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
         command: ["/bin/sh", "-xeuc"]
@@ -135,6 +136,14 @@ spec:
         - mountPath: /tmp-boot-ipxe
           readOnly: true
           name: boot-ipxe
+        - mountPath: /etc/nginx
+          name: nginx-runtime
+        - mountPath: /var/cache/nginx
+          name: nginx-cache
+        - mountPath: /var/run
+          name: nginx-run
+        - mountPath: /tmp
+          name: tmp
         {{- if .Values.stack.hook.enabled }}
         - mountPath: /usr/share/nginx/html
           name: hook-artifacts
@@ -165,6 +174,14 @@ spec:
           items:
             - key: boot.ipxe
               path: boot.ipxe.template
+      - name: nginx-runtime
+        emptyDir: {}
+      - name: nginx-cache
+        emptyDir: {}
+      - name: nginx-run
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
 ---
 {{- if .Values.stack.service.enabled }}
 apiVersion: v1

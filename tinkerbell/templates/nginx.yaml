@@ -66,13 +66,13 @@ spec:
           POD_NAMESERVER=$(awk '/nameserver/ {print $2}' /etc/resolv.conf) \
             envsubst '$POD_NAMESERVER' \
             </tmp-nginx/nginx.conf.template \
-            >/etc/nginx/nginx.conf
+            >/tmp/nginx.conf
 
           envsubst '$DOWNLOAD_URL $GRPC_AUTHORITY $TINK_WORKER_IMAGE $ADDITIONAL_KERNEL_ARGS' \
             </tmp-boot-ipxe/boot.ipxe.template \
             >/usr/share/nginx/html/boot.ipxe
 
-          exec nginx -g 'daemon off;'
+          exec nginx -g 'daemon off;' -c /tmp/nginx.conf
         env:
           - name: DOWNLOAD_URL
             {{ if .Values.traefikReverseProxy.enabled }}
@@ -136,8 +136,6 @@ spec:
         - mountPath: /tmp-boot-ipxe
           readOnly: true
           name: boot-ipxe
-        - mountPath: /etc/nginx
-          name: nginx-runtime
         - mountPath: /var/cache/nginx
           name: nginx-cache
         - mountPath: /var/run
@@ -174,8 +172,6 @@ spec:
           items:
             - key: boot.ipxe
               path: boot.ipxe.template
-      - name: nginx-runtime
-        emptyDir: {}
       - name: nginx-cache
         emptyDir: {}
       - name: nginx-run

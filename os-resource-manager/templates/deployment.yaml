@@ -116,6 +116,8 @@ spec:
               value: "{{ .Values.managerArgs.rsProxyFilesAddress }}"
             - name: RS_EN_PROFILE_REPO
               value: "{{ .Values.managerArgs.rsEnProfileRepo }}"
+            - name: INVENTORY_TICKER_PERIOD
+              value: "{{ .Values.managerArgs.inventoryTickerPeriod }}"
 
       {{- with .Values.nodeSelector }}
       nodeSelector:

@@ -33,6 +33,7 @@ spec:
             runAsUser: 1000
             runAsGroup: 1000
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
 
@@ -50,5 +51,11 @@ spec:
             requests:
               cpu: {{ .Values.controller.resources.requests.cpu }}
               memory: {{ .Values.controller.resources.requests.memory }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
       serviceAccountName: {{ .Values.controller.name }}
 {{- end }}

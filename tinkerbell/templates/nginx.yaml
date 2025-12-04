@@ -57,6 +57,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 1000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
         command: ["/bin/sh", "-xeuc"]
@@ -65,13 +66,13 @@ spec:
           POD_NAMESERVER=$(awk '/nameserver/ {print $2}' /etc/resolv.conf) \
             envsubst '$POD_NAMESERVER' \
             </tmp-nginx/nginx.conf.template \
-            >/etc/nginx/nginx.conf
+            >/tmp/nginx.conf
 
           envsubst '$DOWNLOAD_URL $GRPC_AUTHORITY $TINK_WORKER_IMAGE $ADDITIONAL_KERNEL_ARGS' \
             </tmp-boot-ipxe/boot.ipxe.template \
             >/usr/share/nginx/html/boot.ipxe
 
-          exec nginx -g 'daemon off;'
+          exec nginx -g 'daemon off;' -c /tmp/nginx.conf
         env:
           - name: DOWNLOAD_URL
             {{ if .Values.traefikReverseProxy.enabled }}
@@ -135,6 +136,12 @@ spec:
         - mountPath: /tmp-boot-ipxe
           readOnly: true
           name: boot-ipxe
+        - mountPath: /var/cache/nginx
+          name: nginx-cache
+        - mountPath: /var/run
+          name: nginx-run
+        - mountPath: /tmp
+          name: tmp
         {{- if .Values.stack.hook.enabled }}
         - mountPath: /usr/share/nginx/html
           name: hook-artifacts
@@ -165,6 +172,12 @@ spec:
           items:
             - key: boot.ipxe
               path: boot.ipxe.template
+      - name: nginx-cache
+        emptyDir: {}
+      - name: nginx-run
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
 ---
 {{- if .Values.stack.service.enabled }}
 apiVersion: v1

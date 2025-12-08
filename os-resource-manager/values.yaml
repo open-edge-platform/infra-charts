@@ -61,8 +61,7 @@ managerArgs:
     - microvisor-rt
     - microvisor-nonrt
     - ubuntu-22.04-lts-generic-ext
-    - ubuntu-24.04-lts-generic
-    - ubuntu-24.04-lts-generic-ext
+    - ubuntu-24.04-lts
   disableProviderAutomation: false
   osSecurityFeatureEnable: false
   # rsProxyRegistryAddress specifies the Release Service OCI Registry proxy address

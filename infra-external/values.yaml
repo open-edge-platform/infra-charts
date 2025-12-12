@@ -19,6 +19,11 @@ import:
     enabled: true
   amt:
     enabled: true
+
+# Enable/disable Kyverno ClusterPolicy resources for automatic deployment restarts
+kyvernoPolicies:
+  enabled: true
+
 # Global values overrides
 # global:
 #   registry:
@@ -36,9 +41,9 @@ import:
 
 # loca-templates-manager:
 
-# amt:
-  # rps:
-
+amt:
   # mps:
+
+  # rps:
 
   # dm-manager:

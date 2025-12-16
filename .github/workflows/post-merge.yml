@@ -46,7 +46,7 @@ jobs:
       run_build: false
       run_version_tag: false
     secrets:
-      SYS_ORCH_GITHUB: ${{ secrets.SYS_ORCH_GITHUB }}
+      SYS_EMF_GH_TOKEN: ${{ secrets.SYS_EMF_GH_TOKEN }}
       NO_AUTH_ECR_PUSH_USERNAME: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
       NO_AUTH_ECR_PUSH_PASSWD: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
       MSTEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
@@ -68,14 +68,14 @@ jobs:
         with:
           repository: open-edge-platform/orch-ci
           path: ci
-          token: ${{ secrets.SYS_ORCH_GITHUB }}
+          token: ${{ secrets.SYS_EMF_GH_TOKEN }}
           persist-credentials: false
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set environment
         uses: open-edge-platform/orch-ci/.github/actions/bootstrap@d3fe218ea585fb390b73c87f9e482cbe1424829c  # v0.1.68
         with:
-          gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
+          gh_token: ${{ secrets.SYS_EMF_GH_TOKEN }}
 
       - name: Build and pack charts
         run: make helm-build
@@ -99,7 +99,7 @@ jobs:
 
       - name: Tag repo
         env:
-          GITHUB_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
+          GITHUB_TOKEN: ${{ secrets.SYS_EMF_GH_TOKEN }}
         run: |
           # Uses .chartver.yaml file to perform tagging in the repo with prefix for each umbrella folder
           for dir in infra-core infra-external infra-managers infra-onboarding; do

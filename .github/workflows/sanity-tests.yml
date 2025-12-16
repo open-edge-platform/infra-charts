@@ -34,13 +34,13 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8    # v6.0.1
         with:
           repository: open-edge-platform/edge-manageability-framework
-          token: ${{ secrets.SYS_ORCH_GITHUB }}
+          token: ${{ secrets.SYS_EMF_GH_TOKEN }}
           persist-credentials: false
 
       - name: Set up git credentials
         shell: bash
         run: |
-          git config --global url."https://${{ secrets.SYS_ORCH_GITHUB }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://${{ secrets.SYS_EMF_GH_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Setup asdf and install dependencies
         uses: open-edge-platform/orch-utils/.github/actions/setup-asdf@main  # zizmor: ignore[unpinned-uses]
@@ -50,7 +50,7 @@ jobs:
         with:
           repository: open-edge-platform/infra-charts
           path: infra-charts
-          token: ${{ secrets.SYS_ORCH_GITHUB }}
+          token: ${{ secrets.SYS_EMF_GH_TOKEN }}
           persist-credentials: false
 
       - name: Get current git hash of the infra-charts PR
@@ -70,7 +70,7 @@ jobs:
         env:
           INFRA_CHARTS_REV: ${{ env.GIT_HASH_CHARTS }}
           GIT_USER: "git"
-          GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
+          GIT_TOKEN: ${{ secrets.SYS_EMF_GH_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -109,7 +109,7 @@ jobs:
         id: deploy-orch
         env:
           GIT_USER: "git"
-          GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
+          GIT_TOKEN: ${{ secrets.SYS_EMF_GH_TOKEN }}
           EDGE_MANAGEABILITY_FRAMEWORK_REV: ${{ env.GIT_HASH_DEPLOY }}
           DOCKERHUB_TOKEN: ${{ secrets.SYS_DOCKERHUB_RO }}
           DOCKERHUB_USERNAME: ${{ secrets.SYS_DOCKERHUB_USERNAME }}
@@ -171,7 +171,7 @@ jobs:
         with:
           repository: open-edge-platform/virtual-edge-node
           path: virtual-edge-node
-          token: ${{ secrets.SYS_ORCH_GITHUB }}
+          token: ${{ secrets.SYS_EMF_GH_TOKEN }}
           persist-credentials: false
 
       - name: Checkout latest released tag of virtual-edge-node/edge-node-simulator repository
@@ -260,7 +260,7 @@ jobs:
         with:
           repository: open-edge-platform/infra-core
           path: infra-core
-          token: ${{ secrets.SYS_ORCH_GITHUB }}
+          token: ${{ secrets.SYS_EMF_GH_TOKEN }}
           persist-credentials: false
 
       - name: Checkout latest released tag of infra-core/apiv2 repository
@@ -322,7 +322,7 @@ jobs:
         env:
           INFRA_CHARTS_REV: ${{ env.GIT_HASH_CHARTS }}
           GIT_USER: "git"
-          GIT_TOKEN: ${{ secrets.SYS_ORCH_GITHUB }}
+          GIT_TOKEN: ${{ secrets.SYS_EMF_GH_TOKEN }}
         run: |
           set +x
           echo "Deleting branch dev/infra-charts-${INFRA_CHARTS_REV}"

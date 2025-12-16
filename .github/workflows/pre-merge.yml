@@ -36,14 +36,14 @@ jobs:
         with:
           repository: open-edge-platform/orch-ci
           path: ci
-          token: ${{ secrets.SYS_ORCH_GITHUB }}
+          token: ${{ secrets.SYS_EMF_GH_TOKEN }}
           persist-credentials: false
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set enviroment
         uses: open-edge-platform/orch-ci/.github/actions/bootstrap@d3fe218ea585fb390b73c87f9e482cbe1424829c  # v0.1.68
         with:
-          gh_token: ${{ secrets.SYS_ORCH_GITHUB }}
+          gh_token: ${{ secrets.SYS_EMF_GH_TOKEN }}
 
       - name: Printenv
         run: printenv

@@ -5,7 +5,7 @@ apiVersion: v2
 name: loca-templates-manager
 description: Edge Infrastructure Manager LOCA Templates Manager
 type: application
-version: 1.4.0
+version: 1.5.0-dev
 appVersion: "1.6.2"
 home: edge-orchestrator.intel.com
 annotations: {}

@@ -6,7 +6,7 @@ name: os-resource-manager
 description: Edge Infrastructure Manager OS Resource Manager
 type: application
 version: 0.25.0-dev
-appVersion: "0.21.0-dev"
+appVersion: "0.20.5"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

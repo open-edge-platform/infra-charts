@@ -9,7 +9,7 @@ name: tinkerbell
 description: Edge Infrastructure Manager Tinkerbell Umbrella Chart
 type: application
 version: 2.14.0-dev
-appVersion: "0.1.0-dev"
+appVersion: "0.0.1"
 dependencies:
   - name: tinkerbell_tink
     version: "1.8.0"

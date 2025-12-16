@@ -6,7 +6,7 @@ name: loca-manager
 description: Edge Infrastructure Manager LOCA Manager
 type: application
 version: 2.20.0-dev
-appVersion: "2.22.0-dev"
+appVersion: "2.21.2"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

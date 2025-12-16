@@ -6,7 +6,7 @@ name: host-manager
 description: Edge Infrastructure Manager Host Manager
 type: application
 version: 1.29.0-dev
-appVersion: "1.25.0-dev"
+appVersion: "1.24.1"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

@@ -5,8 +5,8 @@ apiVersion: v2
 name: apiv2
 description: Edge Infrastructure Manager API
 type: application
-version: 2.5.1
-appVersion: "2.8.2"
+version: 2.6.0-dev
+appVersion: "2.9.0-dev"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

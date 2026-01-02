@@ -21,6 +21,8 @@ import:
     enabled: true
   attestationstatus-manager:
     enabled: true
+  remote-access-manager:
+    enabled: true
 
 # Global values overrides
 # global:

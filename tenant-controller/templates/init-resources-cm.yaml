@@ -50,6 +50,7 @@ data:
             "hw_agent",
             "cluster_agent",
             "node_agent",
+            "remote_access_agent",
             "platform_update_agent",
             "platform_telemetry_agent",
             "apt_install_logs",

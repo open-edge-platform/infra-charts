@@ -5,7 +5,7 @@ apiVersion: v2
 name: inventory
 description: Edge Infrastructure Manager Inventory
 type: application
-version: 2.29.3
+version: 2.30.0-dev
 appVersion: "2.33.4"
 home: edge-orchestrator.intel.com
 maintainers:

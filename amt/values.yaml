@@ -21,6 +21,8 @@ kyvernoPolicies:
   enabled: true
 
 mps:
+  kyvernoPolicies:
+    enabled: true
   postgresql:
     type: "local"
   image:
@@ -36,6 +38,8 @@ mps:
     #     - name: ""
 
 rps:
+  kyvernoPolicies:
+    enabled: true
   postgresql:
     type: "local"
   image:

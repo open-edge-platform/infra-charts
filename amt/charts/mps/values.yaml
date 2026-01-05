@@ -109,3 +109,6 @@ postgresql:
     pullPolicy: IfNotPresent
   type: "local"
   ssl: "false"
+
+kyvernoPolicies:
+  enabled: true

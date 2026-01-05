@@ -16,7 +16,13 @@ import:
   dm-manager:
     enabled: true
 
+# Enable/disable Kyverno ClusterPolicy resources for automatic deployment restarts
+kyvernoPolicies:
+  enabled: true
+
 mps:
+  kyvernoPolicies:
+    enabled: true
   postgresql:
     type: "local"
   image:
@@ -32,6 +38,8 @@ mps:
     #     - name: ""
 
 rps:
+  kyvernoPolicies:
+    enabled: true
   postgresql:
     type: "local"
   image:

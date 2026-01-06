@@ -10,6 +10,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "rps.fullname" . }}
+  annotations:
+    # Reloader annotation to automatically restart deployment when vault-token secret changes
+    secret.reloader.stakater.com/reload: "vault-token"
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -17,9 +20,8 @@ spec:
       {{- include "rps.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      annotations:
-        checksum/vault-token: {{ (lookup "v1" "Secret" .Release.Namespace "vault-token").data | toYaml | sha256sum }}
       {{- with .Values.podAnnotations }}
+      annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:

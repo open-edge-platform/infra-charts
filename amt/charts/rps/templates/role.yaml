@@ -1,26 +1,5 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: "amt-{{ include "rps.fullname" . }}-kyverno-restart"
-  namespace: orch-infra
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: "amt-{{ include "rps.fullname" . }}-kyverno-restart"
-subjects:
-- kind: ServiceAccount
-  name: "kyverno-background-controller"
-  namespace: kyverno
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: "amt-{{ include "rps.fullname" . }}-kyverno-restart"
-  namespace: orch-infra
-rules:
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["create", "get","update", "list", "watch"]
+#
+# Kyverno-specific RBAC resources removed as we now use Reloader for automatic restarts.
+# Reloader uses its own ServiceAccount with cluster-wide permissions.

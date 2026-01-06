@@ -5,8 +5,8 @@ apiVersion: v2
 name: infra-core
 description: Edge Infrastructure Manager Core Umbrella Chart
 type: application
-version: "2.18.4"
-appVersion: "2.18.4"
+version: "2.19.0-dev"
+appVersion: "2.18.5"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:
@@ -18,25 +18,25 @@ dependencies:
     repository: "file://../api"
   - name: apiv2
     condition: import.apiv2.enabled
-    version: "2.5.0"
+    version: "2.6.0-dev"
     repository: "file://../apiv2"
   - name: exporter
     condition: import.exporter.enabled
-    version: "1.23.0"
+    version: "1.24.0-dev"
     repository: "file://../exporter"
   - name: inventory
     condition: import.inventory.enabled
-    version: "2.29.2"
+    version: "2.30.0-dev"
     repository: "file://../inventory"
   - name: credentials
     condition: import.credentials.enabled
-    version: "1.8.1"
+    version: "1.9.0-dev"
     repository: "file://../credentials"
   - name: tenant-controller
     condition: import.tenant-controller.enabled
-    version: "0.24.2"
+    version: "0.25.0-dev"
     repository: "file://../tenant-controller"
   - name: tenant-config
     condition: import.tenant-config.enabled
-    version: "0.1.2"
+    version: "0.2.0-dev"
     repository: "file://../tenant-config"

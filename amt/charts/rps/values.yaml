@@ -39,6 +39,12 @@ config:
     # -- examples: vnc.kind.internal, vnc.demo.maestro.intel.com
     hostName: "mps.kind.internal"
 
+reloader:
+  # Create ClusterRole/ClusterRoleBinding for Reloader to watch secrets across namespaces
+  # Set to false when deploying alongside MPS chart to avoid conflicts
+  # Set to true only when deploying RPS independently
+  createRBAC: false
+
 podSecurityContext:
   seccompProfile:
     type: RuntimeDefault

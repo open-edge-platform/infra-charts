@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for infra-vpro.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+# This is to enable the dependencies.
+# All dependencies are enabled by default.
+import:
+  amt:
+    enabled: true
+  inventory:
+    enabled: true
+
+# Global values overrides
+# global:
+#   registry:
+#     name: [REGISTRY_URL]
+#     imagePullSecrets:
+#       - name: "[PULL_SECRET_NAME]"
+
+# Below are all sub-chart overrides
+
+# amt:
+  # Configuration for MPS, RPS, DM-Manager
+  # Refer to infra-charts/amt/values.yaml for all options
+  
+  # mps:
+  #   enabled: true
+  
+  # rps:
+  #   enabled: true
+  
+  # dm-manager:
+  #   enabled: true
+  
+  # External platform service connections (already deployed)
+  # postgres:
+  #   host: postgresql-cluster-rw.orch-database
+  #   port: 5432
+  
+  # keycloak:
+  #   url: http://platform-keycloak.orch-platform:8080
+  
+  # vault:
+  #   address: http://vault.orch-platform:8200
+
+# inventory:
+  # Configuration for inventory service
+  # Refer to infra-charts/inventory/values.yaml for all options
+  
+  # serviceAccount:
+  #   name: "orch-svc"
+  
+  # resources:
+  #   limits:
+  #     cpu: 500m
+  #     memory: 512Mi
+  #   requests:
+  #     cpu: 100m
+  #     memory: 128Mi

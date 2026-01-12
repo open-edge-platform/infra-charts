@@ -1,0 +1,9 @@
+dependencies:
+- name: amt
+  repository: file://../amt
+  version: 0.7.0-dev
+- name: inventory
+  repository: file://../inventory
+  version: 2.30.0-dev
+digest: sha256:f060b4264a9268ef9988abd2be952802174cd9759353d48fb31110b84f4bc74e
+generated: "2026-01-12T01:20:54.760668489-08:00"

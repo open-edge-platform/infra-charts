@@ -1,0 +1,374 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+# ============================================================================
+# DMT Platform - Standalone Deployment Configuration
+# ============================================================================
+# This values file is for STANDALONE deployment mode where all platform
+# services (PostgreSQL, Keycloak, Vault) are bundled within the same namespace.
+#
+# For ArgoCD/EMF deployment, use values-argocd.yaml instead.
+# ============================================================================
+
+global:
+  # Deployment mode: standalone or argocd
+  deploymentMode: standalone
+  
+  # Namespace where DMT will be deployed
+  namespace: dmt-system
+  
+  # Image pull policy
+  imagePullPolicy: IfNotPresent
+  
+  # Common labels applied to all resources
+  labels:
+    app.kubernetes.io/part-of: dmt-platform
+    deployment.mode: standalone
+
+# ============================================================================
+# Platform Services Configuration (ENABLED for Standalone)
+# ============================================================================
+
+platform:
+  # PostgreSQL Database (Bitnami Chart)
+  postgresql:
+    enabled: true  # Deploy PostgreSQL in standalone mode
+    
+    auth:
+      username: postgres
+      password: postgres123  # Change in production!
+      postgresPassword: postgres123
+      database: postgres
+    
+    primary:
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+      
+      persistence:
+        enabled: true
+        size: 20Gi
+        storageClass: ""  # Use default storage class
+    
+    # Initialize databases for MPS and RPS
+    initdbScripts:
+      01-create-dmt-databases.sql: |
+        -- Create databases for DMT services
+        CREATE DATABASE mpsdb;
+        CREATE DATABASE rpsdb;
+        
+        -- Create users for DMT services
+        CREATE USER mpsuser WITH PASSWORD 'mpspass123';
+        CREATE USER rpsuser WITH PASSWORD 'rpspass123';
+        
+        -- Grant privileges
+        GRANT ALL PRIVILEGES ON DATABASE mpsdb TO mpsuser;
+        GRANT ALL PRIVILEGES ON DATABASE rpsdb TO rpsuser;
+  
+  # Keycloak Authentication (Bitnami Chart)
+  keycloak:
+    enabled: true  # Deploy Keycloak in standalone mode
+    
+    auth:
+      adminUser: admin
+      adminPassword: admin123  # Change in production!
+    
+    production: false  # Set to true for production
+    
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    
+    service:
+      type: ClusterIP
+      ports:
+        http: 8080
+        https: 8443
+    
+    postgresql:
+      enabled: true  # Use internal PostgreSQL
+      auth:
+        username: keycloak
+        password: keycloak123
+        database: keycloak
+    
+    # Keycloak realm and client configuration
+    extraEnvVars:
+      - name: KEYCLOAK_EXTRA_ARGS
+        value: "--import-realm"
+  
+  # HashiCorp Vault (Official Chart)
+  vault:
+    enabled: true  # Deploy Vault in standalone mode
+    
+    server:
+      dev:
+        enabled: true  # Development mode for quick start
+        devRootToken: "root"  # Change in production!
+      
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+      
+      dataStorage:
+        enabled: true
+        size: 10Gi
+        storageClass: ""
+      
+      service:
+        type: ClusterIP
+        port: 8200
+      
+      # Vault configuration
+      standalone:
+        enabled: true
+        config: |
+          ui = true
+          
+          listener "tcp" {
+            address = "[::]:8200"
+            cluster_address = "[::]:8201"
+            tls_disable = 1
+          }
+          
+          storage "file" {
+            path = "/vault/data"
+          }
+    
+    ui:
+      enabled: true
+      serviceType: ClusterIP
+
+# ============================================================================
+# DMT Services Configuration (ALWAYS ENABLED)
+# ============================================================================
+
+dmt:
+  # MPS (Management Presence Server)
+  mps:
+    enabled: true
+    
+    replicaCount: 2
+    
+    image:
+      repository: intel/mps
+      tag: "v2.0.0"
+      pullPolicy: IfNotPresent
+    
+    service:
+      type: LoadBalancer  # Expose MPS externally for device connections
+      ports:
+        cira: 4433
+        web: 3000
+    
+    # Database configuration (internal PostgreSQL)
+    database:
+      host: "dmt-platform-postgresql"  # Service name in same namespace
+      port: 5432
+      name: mpsdb
+      user: mpsuser
+      passwordSecret: "mps-db-secret"
+    
+    # Vault configuration (internal Vault)
+    vault:
+      address: "http://dmt-platform-vault:8200"
+      token: "root"  # Use AppRole in production
+      secretPath: "secret/data/mps"
+    
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 400m
+        memory: 512Mi
+  
+  # RPS (Remote Provisioning Server)
+  rps:
+    enabled: true
+    
+    replicaCount: 2
+    
+    image:
+      repository: intel/rps
+      tag: "v2.0.0"
+      pullPolicy: IfNotPresent
+    
+    service:
+      type: ClusterIP
+      ports:
+        http: 8081
+        websocket: 8082
+    
+    # Database configuration (internal PostgreSQL)
+    database:
+      host: "dmt-platform-postgresql"
+      port: 5432
+      name: rpsdb
+      user: rpsuser
+      passwordSecret: "rps-db-secret"
+    
+    # Vault configuration (internal Vault)
+    vault:
+      address: "http://dmt-platform-vault:8200"
+      token: "root"
+      secretPath: "secret/data/rps"
+    
+    # MPS connection
+    mpsServer:
+      address: "http://dmt-platform-mps:3000"
+    
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 400m
+        memory: 512Mi
+  
+  # DM-Manager (Device Manager)
+  dm-manager:
+    enabled: true
+    
+    replicaCount: 2
+    
+    image:
+      repository: intel/dm-manager
+      tag: "v0.7.2"
+      pullPolicy: IfNotPresent
+    
+    service:
+      type: ClusterIP
+      ports:
+        http: 8080
+        metrics: 9090
+    
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - host: dmt.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: dmt-tls
+          hosts:
+            - dmt.example.com
+    
+    # Keycloak configuration (internal Keycloak)
+    keycloak:
+      url: "http://dmt-platform-keycloak:8080"
+      realm: "dmt-realm"
+      clientId: "dmt-platform"
+      clientSecret: "dmt-secret-123"  # Change in production!
+    
+    # MPS connection
+    mpsServer:
+      address: "http://dmt-platform-mps:3000"
+    
+    # RPS connection
+    rpsServer:
+      address: "http://dmt-platform-rps:8081"
+    
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 400m
+        memory: 512Mi
+
+# ============================================================================
+# Optional Services Configuration
+# ============================================================================
+
+optional:
+  # Inventory Service (Enhanced Device Tracking)
+  inventory:
+    enabled: false  # Disable by default, enable if needed
+    
+    replicaCount: 1
+    
+    service:
+      type: ClusterIP
+      port: 8080
+    
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 400m
+        memory: 512Mi
+
+# ============================================================================
+# Networking Configuration
+# ============================================================================
+
+networking:
+  # Network policies
+  networkPolicies:
+    enabled: false  # Enable for enhanced security
+  
+  # Service mesh
+  serviceMesh:
+    enabled: false  # Not required for DMT
+
+# ============================================================================
+# Monitoring and Observability
+# ============================================================================
+
+monitoring:
+  # Prometheus metrics
+  prometheus:
+    enabled: false  # Enable if Prometheus is available
+    serviceMonitor:
+      enabled: false
+  
+  # Grafana dashboards
+  grafana:
+    enabled: false
+    dashboards:
+      enabled: false
+
+# ============================================================================
+# Security Configuration
+# ============================================================================
+
+security:
+  # Pod security standards
+  podSecurityStandards:
+    enforced: false  # Set to true for production
+  
+  # TLS/SSL
+  tls:
+    enabled: false  # Enable for production
+    certManager:
+      enabled: false
+
+# ============================================================================
+# Resource Quotas and Limits
+# ============================================================================
+
+resourceQuota:
+  enabled: false
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    pods: "20"

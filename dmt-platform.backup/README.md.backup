@@ -1,0 +1,418 @@
+# DMT Platform Helm Chart
+
+**Device Management Toolkit (DMT)** - Unified Helm chart for standalone and ArgoCD/EMF deployments.
+
+## Overview
+
+This Helm chart provides a flexible deployment solution for Intel's Device Management Toolkit (DMT), supporting two distinct deployment modes:
+
+1. **Standalone Mode**: Self-contained deployment with bundled platform services
+2. **ArgoCD/EMF Mode**: Integrated deployment leveraging existing EMF infrastructure
+
+## Features
+
+- 🔄 **Single Chart, Dual Modes**: One chart definition serves both deployment strategies
+- 🎯 **Conditional Dependencies**: Platform services automatically enabled/disabled based on mode
+- 🔐 **Security-First**: Built-in support for Vault, Keycloak, and TLS
+- 📊 **Observable**: Prometheus metrics and Grafana dashboards ready
+- 🚀 **Production-Ready**: High availability, resource management, and scaling support
+
+## Quick Start
+
+### Prerequisites
+
+- Kubernetes 1.24+
+- Helm 3.x
+- kubectl configured with cluster access
+
+### Standalone Deployment
+
+```bash
+# Create namespace
+kubectl create namespace dmt-system
+
+# Install DMT platform with bundled services
+helm install dmt-platform ./dmt-platform \
+  -n dmt-system \
+  -f values.yaml
+
+# Verify deployment
+kubectl get pods -n dmt-system
+```
+
+### ArgoCD/EMF Deployment
+
+```bash
+# Ensure EMF platform services are running
+kubectl get pods -n orch-platform
+kubectl get pods -n orch-database
+
+# Create required secrets
+kubectl create secret generic mps-db-secret \
+  --from-literal=password='mpspass123' \
+  -n dmt-system
+
+kubectl create secret generic rps-db-secret \
+  --from-literal=password='rpspass123' \
+  -n dmt-system
+
+# Install DMT platform (DMT services only)
+helm install dmt-platform ./dmt-platform \
+  -n dmt-system \
+  -f values-argocd.yaml
+
+# Verify deployment
+kubectl get pods -n dmt-system
+```
+
+## Architecture
+
+### Standalone Mode
+
+```
+┌─────────────────────────────────────┐
+│     Namespace: dmt-system           │
+├─────────────────────────────────────┤
+│  Platform Services (Bundled):      │
+│  - PostgreSQL                       │
+│  - Keycloak                         │
+│  - Vault                            │
+│                                     │
+│  DMT Services:                      │
+│  - MPS (Management Presence Server) │
+│  - RPS (Remote Provisioning Server) │
+│  - DM-Manager                       │
+└─────────────────────────────────────┘
+```
+
+**Resource Footprint**: 8 pods, ~2.8 CPU, ~5GB RAM, 30Gi storage
+
+### ArgoCD/EMF Mode
+
+```
+┌─────────────────────────────────────┐
+│  Namespace: orch-platform           │
+│  - Keycloak (existing)              │
+│  - Vault (existing)                 │
+└─────────────────────────────────────┘
+          ▲
+          │ Cross-namespace
+          │
+┌─────────────────────────────────────┐
+│  Namespace: orch-database           │
+│  - PostgreSQL (existing)            │
+└─────────────────────────────────────┘
+          ▲
+          │
+┌─────────────────────────────────────┐
+│  Namespace: dmt-system              │
+│  DMT Services (Deployed):           │
+│  - MPS                              │
+│  - RPS                              │
+│  - DM-Manager                       │
+└─────────────────────────────────────┘
+```
+
+**Resource Footprint**: 6 pods, ~1.2 CPU, ~1.5GB RAM, 0Gi storage
+
+## Configuration
+
+### Values Files
+
+| File | Purpose | Platform Services | Use Case |
+|------|---------|-------------------|----------|
+| `values.yaml` | Standalone deployment | Bundled (enabled) | Customer clusters, PoC, Development |
+| `values-argocd.yaml` | ArgoCD/EMF deployment | External (disabled) | Enterprise EMF environments |
+
+### Key Configuration Parameters
+
+#### Global Settings
+
+```yaml
+global:
+  deploymentMode: standalone  # or argocd
+  namespace: dmt-system
+  imagePullPolicy: IfNotPresent
+```
+
+#### Platform Services (Standalone)
+
+```yaml
+platform:
+  postgresql:
+    enabled: true  # Deploy PostgreSQL
+  keycloak:
+    enabled: true  # Deploy Keycloak
+  vault:
+    enabled: true  # Deploy Vault
+```
+
+#### Platform Services (ArgoCD)
+
+```yaml
+platform:
+  postgresql:
+    enabled: false  # Use external
+    external:
+      host: "postgresql-cluster-rw.orch-database.svc.cluster.local"
+  keycloak:
+    enabled: false  # Use external
+    external:
+      url: "http://keycloak.orch-platform.svc.cluster.local:8080"
+  vault:
+    enabled: false  # Use external
+    external:
+      address: "http://vault.orch-platform.svc.cluster.local:8200"
+```
+
+#### DMT Services
+
+```yaml
+dmt:
+  mps:
+    enabled: true
+    replicaCount: 2
+    service:
+      type: LoadBalancer
+      ports:
+        cira: 4433
+  rps:
+    enabled: true
+    replicaCount: 2
+  dm-manager:
+    enabled: true
+    replicaCount: 2
+```
+
+## Pre-Deployment Requirements (ArgoCD Mode)
+
+Before deploying DMT in ArgoCD/EMF mode, ensure the following are created in EMF:
+
+### 1. PostgreSQL Databases
+
+```sql
+-- Connect to EMF PostgreSQL
+psql -h postgresql-cluster-rw.orch-database -U postgres
+
+-- Create databases
+CREATE DATABASE mpsdb;
+CREATE DATABASE rpsdb;
+
+-- Create users
+CREATE USER mpsuser WITH PASSWORD 'mpspass123';
+CREATE USER rpsuser WITH PASSWORD 'rpspass123';
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE mpsdb TO mpsuser;
+GRANT ALL PRIVILEGES ON DATABASE rpsdb TO rpsuser;
+```
+
+### 2. Keycloak Configuration
+
+1. Access Keycloak admin console: `http://keycloak.orch-platform:8080`
+2. Create realm: `dmt-realm`
+3. Create client:
+   - Client ID: `dmt-platform`
+   - Client Protocol: `openid-connect`
+   - Access Type: `confidential`
+   - Valid Redirect URIs: `https://dmt.example.com/*`
+4. Note the generated client secret
+
+### 3. Vault Configuration
+
+```bash
+# Enable AppRole auth
+vault auth enable approle
+
+# Create AppRole for DMT
+vault write auth/approle/role/dmt-services \
+  token_policies="dmt-policy" \
+  token_ttl=1h \
+  token_max_ttl=4h
+
+# Get role ID and secret ID
+vault read auth/approle/role/dmt-services/role-id
+vault write -f auth/approle/role/dmt-services/secret-id
+
+# Create secret paths
+vault kv put secret/mps \
+  cira_cert="..." \
+  cira_key="..."
+
+vault kv put secret/rps \
+  provisioning_cert="..." \
+  provisioning_key="..."
+```
+
+### 4. Kubernetes Secrets
+
+```bash
+# Database credentials
+kubectl create secret generic mps-db-secret \
+  --from-literal=password='mpspass123' \
+  -n dmt-system
+
+kubectl create secret generic rps-db-secret \
+  --from-literal=password='rpspass123' \
+  -n dmt-system
+
+# Keycloak client secret
+kubectl create secret generic dmt-keycloak-client-secret \
+  --from-literal=client-secret='<keycloak-client-secret>' \
+  -n dmt-system
+
+# Vault AppRole credentials
+kubectl create secret generic vault-approle-secret \
+  --from-literal=role-id='<vault-role-id>' \
+  --from-literal=secret-id='<vault-secret-id>' \
+  -n dmt-system
+```
+
+## Deployment Validation
+
+### Check Pod Status
+
+```bash
+# Standalone mode
+kubectl get pods -n dmt-system
+# Expected: 8 pods (3 platform + 3 DMT + optional services)
+
+# ArgoCD mode
+kubectl get pods -n dmt-system
+# Expected: 6 pods (3 DMT services x 2 replicas)
+```
+
+### Verify Services
+
+```bash
+kubectl get svc -n dmt-system
+```
+
+### Test Connectivity
+
+```bash
+# Test MPS
+curl http://<mps-loadbalancer-ip>:3000/health
+
+# Test RPS
+kubectl exec -it <mps-pod> -n dmt-system -- \
+  curl http://rps:8081/api/v1/admin/health
+
+# Test DM-Manager
+curl http://dmt.example.com/api/v1/health
+```
+
+### Verify Cross-Namespace Connectivity (ArgoCD Mode)
+
+```bash
+# Test DMT → Vault
+kubectl exec -it <mps-pod> -n dmt-system -- \
+  curl http://vault.orch-platform.svc.cluster.local:8200/v1/sys/health
+
+# Test DMT → PostgreSQL
+kubectl exec -it <mps-pod> -n dmt-system -- \
+  pg_isready -h postgresql-cluster-rw.orch-database.svc.cluster.local -p 5432
+
+# Test DMT → Keycloak
+kubectl exec -it <dm-manager-pod> -n dmt-system -- \
+  curl http://keycloak.orch-platform.svc.cluster.local:8080/health
+```
+
+## Upgrading
+
+### Standalone Mode
+
+```bash
+helm upgrade dmt-platform ./dmt-platform \
+  -n dmt-system \
+  -f values.yaml
+```
+
+### ArgoCD Mode
+
+```bash
+# Update values in Git repository
+git add values-argocd.yaml
+git commit -m "Update DMT configuration"
+git push
+
+# ArgoCD will automatically sync
+argocd app sync dmt-platform
+```
+
+## Uninstalling
+
+### Standalone Mode
+
+```bash
+# Uninstall chart (removes all resources)
+helm uninstall dmt-platform -n dmt-system
+
+# Delete namespace
+kubectl delete namespace dmt-system
+```
+
+### ArgoCD Mode
+
+```bash
+# Uninstall via ArgoCD
+argocd app delete dmt-platform
+
+# Or via Helm
+helm uninstall dmt-platform -n dmt-system
+```
+
+## Troubleshooting
+
+### Pods Not Starting
+
+```bash
+# Check pod logs
+kubectl logs <pod-name> -n dmt-system
+
+# Check pod events
+kubectl describe pod <pod-name> -n dmt-system
+
+# Check resource availability
+kubectl top nodes
+```
+
+### Database Connection Issues
+
+```bash
+# Verify secret exists
+kubectl get secret mps-db-secret -n dmt-system
+
+# Check connection from pod
+kubectl exec -it <mps-pod> -n dmt-system -- \
+  pg_isready -h postgresql -p 5432
+```
+
+### Cross-Namespace Connectivity Issues (ArgoCD Mode)
+
+```bash
+# Check network policies
+kubectl get networkpolicies -n dmt-system
+kubectl get networkpolicies -n orch-platform
+
+# Test DNS resolution
+kubectl exec -it <mps-pod> -n dmt-system -- \
+  nslookup vault.orch-platform.svc.cluster.local
+
+# Check service endpoints
+kubectl get endpoints -n orch-platform
+```
+
+## Contributing
+
+Please refer to the main repository documentation for contribution guidelines.
+
+## License
+
+Apache 2.0 - See LICENSE file for details.
+
+## Support
+
+- GitHub Issues: https://github.com/open-edge-platform/infra-charts/issues
+- Documentation: https://edge-orchestrator.intel.com/docs
+- Intel Community: https://community.intel.com/

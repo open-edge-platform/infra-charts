@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for dmt-platform.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+# This is to enable the dependencies.
+# All dependencies are enabled by default.
+import:
+  amt:
+    enabled: true
+  inventory:
+    enabled: true
+
+# Global values overrides
+# global:
+#   registry:
+#     name: [REGISTRY_URL]
+#     imagePullSecrets:
+#       - name: "[PULL_SECRET_NAME]"
+
+# Below are all sub-chart overrides
+
+# amt:
+  # Configuration for MPS, RPS, DM-Manager
+  # Refer to infra-charts/amt/values.yaml for all options
+  
+  # Example: Enable/disable individual services
+  # mps:
+  #   enabled: true
+  
+  # rps:
+  #   enabled: true
+  
+  # dm-manager:
+  #   enabled: true
+  
+  # External platform service connections
+  # These must be configured to point to your PostgreSQL, Keycloak, Vault
+  
+  # postgres:
+  #   host: postgresql-cluster-rw.orch-database
+  #   port: 5432
+  #   mps:
+  #     database: mpsdb
+  #     username: mps_user
+  #     password: [PASSWORD]
+  #   rps:
+  #     database: rpsdb
+  #     username: rps_user
+  #     password: [PASSWORD]
+  
+  # keycloak:
+  #   url: http://keycloak.orch-platform:8080
+  #   realm: dmt-realm
+  #   clientId: dmt-client
+  #   clientSecret: [SECRET]
+  
+  # vault:
+  #   address: http://vault.orch-platform:8200
+  #   token: [TOKEN]
+  #   secretPath: secret/data/dmt
+
+# inventory:
+  # Configuration for inventory service
+  # Refer to infra-charts/inventory/values.yaml for all options
+  
+  # Example overrides:
+  # replicaCount: 1
+  # resources:
+  #   limits:
+  #     cpu: 500m
+  #     memory: 512Mi
+  #   requests:
+  #     cpu: 100m
+  #     memory: 128Mi

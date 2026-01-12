@@ -1,0 +1,374 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+# ============================================================================
+# DMT Platform - ArgoCD/EMF Deployment Configuration
+# ============================================================================
+# This values file is for ARGOCD/EMF deployment mode where platform services
+# (PostgreSQL, Keycloak, Vault) are EXTERNAL and shared from EMF infrastructure.
+#
+# Platform services are NOT deployed - only DMT services are created.
+# ============================================================================
+
+global:
+  # Deployment mode: argocd (references external EMF platform)
+  deploymentMode: argocd
+  
+  # Namespace where DMT will be deployed
+  namespace: dmt-system  # OR orch-infra if reusing existing namespace
+  
+  # Image pull policy
+  imagePullPolicy: IfNotPresent
+  
+  # Common labels applied to all resources
+  labels:
+    app.kubernetes.io/part-of: dmt-platform
+    deployment.mode: argocd
+
+# ============================================================================
+# Platform Services Configuration (DISABLED for ArgoCD Mode)
+# ============================================================================
+
+platform:
+  # PostgreSQL Database - DISABLED (use external EMF PostgreSQL)
+  postgresql:
+    enabled: false  # DO NOT deploy PostgreSQL
+    
+    # External PostgreSQL connection (EMF orch-database namespace)
+    external:
+      host: "postgresql-cluster-rw.orch-database.svc.cluster.local"
+      port: 5432
+      # Databases must be pre-created in EMF PostgreSQL:
+      # - mpsdb
+      # - rpsdb
+  
+  # Keycloak Authentication - DISABLED (use external EMF Keycloak)
+  keycloak:
+    enabled: false  # DO NOT deploy Keycloak
+    
+    # External Keycloak connection (EMF orch-platform namespace)
+    external:
+      url: "http://keycloak.orch-platform.svc.cluster.local:8080"
+      realm: "dmt-realm"  # Must be pre-created in EMF Keycloak
+      # Client must be pre-created: dmt-platform
+  
+  # HashiCorp Vault - DISABLED (use external EMF Vault)
+  vault:
+    enabled: false  # DO NOT deploy Vault
+    
+    # External Vault connection (EMF orch-platform namespace)
+    external:
+      address: "http://vault.orch-platform.svc.cluster.local:8200"
+      # AppRole must be pre-configured: dmt-services
+      # Secret paths:
+      # - secret/data/mps
+      # - secret/data/rps
+
+# ============================================================================
+# DMT Services Configuration (ENABLED - Core Functionality)
+# ============================================================================
+
+dmt:
+  # MPS (Management Presence Server)
+  mps:
+    enabled: true
+    
+    replicaCount: 2
+    
+    image:
+      repository: intel/mps
+      tag: "v2.0.0"
+      pullPolicy: IfNotPresent
+    
+    service:
+      type: LoadBalancer  # Or NodePort depending on EMF ingress setup
+      ports:
+        cira: 4433
+        web: 3000
+    
+    # Database configuration (EXTERNAL EMF PostgreSQL)
+    database:
+      host: "postgresql-cluster-rw.orch-database.svc.cluster.local"
+      port: 5432
+      name: mpsdb
+      user: mpsuser
+      # Password stored in Kubernetes secret: mps-db-secret
+      # Secret must be created in dmt-system namespace before deployment
+      passwordSecret: "mps-db-secret"
+    
+    # Vault configuration (EXTERNAL EMF Vault)
+    vault:
+      address: "http://vault.orch-platform.svc.cluster.local:8200"
+      # Use AppRole authentication in production
+      authMethod: "approle"
+      roleId: ""  # Provided via secret
+      secretId: ""  # Provided via secret
+      secretPath: "secret/data/mps"
+    
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 400m
+        memory: 512Mi
+    
+    # Pod annotations for ArgoCD
+    podAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+  
+  # RPS (Remote Provisioning Server)
+  rps:
+    enabled: true
+    
+    replicaCount: 2
+    
+    image:
+      repository: intel/rps
+      tag: "v2.0.0"
+      pullPolicy: IfNotPresent
+    
+    service:
+      type: ClusterIP
+      ports:
+        http: 8081
+        websocket: 8082
+    
+    # Database configuration (EXTERNAL EMF PostgreSQL)
+    database:
+      host: "postgresql-cluster-rw.orch-database.svc.cluster.local"
+      port: 5432
+      name: rpsdb
+      user: rpsuser
+      passwordSecret: "rps-db-secret"
+    
+    # Vault configuration (EXTERNAL EMF Vault)
+    vault:
+      address: "http://vault.orch-platform.svc.cluster.local:8200"
+      authMethod: "approle"
+      roleId: ""
+      secretId: ""
+      secretPath: "secret/data/rps"
+    
+    # MPS connection (same namespace)
+    mpsServer:
+      address: "http://mps:3000"  # Short name within dmt-system namespace
+    
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 400m
+        memory: 512Mi
+    
+    podAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+  
+  # DM-Manager (Device Manager)
+  dm-manager:
+    enabled: true
+    
+    replicaCount: 2
+    
+    image:
+      repository: intel/dm-manager
+      tag: "v0.7.2"
+      pullPolicy: IfNotPresent
+    
+    service:
+      type: ClusterIP
+      ports:
+        http: 8080
+        metrics: 9090
+    
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        argocd.argoproj.io/sync-wave: "3"
+      hosts:
+        - host: dmt.emf.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: dmt-tls
+          hosts:
+            - dmt.emf.example.com
+    
+    # Keycloak configuration (EXTERNAL EMF Keycloak)
+    keycloak:
+      url: "http://keycloak.orch-platform.svc.cluster.local:8080"
+      realm: "dmt-realm"
+      clientId: "dmt-platform"
+      # Client secret stored in Kubernetes secret
+      clientSecretRef:
+        name: "dmt-keycloak-client-secret"
+        key: "client-secret"
+    
+    # MPS connection
+    mpsServer:
+      address: "http://mps:3000"
+    
+    # RPS connection
+    rpsServer:
+      address: "http://rps:8081"
+    
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 400m
+        memory: 512Mi
+    
+    podAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
+
+# ============================================================================
+# Optional Services Configuration
+# ============================================================================
+
+optional:
+  # Inventory Service (Use existing EMF inventory)
+  inventory:
+    enabled: false  # Use existing inventory.orch-infra service
+    
+    # External inventory connection
+    external:
+      enabled: true
+      url: "http://inventory.orch-infra.svc.cluster.local:8080"
+
+# ============================================================================
+# Cross-Namespace Connectivity
+# ============================================================================
+
+crossNamespace:
+  # Enable DNS resolution for cross-namespace services
+  dnsPolicy: ClusterFirst
+  
+  # Network policies for cross-namespace communication
+  networkPolicies:
+    enabled: false  # Set to true if EMF has network policies
+    
+    # Allow traffic FROM dmt-system TO orch-platform
+    allowToOrchPlatform: true
+    
+    # Allow traffic FROM dmt-system TO orch-database
+    allowToOrchDatabase: true
+    
+    # Allow traffic FROM dmt-system TO orch-infra
+    allowToOrchInfra: true
+
+# ============================================================================
+# ArgoCD Integration
+# ============================================================================
+
+argocd:
+  # Sync waves for ordered deployment
+  syncWaves:
+    secrets: "1"        # Create secrets first
+    dmtServices: "2"    # Deploy DMT services second
+    ingress: "3"        # Configure ingress last
+  
+  # Health checks
+  health:
+    enabled: true
+    
+  # Automated sync
+  autoSync:
+    enabled: true
+    prune: true
+    selfHeal: true
+  
+  # Retry strategy
+  retry:
+    limit: 5
+    backoff:
+      duration: "5s"
+      factor: 2
+      maxDuration: "3m"
+
+# ============================================================================
+# Pre-Deployment Requirements Checklist
+# ============================================================================
+# IMPORTANT: The following must be created in EMF BEFORE deploying DMT:
+#
+# 1. PostgreSQL Databases (orch-database namespace):
+#    - CREATE DATABASE mpsdb;
+#    - CREATE DATABASE rpsdb;
+#    - CREATE USER mpsuser WITH PASSWORD 'xxx';
+#    - CREATE USER rpsuser WITH PASSWORD 'xxx';
+#    - GRANT ALL PRIVILEGES ON DATABASE mpsdb TO mpsuser;
+#    - GRANT ALL PRIVILEGES ON DATABASE rpsdb TO rpsuser;
+#
+# 2. Keycloak Configuration (orch-platform namespace):
+#    - Create realm: dmt-realm
+#    - Create client: dmt-platform
+#      * Client protocol: openid-connect
+#      * Access type: confidential
+#      * Valid redirect URIs: https://dmt.emf.example.com/*
+#      * Generate client secret
+#
+# 3. Vault Configuration (orch-platform namespace):
+#    - Enable AppRole auth: vault auth enable approle
+#    - Create AppRole: dmt-services
+#      * vault write auth/approle/role/dmt-services \
+#          token_policies="dmt-policy" \
+#          token_ttl=1h \
+#          token_max_ttl=4h
+#    - Create secret paths:
+#      * vault kv put secret/mps <key-value-pairs>
+#      * vault kv put secret/rps <key-value-pairs>
+#
+# 4. Kubernetes Secrets (dmt-system namespace):
+#    - mps-db-secret: PostgreSQL password for MPS
+#    - rps-db-secret: PostgreSQL password for RPS
+#    - dmt-keycloak-client-secret: Keycloak client secret
+#    - vault-approle-secret: Vault AppRole credentials
+# ============================================================================
+
+# ============================================================================
+# Monitoring and Observability (Use EMF Infrastructure)
+# ============================================================================
+
+monitoring:
+  # Use EMF Prometheus for metrics
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: orch-platform  # ServiceMonitors in EMF namespace
+  
+  # Use EMF Grafana for dashboards
+  grafana:
+    enabled: true
+    dashboards:
+      enabled: true
+      namespace: orch-platform
+
+# ============================================================================
+# Security Configuration (Inherit from EMF)
+# ============================================================================
+
+security:
+  # Pod security standards (EMF-level)
+  podSecurityStandards:
+    enforced: true
+  
+  # TLS/SSL (managed by EMF)
+  tls:
+    enabled: true
+    certManager:
+      enabled: true
+      issuer: "letsencrypt-prod"
+
+# ============================================================================
+# Resource Quotas (EMF-level management)
+# ============================================================================
+
+resourceQuota:
+  enabled: false  # Managed at EMF level

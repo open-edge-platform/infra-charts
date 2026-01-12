@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: infra-vpro
+description: Edge Infrastructure Manager vPro/AMT Umbrella Chart
+type: application
+version: "0.1.0-dev"
+appVersion: "0.7.0-dev"
+annotations: {}
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team
+dependencies:
+  # AMT components (MPS, RPS, DM-Manager)
+  - name: amt
+    condition: import.amt.enabled
+    version: "0.7.0-dev"
+    repository: "file://../amt"
+  # Inventory service
+  - name: inventory
+    condition: import.inventory.enabled
+    version: "2.30.0-dev"
+    repository: "file://../inventory"

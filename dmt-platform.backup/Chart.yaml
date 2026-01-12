@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+
+apiVersion: v2
+name: dmt-platform
+description: Device Management Toolkit (DMT) - Out-of-Band Device Management
+type: application
+version: 0.1.0
+appVersion: "0.6.2"
+home: edge-orchestrator.intel.com
+maintainers:
+  - name: Edge Infrastructure Manager Team
+
+# Keywords for discoverability
+keywords:
+  - intel
+  - vPro
+  - amt
+  - out-of-band
+  - device-management
+  - edge
+  - dmt
+
+# Dependencies: DMT services only (platform services must be pre-deployed)
+dependencies:
+  # DMT Core Services
+  # Note: 'amt' chart contains MPS, RPS, and DM-Manager
+  - name: amt
+    condition: import.amt.enabled
+    version: "0.7.0-dev"
+    repository: "file://../amt"
+  
+  # Inventory Service (Device Tracking)
+  - name: inventory
+    condition: import.inventory.enabled
+    version: "2.12.0-dev"
+    repository: "file://../inventory"

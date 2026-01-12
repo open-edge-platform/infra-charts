@@ -1,0 +1,166 @@
+{{- $mode := .Values.global.deploymentMode | default "standalone" -}}
+================================================================================
+  Device Management Toolkit (DMT) Platform
+  Deployment Mode: {{ $mode | upper }}
+================================================================================
+
+Thank you for installing {{ .Chart.Name }} version {{ .Chart.Version }}!
+
+{{- if eq $mode "standalone" }}
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║                    STANDALONE DEPLOYMENT MODE                            ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Platform services (PostgreSQL, Keycloak, Vault) are BUNDLED in this deployment.
+
+📦 Deployed Components:
+   ✓ PostgreSQL Database
+   ✓ Keycloak Authentication
+   ✓ HashiCorp Vault
+   ✓ MPS (Management Presence Server)
+   ✓ RPS (Remote Provisioning Server)
+   ✓ DM-Manager (Device Manager)
+{{- if .Values.optional.inventory.enabled }}
+   ✓ Inventory Service
+{{- end }}
+
+📊 Resource Footprint:
+   Pods: ~8 (3 platform + 3 DMT + optional services)
+   CPU: ~2.8 cores
+   Memory: ~5GB
+   Storage: ~30Gi
+
+🔍 Verify Deployment:
+   kubectl get pods -n {{ .Release.Namespace }}
+   kubectl get svc -n {{ .Release.Namespace }}
+
+⏳ Wait for all pods to be ready:
+   kubectl wait --for=condition=ready pod \
+     -l app.kubernetes.io/part-of=dmt-platform \
+     -n {{ .Release.Namespace }} \
+     --timeout=10m
+
+🌐 Access Services:
+{{- if .Values.dmt.mps.service }}
+   MPS (CIRA): {{ .Values.dmt.mps.service.type }} on port {{ .Values.dmt.mps.service.ports.cira }}
+   MPS (Web): {{ .Values.dmt.mps.service.type }} on port {{ .Values.dmt.mps.service.ports.web }}
+{{- end }}
+{{- if .Values.dmt.dmManager.ingress.enabled }}
+   DM-Manager: https://{{ index .Values.dmt.dmManager.ingress.hosts 0 "host" }}
+{{- end }}
+
+🔐 Default Credentials (CHANGE IN PRODUCTION!):
+   PostgreSQL:
+     User: postgres
+     Password: postgres123
+     Connect: kubectl exec -it <postgres-pod> -n {{ .Release.Namespace }} -- psql -U postgres
+
+   Keycloak:
+     User: admin
+     Password: admin123
+     URL: http://keycloak:8080
+
+   Vault:
+     Token: root
+     URL: http://vault:8200
+
+⚠️  SECURITY WARNING:
+   Default credentials are for development only!
+   Change all passwords and secrets before production use.
+
+{{- else if eq $mode "argocd" }}
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║                    ARGOCD/EMF DEPLOYMENT MODE                            ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Platform services are EXTERNAL (shared from EMF infrastructure).
+
+📦 Deployed Components:
+   ✓ MPS (Management Presence Server)
+   ✓ RPS (Remote Provisioning Server)
+   ✓ DM-Manager (Device Manager)
+
+🔗 External Dependencies:
+   → PostgreSQL: {{ .Values.platform.postgresql.external.host }}:{{ .Values.platform.postgresql.external.port }}
+   → Keycloak: {{ .Values.platform.keycloak.external.url }}
+   → Vault: {{ .Values.platform.vault.external.address }}
+{{- if .Values.optional.inventory.external.enabled }}
+   → Inventory: {{ .Values.optional.inventory.external.url }}
+{{- end }}
+
+📊 Resource Footprint:
+   Pods: ~6 (3 DMT services x 2 replicas)
+   CPU: ~1.2 cores
+   Memory: ~1.5GB
+   Storage: 0Gi (uses external)
+
+🔍 Verify Deployment:
+   kubectl get pods -n {{ .Release.Namespace }}
+   kubectl get svc -n {{ .Release.Namespace }}
+
+⏳ Wait for all pods to be ready:
+   kubectl wait --for=condition=ready pod \
+     -l app.kubernetes.io/part-of=dmt-platform \
+     -n {{ .Release.Namespace }} \
+     --timeout=5m
+
+🔌 Verify Cross-Namespace Connectivity:
+   # Test DMT → Vault
+   kubectl exec -it <mps-pod> -n {{ .Release.Namespace }} -- \
+     curl {{ .Values.platform.vault.external.address }}/v1/sys/health
+
+   # Test DMT → PostgreSQL
+   kubectl exec -it <mps-pod> -n {{ .Release.Namespace }} -- \
+     pg_isready -h {{ .Values.platform.postgresql.external.host }} -p {{ .Values.platform.postgresql.external.port }}
+
+   # Test DMT → Keycloak
+   kubectl exec -it <dm-manager-pod> -n {{ .Release.Namespace }} -- \
+     curl {{ .Values.platform.keycloak.external.url }}/health
+
+📋 Pre-Deployment Checklist:
+   ☐ PostgreSQL databases created (mpsdb, rpsdb)
+   ☐ Keycloak realm created (dmt-realm)
+   ☐ Keycloak client created (dmt-platform)
+   ☐ Vault AppRole configured (dmt-services)
+   ☐ Kubernetes secrets created:
+     - mps-db-secret
+     - rps-db-secret
+     - dmt-keycloak-client-secret
+     - vault-approle-secret
+
+{{- end }}
+
+📚 Next Steps:
+   1. Verify all pods are running
+   2. Check service endpoints
+   3. Test device activation
+   4. Configure AMT profiles
+   5. Onboard first device
+
+🔧 Troubleshooting:
+   # Check pod logs
+   kubectl logs -l app.kubernetes.io/part-of=dmt-platform -n {{ .Release.Namespace }}
+
+   # Check pod events
+   kubectl get events -n {{ .Release.Namespace }} --sort-by='.lastTimestamp'
+
+   # Check resource usage
+   kubectl top pods -n {{ .Release.Namespace }}
+
+📖 Documentation:
+   - README: ./README.md
+   - DMT Docs: https://github.com/device-management-toolkit/docs
+   - EMF Docs: https://edge-orchestrator.intel.com/docs
+
+💬 Support:
+   - GitHub Issues: https://github.com/open-edge-platform/infra-charts/issues
+   - Community: https://community.intel.com/
+
+================================================================================
+Release Name: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Chart Version: {{ .Chart.Version }}
+App Version: {{ .Chart.AppVersion }}
+================================================================================

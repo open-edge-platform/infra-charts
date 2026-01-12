@@ -12,10 +12,10 @@ config:
   enManifestRepo: "edge-orch/en/files/ena-manifest"
   enAgentManifestTag:  latest-dev
   rsType: no-auth
-  enServiceClients: "[ hardware-discovery-agent, cluster-agent, platform-manageability-agent, platform-update-agent, platform-telemetry-agent ]"
-  enOutboundClients: "[ platform-observability-collector, platform-observability-health-check, platform-observability-logging, platform-observability-metrics ]"
+  enServiceClients: "hardware-discovery-agent,cluster-agent,platform-manageability-agent,platform-update-agent,platform-telemetry-agent"
+  enOutboundClients: "platform-observability-collector,platform-observability-health-check,platform-observability-logging,platform-observability-metrics"
   enMetricsEnabled: "true"
-  enTokenClients: "[ node-agent,  hd-agent, cluster-agent, platform-update-agent, platform-observability-agent, platform-telemetry-agent, prometheus, connect-agent, attestation-manager, platform-manageability-agent ]"
+  enTokenClients: "node-agent,hd-agent,cluster-agent,platform-update-agent,platform-observability-agent,platform-telemetry-agent,prometheus,connect-agent,attestation-manager,platform-manageability-agent"
   disableCoProfile: false
   disableO11yProfile: false
 

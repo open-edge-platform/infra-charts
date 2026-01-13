@@ -48,3 +48,8 @@ dependencies:
     condition: import.dm-manager.enabled
     version: "0.7.2"
     repository: "file://../amt/charts/dm-manager"
+  # Shared configuration for all components
+  - name: infra-config
+    condition: import.infra-config.enabled
+    version: "0.7.0-dev"
+    repository: "file://../infra-config"

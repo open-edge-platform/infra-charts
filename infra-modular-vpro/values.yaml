@@ -23,6 +23,8 @@ import:
     enabled: true
   dm-manager:
     enabled: true
+  infra-config:
+    enabled: true
 
 # Global values overrides
 # global:

@@ -20,5 +20,8 @@ dependencies:
 - name: dm-manager
   repository: file://../amt/charts/dm-manager
   version: 0.7.2
-digest: sha256:cd8df79178244e36048646c1400582d714011afd1ea3e5e9ae6c955c337e2381
-generated: "2026-01-12T20:29:00.462233021-08:00"
+- name: infra-config
+  repository: file://../infra-config
+  version: 0.7.0-dev
+digest: sha256:bba0c8a600dc032eec34ce16e868c4a37f3af347f569018b60afc8805d3f681e
+generated: "2026-01-13T04:20:27.480581881-08:00"

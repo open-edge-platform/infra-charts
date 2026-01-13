@@ -99,3 +99,6 @@ postgresql:
     tag: 16.4
     pullPolicy: IfNotPresent
   type: "local"
+
+kyvernoPolicies:
+  enabled: true

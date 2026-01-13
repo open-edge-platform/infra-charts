@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- if and .Values.kyvernoPolicies (.Values.kyvernoPolicies.enabled) }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restart-{{ include "rps.fullname" . }}-deployment-on-secret-change
+  annotations:
+    policies.kyverno.io/title: Restart Deployment On Secret Change
+    policies.kyverno.io/category: Other
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Deployment
+spec:
+  mutateExistingOnPolicyUpdate: false
+  rules:
+  - name: update-secret
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - vault-token
+          namespaces:
+          - {{ .Release.Namespace }}
+    preconditions:
+      all:
+      - key: "{{ "{{" }}request.operation || 'BACKGROUND'{{  "}}" }}"
+        operator: Equals
+        value: UPDATE
+    mutate:
+      targets:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: {{ include "rps.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+      patchStrategicMerge:
+        spec:
+          template:
+            metadata:
+              annotations:
+                ops.corp.com/triggerrestart: "{{ "{{" }}request.object.metadata.resourceVersion{{ "}}" }}"
+{{- end }}

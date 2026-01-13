@@ -20,6 +20,11 @@ import:
   amt:
     enabled: true
 
+# Enable/disable Kyverno ClusterPolicy resources for automatic deployment restarts
+# Setting this to false will also disable it for all subcharts
+kyvernoPolicies: &kyvernoPolicies
+  enabled: true
+
 # Global values overrides
 # global:
 #   registry:
@@ -37,5 +42,10 @@ import:
 
 # loca-templates-manager:
 
-# amt:
+amt:
+  kyvernoPolicies: *kyvernoPolicies
+  mps:
+    kyvernoPolicies: *kyvernoPolicies
+  rps:
+    kyvernoPolicies: *kyvernoPolicies
   # dm-manager:

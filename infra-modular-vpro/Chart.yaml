@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v2
+name: infra-modular-vpro
+description: Modular vPro components for Out-of-Band Device Management (MPS, RPS, DM-Manager, APIv2, Inventory, Tenant-Controller)
+type: application
+version: "1.0.0"
+appVersion: "1.0.0"
+annotations: {}
+home: edge-orchestrator.intel.com
+keywords:
+  - vpro
+  - amt
+  - device-management
+  - out-of-band
+  - dmt
+maintainers:
+  - name: Edge Infrastructure Manager Team
+dependencies:
+  # Core components from infra-core
+  - name: apiv2
+    condition: import.apiv2.enabled
+    version: "2.6.0-dev"
+    repository: "file://../apiv2"
+  - name: inventory
+    condition: import.inventory.enabled
+    version: "2.30.0-dev"
+    repository: "file://../inventory"
+  - name: tenant-controller
+    condition: import.tenant-controller.enabled
+    version: "0.25.0-dev"
+    repository: "file://../tenant-controller"
+  - name: credentials
+    condition: import.credentials.enabled
+    version: "1.9.0-dev"
+    repository: "file://../credentials"
+  # vPro/AMT components from amt chart
+  - name: mps
+    condition: import.mps.enabled
+    version: "0.0.28"
+    repository: "file://../amt/charts/mps"
+  - name: rps
+    condition: import.rps.enabled
+    version: "0.0.19"
+    repository: "file://../amt/charts/rps"
+  - name: dm-manager
+    condition: import.dm-manager.enabled
+    version: "0.7.2"
+    repository: "file://../amt/charts/dm-manager"

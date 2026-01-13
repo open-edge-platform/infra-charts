@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for infra-modular-vpro.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+
+# This is to enable the dependencies.
+# All dependencies are enabled by default.
+import:
+  apiv2:
+    enabled: true
+  inventory:
+    enabled: true
+  tenant-controller:
+    enabled: true
+  credentials:
+    enabled: true
+  mps:
+    enabled: true
+  rps:
+    enabled: true
+  dm-manager:
+    enabled: true
+
+# Global values overrides
+# global:
+#   registry:
+#     name: [REGISTRY_URL]
+#     imagePullSecrets:
+#       - name: "[PULL_SECRET_NAME]"
+
+# Below are all sub-chart overrides
+
+# APIv2 service
+# apiv2:
+#   image:
+#     repository: apiv2
+#     tag: latest
+#     pullPolicy: IfNotPresent
+
+# Inventory service
+# inventory:
+#   image:
+#     repository: inventory
+#     tag: latest
+#     pullPolicy: IfNotPresent
+
+# Tenant Controller
+# tenant-controller:
+#   image:
+#     repository: tenant-controller
+#     tag: latest
+#     pullPolicy: IfNotPresent
+
+# Credentials service
+# credentials:
+#   serviceAccount:
+#     name: "orch-svc"
+
+# Management Presence Server (MPS)
+# mps:
+#   image:
+#     repository: mps
+#     tag: latest
+#     pullPolicy: IfNotPresent
+#   postgresql:
+#     type: external
+#     host: postgresql-cluster-rw.orch-infra.svc.cluster.local
+#     port: 5432
+#     database: mps
+#     username: orch-infra-system-mps_user
+
+# Remote Provisioning Server (RPS)
+# rps:
+#   image:
+#     repository: rps
+#     tag: latest
+#     pullPolicy: IfNotPresent
+#   postgresql:
+#     type: external
+#     host: postgresql-cluster-rw.orch-infra.svc.cluster.local
+#     port: 5432
+#     database: rps
+#     username: orch-infra-system-rps_user
+
+# Device Management Manager
+# dm-manager:
+#   image:
+#     repository: dm-manager
+#     tag: latest
+#     pullPolicy: IfNotPresent

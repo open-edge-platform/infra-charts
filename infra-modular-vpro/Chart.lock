@@ -1,0 +1,24 @@
+dependencies:
+- name: apiv2
+  repository: file://../apiv2
+  version: 2.6.0-dev
+- name: inventory
+  repository: file://../inventory
+  version: 2.30.0-dev
+- name: tenant-controller
+  repository: file://../tenant-controller
+  version: 0.25.0-dev
+- name: credentials
+  repository: file://../credentials
+  version: 1.9.0-dev
+- name: mps
+  repository: file://../amt/charts/mps
+  version: 0.0.28
+- name: rps
+  repository: file://../amt/charts/rps
+  version: 0.0.19
+- name: dm-manager
+  repository: file://../amt/charts/dm-manager
+  version: 0.7.2
+digest: sha256:cd8df79178244e36048646c1400582d714011afd1ea3e5e9ae6c955c337e2381
+generated: "2026-01-12T20:29:00.462233021-08:00"

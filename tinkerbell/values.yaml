@@ -40,8 +40,6 @@ stack:
   selector:
     app: tink-stack
   clusterDomain: cluster.local
-  loadBalancerIP: &publicIP 127.0.0.1
-  lbClass: kube-vip.io/kube-vip-class
   image:
     repository: nginxinc/nginx-unprivileged
     pullPolicy: IfNotPresent

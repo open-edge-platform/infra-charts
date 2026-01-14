@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+{{- if .Values.reloader.createRBAC }}
+---
+# ClusterRole for Reloader to watch secrets and restart deployments across all namespaces
+# This is required for the vault-token secret update to trigger RPS/MPS pod restarts
+# 
+# NOTE: This ClusterRole is necessary but not sufficient. The Reloader deployment
+# must also be configured to watch all namespaces by setting RELOADER_NAMESPACE=""
+# or removing the RELOADER_NAMESPACE environment variable.
+# See: https://github.com/stakater/Reloader#deploying-to-kubernetes
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: reloader-amt-rps-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["list", "get", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "statefulsets"]
+  verbs: ["list", "get", "update", "patch"]
+- apiGroups: ["batch"]
+  resources: ["cronjobs"]
+  verbs: ["list", "get"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["create", "delete", "list", "get"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: reloader-amt-rps-cluster-binding
+subjects:
+- kind: ServiceAccount
+  name: reloader-reloader
+  namespace: orch-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: reloader-amt-rps-cluster-role
+{{- end }}

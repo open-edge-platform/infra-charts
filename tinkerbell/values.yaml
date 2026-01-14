@@ -3,6 +3,7 @@
 
 # NOTICE: This file has been modified by Intel Corporation.
 # Original file can be found at https://github.com/tinkerbell/charts.
+publicIP: &publicIP ""
 
 global:
   registry:

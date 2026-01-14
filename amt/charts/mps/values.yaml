@@ -43,6 +43,10 @@ rbac:
   role_binding: amt-rolebinding
   serviceaccount: orch-svc
 
+reloader:
+  # Create ClusterRole/ClusterRoleBinding for Reloader to watch secrets across namespaces
+  # Set to true for MPS chart, false for RPS chart to avoid conflicts
+  createRBAC: true
 
 podSecurityContext:
   seccompProfile:

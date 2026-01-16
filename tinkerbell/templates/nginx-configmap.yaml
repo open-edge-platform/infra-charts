@@ -78,6 +78,32 @@ data:
             root /usr/share/nginx/html;
             server_name localhost;
         }
+        server {
+            listen 80;
+            server_name _;
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+            location / {
+                try_files $uri $uri/ =404;
+            }
+        }
+        server {
+            listen 443 ssl;
+            server_name _;
+            ssl_certificate /etc/ssl/boots-ca-cert/ca.crt;
+            ssl_certificate_key /etc/ssl/boots-ca-cert/ca.key;
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_ciphers 'DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:TLS_AES_256_GCM_SHA384';
+            ssl_prefer_server_ciphers on;
+            ssl_session_cache shared:SSL:10m;
+            ssl_session_timeout 10m;
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+            
+            location / {
+                try_files $uri $uri/ =404;
+            }
+        }
     }
     pid /tmp/nginx.pid;
     worker_processes auto;

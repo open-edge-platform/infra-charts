@@ -142,6 +142,9 @@ spec:
           name: nginx-run
         - mountPath: /tmp
           name: tmp
+        - mountPath: "/etc/ssl/boots-ca-cert"
+          name: boots-ca-cert
+          readOnly: true
         {{- if .Values.stack.hook.enabled }}
         - mountPath: /usr/share/nginx/html
           name: hook-artifacts
@@ -178,6 +181,10 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
+      - name: boots-ca-cert
+        secret:
+          secretName: boots-ca-cert
+          optional: true
 ---
 {{- if .Values.stack.service.enabled }}
 apiVersion: v1

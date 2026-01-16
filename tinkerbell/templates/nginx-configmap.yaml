@@ -78,6 +78,18 @@ data:
             root /usr/share/nginx/html;
             server_name localhost;
         }
+        server {
+            listen 443 ssl;
+            server_name localhost;
+            ssl_ciphers 'DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:TLS_AES_256_GCM_SHA384';
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_prefer_server_ciphers on;
+            location / {
+                sendfile           on;
+                sendfile_max_chunk 1m;
+                root /usr/share/nginx/html;
+            }
+        }
     }
     pid /tmp/nginx.pid;
     worker_processes auto;

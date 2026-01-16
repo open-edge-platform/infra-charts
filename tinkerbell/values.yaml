@@ -38,6 +38,11 @@ stack:
   service:
     enabled: true
     type: LoadBalancer
+    ports:
+      - name: https
+        port: 443
+        targetPort: 443
+        protocol: TCP
   selector:
     app: tink-stack
   clusterDomain: cluster.local

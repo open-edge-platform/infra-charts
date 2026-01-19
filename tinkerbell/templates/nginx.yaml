@@ -195,14 +195,12 @@ metadata:
   name: {{ .Values.stack.name }}
   namespace: {{ .Release.Namespace | quote }}
 spec:
-  {{- if not .Values.traefikReverseProxy.enabled }}
   type: {{ .Values.stack.service.type }}
   {{- if eq .Values.stack.service.type "LoadBalancer" }}
   {{- if .Values.stack.kubevip.enabled }}
   loadBalancerClass: {{ .Values.stack.lbClass }}
   {{- end }}
   loadBalancerIP: {{ .Values.stack.loadBalancerIP }}
-  {{- end }}
   externalTrafficPolicy: Local
   {{- end }}
   ports:

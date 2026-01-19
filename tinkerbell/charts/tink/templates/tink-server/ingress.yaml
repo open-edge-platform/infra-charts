@@ -5,7 +5,7 @@
 apiVersion: {{ .Values.server.ingress.apiGroup }}
 kind: IngressRoute
 metadata:
-  name: {{ .Values.server.name }}-ingress
+  name: tinkerbell-server-ingress
   namespace: {{ .Values.server.ingress.gatewayNamespace }}
 spec:
   entryPoints:

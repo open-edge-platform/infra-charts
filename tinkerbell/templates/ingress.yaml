@@ -22,4 +22,38 @@ spec:
           namespace: {{ .Release.Namespace | quote }}
   tls:
     secretName: {{ .Values.traefikReverseProxy.secretName }}
+---
+apiVersion: {{ .Values.traefikApiGroup }}
+kind: IngressRoute
+metadata:
+  name: tinkerbell-nginx-ingress-http
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`{{.Values.traefikReverseProxy.nginxDnsname}}`)
+      kind: Rule
+      services:
+        - name: {{ .Values.stack.name }}
+          port: 80
+          namespace: {{ .Release.Namespace | quote }}
+---
+apiVersion: {{ .Values.traefikApiGroup }}
+kind: IngressRoute
+metadata:
+  name: tinkerbell-nginx-ingress-https
+  namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{.Values.traefikReverseProxy.nginxDnsname}}`)
+      kind: Rule
+      services:
+        - name: {{ .Values.stack.name }}
+          port: 80
+          namespace: {{ .Release.Namespace | quote }}
+  tls:
+    secretName: {{ .Values.traefikReverseProxy.secretName }}
 {{- end }}

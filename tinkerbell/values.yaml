@@ -3,7 +3,7 @@
 
 # NOTICE: This file has been modified by Intel Corporation.
 # Original file can be found at https://github.com/tinkerbell/charts.
-publicIP: &publicIP ""
+publicIP: &publicIP 127.0.0.1
 
 global:
   registry:
@@ -50,6 +50,7 @@ stack:
   selector:
     app: tink-stack
   clusterDomain: cluster.local
+  loadBalancerIP: *publicIP
   image:
     repository: nginxinc/nginx-unprivileged
     pullPolicy: IfNotPresent

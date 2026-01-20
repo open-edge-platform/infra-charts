@@ -23,6 +23,10 @@ import:
     enabled: true
   dm-manager:
     enabled: true
+  onboarding-manager:
+    enabled: true
+  dkam:
+    enabled: true
   infra-config:
     enabled: true
 
@@ -91,5 +95,21 @@ import:
 # dm-manager:
 #   image:
 #     repository: dm-manager
+#     tag: latest
+#     pullPolicy: IfNotPresent
+
+# Onboarding Manager
+# onboarding-manager:
+#   image:
+#     repository: onboarding-manager
+#     tag: latest
+#     pullPolicy: IfNotPresent
+#   managerArgs:
+#     inventoryAddress: inventory.orch-infra.svc.cluster.local:50051
+
+# DKAM (Device Key and Attestation Manager)
+# dkam:
+#   image:
+#     repository: dkam
 #     tag: latest
 #     pullPolicy: IfNotPresent

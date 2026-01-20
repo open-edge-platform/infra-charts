@@ -20,8 +20,14 @@ dependencies:
 - name: dm-manager
   repository: file://../amt/charts/dm-manager
   version: 0.7.2
+- name: onboarding-manager
+  repository: file://../onboarding-manager
+  version: 1.40.0-dev
+- name: dkam
+  repository: file://../dkam
+  version: 1.31.0-dev
 - name: infra-config
   repository: file://../infra-config
   version: 0.7.0-dev
-digest: sha256:bba0c8a600dc032eec34ce16e868c4a37f3af347f569018b60afc8805d3f681e
-generated: "2026-01-13T04:20:27.480581881-08:00"
+digest: sha256:7b376f0067504c86461e88990633165c5644d16cb897183b8c2f2d2416094a39
+generated: "2026-01-19T05:42:09.700901133-08:00"

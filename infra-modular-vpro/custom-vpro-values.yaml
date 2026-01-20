@@ -1,0 +1,340 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Custom values for modular-vpro deployment
+# This reads configuration from existing platform services deployed by ArgoCD
+# 
+# Prerequisites (deployed via mage deploy:kindPreset):
+# - PostgreSQL cluster in orch-database namespace
+# - Keycloak in orch-platform namespace
+# - Vault in orch-platform namespace
+# - OpenTelemetry Collector in orch-platform namespace
+# - infra-config ConfigMap in orch-infra namespace (optional, uses chart defaults if not present)
+
+---
+# Credentials configuration
+credentials:
+  serviceAccount:
+    name: "orch-svc"
+  params:
+    keycloakUrl: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
+    vaultUrl: "http://vault.orch-platform.svc.cluster.local:8200"
+  curlImage:
+    name: badouralix/curl-jq@sha256
+    tag: 8ee002ae4452b23a3c70750c5c081e95334cfe9f7968fb4d67a90d4001c29d0b
+    pullPolicy: IfNotPresent
+
+# APIv2 Configuration
+apiv2:
+  image:
+    registry:
+      name: registry-rs.edgeorchestration.intel.com/edge-orch/
+    pullPolicy: IfNotPresent
+  serviceArgsProxy:
+    enableAuth: true
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  serviceArgsGrpc:
+    enableAuth: true
+    inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  traefikReverseProxy:
+    # We rely on the multi-tenant gateway.
+    enabled: false
+  # https://doc.traefik.io/traefik/migrate/v2-to-v3-details/#kubernetes-crds-api-group-traefikcontainous
+  traefikApiGroup: "traefik.io/v1alpha1"
+  oidc:
+    name: "keycloak-api"
+    oidc_env_name: "OIDC_SERVER_URL"
+    oidc_server_url: "http://platform-keycloak.orch-platform.svc/realms/master"
+    oidc_tls_insecure_skip_verify_env_name: "OIDC_TLS_INSECURE_SKIP_VERIFY"
+    oidc_tls_insecure_skip_verify_value: "true"
+  resources: null
+
+# Inventory Configuration
+inventory:
+  image:
+    registry:
+      name: registry-rs.edgeorchestration.intel.com/edge-orch/
+    pullPolicy: IfNotPresent
+  inventory:
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  postgresql:
+    pod:
+      enabled: false
+      image:
+        tag: 16.10-bookworm
+    ssl: false
+    secrets: inventory-local-postgresql
+  resources: null
+  serviceAccount:
+    name: "orch-svc"
+
+# Tenant Controller Configuration
+tenant-controller:
+  image:
+    registry:
+      name: registry-rs.edgeorchestration.intel.com/edge-orch/
+    pullPolicy: IfNotPresent
+  managerArgs:
+    inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  oidc:
+    oidc_server_url: "http://platform-keycloak.orch-platform.svc.cluster.local/realms/master"
+  resources: null
+  serviceAccount:
+    name: "orch-svc"
+  vault:
+    url: "http://vault.orch-platform.svc.cluster.local:8200"
+    role: "orch-svc"
+  env:
+    keycloakUrl: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
+    vaultUrl: "http://vault.orch-platform.svc.cluster.local:8200"
+    vaultRole: "orch-svc"
+
+# MPS (Management Presence Server) Configuration
+mps:
+  image:
+    registry:
+      name: docker.io/
+    repository: intel/oact-mps
+    tag: v2.14.2
+    pullPolicy: IfNotPresent
+  serviceAccount:
+    name: "orch-svc"
+  serviceArgs:
+    inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  multiTenancy:
+    enforceMultiTenancy: true
+  postgresql:
+    pod:
+      enabled: false
+    external:
+      enabled: true
+      host: "postgresql-cluster-rw.orch-infra.svc.cluster.local"
+      port: "5432"
+      database: "mps"
+      username: "orch-infra-system-mps_user"
+      secret:
+        name: "db-postgresql-cluster-mps-app"
+        key: "password"
+  traefikReverseProxy:
+    enabled: true
+    secretName: "tls-orch"
+    tlsOption: "gateway-tls"
+    gatewayNamespace: "orch-gateway"
+  traefikApiGroup: "traefik.io/v1alpha1"
+  resources: null
+  env:
+    vaultUrl: "http://vault.orch-platform.svc.cluster.local:8200"
+    vaultRole: "orch-svc"
+    keycloakUrl: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
+
+# RPS (Remote Provisioning Server) Configuration
+rps:
+  image:
+    registry:
+      name: docker.io/
+    repository: intel/oact-rps
+    tag: v2.26.0
+    pullPolicy: IfNotPresent
+  serviceAccount:
+    name: "orch-svc"
+  serviceArgs:
+    inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  multiTenancy:
+    enforceMultiTenancy: true
+  postgresql:
+    pod:
+      enabled: false
+    external:
+      enabled: true
+      host: "postgresql-cluster-rw.orch-infra.svc.cluster.local"
+      port: "5432"
+      database: "rps"
+      username: "orch-infra-system-rps_user"
+      secret:
+        name: "db-postgresql-cluster-rps-app"
+        key: "password"
+  traefikReverseProxy:
+    enabled: true
+    secretName: "tls-orch"
+    tlsOption: "gateway-tls"
+    gatewayNamespace: "orch-gateway"
+  traefikApiGroup: "traefik.io/v1alpha1"
+  resources: null
+  env:
+    vaultUrl: "http://vault.orch-platform.svc.cluster.local:8200"
+    vaultRole: "orch-svc"
+    keycloakUrl: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
+
+# DM-Manager (Device Management Manager) Configuration
+dm-manager:
+  image:
+    registry:
+      name: registry-rs.edgeorchestration.intel.com/edge-orch/
+    pullPolicy: IfNotPresent
+  serviceAccount:
+    name: "orch-svc"
+  serviceArgs:
+    inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  multiTenancy:
+    enforceMultiTenancy: true
+  resources: null
+  env:
+    vaultUrl: "http://vault.orch-platform.svc.cluster.local:8200"
+    vaultRole: "orch-svc"
+    keycloakUrl: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
+
+# Onboarding Manager configuration
+onboarding-manager:
+  image:
+    registry:
+      name: registry-rs.edgeorchestration.intel.com/edge-orch/
+    pullPolicy: IfNotPresent
+  managerArgs:
+    inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  traefikReverseProxy:
+    enabled: true
+    secretName: "tls-orch"
+    tlsOption: "gateway-tls"
+    gatewayNamespace: "orch-gateway"
+  traefikApiGroup: "traefik.io/v1alpha1"
+  env:
+    tinkerActionsVersion: "1.20.0"
+    oidc:
+      oidc_server_url: "http://platform-keycloak.orch-platform.svc/realms/master"
+      # Skip AuthZ for CDN-boots
+      clients:
+        bypass:
+          - cdn-boots
+    vaultUrl: "http://vault.orch-platform.svc.cluster.local:8200"
+    vaultRole: "orch-svc"
+    keycloakUrl: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
+  multiTenancy:
+    enforceMultiTenancy: true
+  resources: null
+  serviceAccount:
+    name: "orch-svc"
+
+# DKAM (Device Key and Attestation Manager) configuration
+dkam:
+  image:
+    registry:
+      name: registry-rs.edgeorchestration.intel.com/edge-orch/
+    pullPolicy: IfNotPresent
+  managerArgs:
+    traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  env:
+    rs_proxy_address: "rs-proxy.orch-platform.svc.cluster.local:8081/"
+    oidc:
+      oidc_server_url: "http://platform-keycloak.orch-platform.svc/realms/master"
+  resources: null
+
+# infra-config configuration
+# This overrides values from the infra-config subchart (dependency)
+# These values match the deployed infra-config ConfigMap from orch-infra namespace
+infra-config:
+  config:
+    # Provisioning
+    skipOSProvisioning: false
+    
+    # Proxy settings
+    enProxyHTTP: "http://proxy-dmz.intel.com:912"
+    enProxyHTTPS: "http://proxy-dmz.intel.com:912"
+    enProxyFTP: "http://proxy-dmz.intel.com:911"
+    enProxySocks: "http://proxy-dmz.intel.com:1080"
+    enProxyNoProxy: "localhost,127.0.0.1,.caas.intel.com,.internal,10.0.0.0/8,192.168.0.0/16,cluster.local,.espd.infra-host.com,.pid.infra-host.com,.espdqa.infra-host.com,.devtools.intel.com"
+    
+    # Repository and artifact settings
+    enDebianPackagesRepo: "edge-orch/en/deb"
+    enFilesRsRoot: "files-edge-orch"
+    enManifestRepo: "edge-orch/en/files/ena-manifest"
+    enAgentManifestTag: "1.4.11"
+    embImageUrl: "files-edge-orch/repository/microvisor/uos/emb_uos_x86_64_20251113.tar.gz"
+    rsType: "no-auth"
+    disableCoProfile: false
+    disableO11yProfile: false
+    
+    # Orchestrator service endpoints
+    orchInfra: "infra-node.orch-10-139-220-238.pid.infra-host.com:443"
+    orchCluster: "cluster-orch-node.orch-10-139-220-238.pid.infra-host.com:443"
+    orchUpdate: "update-node.orch-10-139-220-238.pid.infra-host.com:443"
+    orchAttestationStatus: "attest-node.orch-10-139-220-238.pid.infra-host.com:443"
+    orchRelease: "release.orch-10-139-220-238.pid.infra-host.com"
+    orchPlatformObsLogs: "logs-node.orch-10-139-220-238.pid.infra-host.com:443"
+    orchPlatformObsMetrics: "metrics-node.orch-10-139-220-238.pid.infra-host.com:443"
+    orchPlatformObsHost: "logs-node.kind.internal"
+    orchPlatformObsPort: "443"
+    orchPlatformObsMetricsHost: "metrics-node.kind.internal"
+    orchPlatformObsMetricsPort: "443"
+    orchKeycloak: "keycloak.orch-10-139-220-238.pid.infra-host.com:443"
+    orchTelemetry: "telemetry-node.orch-10-139-220-238.pid.infra-host.com:443"
+    orchTelemetryHost: "telemetry-node.kind.internal"
+    orchTelemetryPort: "443"
+    orchDeviceManager: "device-manager-node.orch-10-139-220-238.pid.infra-host.com:443"
+    
+    # MPS and RPS endpoints for vPRO/AMT (Critical for vPRO functionality)
+    orchMPSHost: "mps.orch-10-139-220-238.pid.infra-host.com:4433"
+    orchMPSWHost: "mps-wss.orch-10-139-220-238.pid.infra-host.com:443"
+    orchRPSHost: "rps.orch-10-139-220-238.pid.infra-host.com:443"
+    orchRPSWHost: "rps-wss.orch-10-139-220-238.pid.infra-host.com:443"
+    
+    # Registry and file server
+    orchRegistry: "registry-rs.edgeorchestration.intel.com:9443"
+    orchFileServer: "files-rs.edgeorchestration.intel.com:60444"
+    orchAptSrcProxyPort: "60444"
+    orchImgRegProxyPort: "9443"
+    
+    # Network and system configuration
+    netIp: "dynamic"
+    systemConfigFsInotifyMaxUserInstances: "8192"
+    systemConfigVmOverCommitMemory: "1"
+    systemConfigKernelPanicOnOops: "1"
+    systemConfigKernelPanic: "10"
+    ntpServer: "corp.intel.com,ntp1.server.org,time.google.com"
+    
+    # Service endpoints
+    releaseServer: "files-rs.edgeorchestration.intel.com"
+    registryService: "registry-rs.edgeorchestration.intel.com"
+    keycloak: "keycloak.kind.internal"
+    nameServers: []
+    provisioningSvc: "tinkerbell-nginx.orch-10-139-220-238.pid.infra-host.com"
+    tinkerSvc: "tinkerbell-server.orch-10-139-220-238.pid.infra-host.com"
+    cdnSvc: "files-rs.edgeorchestration.intel.com"
+    omSvc: "onboarding-node.orch-10-139-220-238.pid.infra-host.com"
+    omStreamSvc: "onboarding-stream.orch-10-139-220-238.pid.infra-host.com"
+    
+    # Extra hosts
+    extraHosts: ""
+    
+    # Firewall configurations
+    firewallReqAllow: |-
+      [{
+        "sourceIp": "orch-10-139-220-238.pid.infra-host.com",
+        "ports": "6443,10250",
+        "ipVer": "ipv4",
+        "protocol": "tcp"
+      }]
+    firewallCfgAllow: |-
+      [{
+        "sourceIp": "",
+        "ports": "2379,2380,6443,9345,10250,5473",
+        "ipVer": "",
+        "protocol": "tcp"
+      },
+      {
+        "sourceIp": "",
+        "ports": "7946",
+        "ipVer": "",
+        "protocol": ""
+      },
+      {
+        "sourceIp": "",
+        "ports": "123",
+        "ipVer": "",
+        "protocol": "udp"
+      }]

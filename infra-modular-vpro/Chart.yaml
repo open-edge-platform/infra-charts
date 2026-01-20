@@ -48,6 +48,15 @@ dependencies:
     condition: import.dm-manager.enabled
     version: "0.7.2"
     repository: "file://../amt/charts/dm-manager"
+  # Onboarding components
+  - name: onboarding-manager
+    condition: import.onboarding-manager.enabled
+    version: "1.40.0-dev"
+    repository: "file://../onboarding-manager"
+  - name: dkam
+    condition: import.dkam.enabled
+    version: "1.31.0-dev"
+    repository: "file://../dkam"
   # Shared configuration for all components
   - name: infra-config
     condition: import.infra-config.enabled

@@ -11,6 +11,47 @@
 # - OpenTelemetry Collector in orch-platform namespace
 # - infra-config ConfigMap in orch-infra namespace (optional, uses chart defaults if not present)
 
+# ==============================================================================
+# ENVIRONMENT-SPECIFIC CONFIGURATION
+# ==============================================================================
+# Define your cluster FQDN here - this value will be substituted throughout
+# the file when using the provided deployment script (deploy-vpro.sh).
+#
+# METHOD 1: Use the deployment script (Recommended)
+# ------------------------------------------------------------------------------
+# 1. Set CLUSTER_FQDN below
+# 2. Run: ./deploy-vpro.sh
+#
+# METHOD 2: Manual search-and-replace
+# ------------------------------------------------------------------------------
+# Perform a global search-and-replace:
+#   Find:    $CLUSTER_FQDN
+#   Replace: <your-cluster-fqdn>
+# Then run: helm install modular-vpro-test . -n orch-infra -f custom-vpro-values.yaml
+# ==============================================================================
+
+# CLUSTER FQDN - DEFINE YOUR CLUSTER DOMAIN HERE
+# Example values:
+#   - orch-10-139-220-238.pid.infra-host.com (default/example)
+#   - orch-10-XX-XX-XX.espdqa.infra-host.com (QA environment)
+#   - integration4.espd.infra-host.com
+#   - my-cluster.example.com
+CLUSTER_FQDN: "orch-10-139-220-238.pid.infra-host.com"
+
+# ==============================================================================
+# Additional customizations required:
+#
+# 1. PROXY SETTINGS: The proxy configuration (enProxyHTTP, enProxyHTTPS, etc.)
+#    contains Intel-specific internal proxy servers. These are EXAMPLE values
+#    and should be customized or removed based on your network environment.
+#
+# 2. REGISTRY SETTINGS: Registry URLs (registry-rs.edgeorchestration.intel.com)
+#    should be updated to match your container registry.
+#
+# For ArgoCD-based deployments, these values are dynamically generated from
+# edge-manageability-framework/argocd/applications/configs/ and custom/ templates.
+# ==============================================================================
+
 ---
 # Credentials configuration
 credentials:
@@ -20,6 +61,7 @@ credentials:
     keycloakUrl: "http://platform-keycloak.orch-platform.svc.cluster.local:8080"
     vaultUrl: "http://vault.orch-platform.svc.cluster.local:8200"
   curlImage:
+    # HARDCODED: Update if using a different curl image or tag
     name: badouralix/curl-jq@sha256
     tag: 8ee002ae4452b23a3c70750c5c081e95334cfe9f7968fb4d67a90d4001c29d0b
     pullPolicy: IfNotPresent
@@ -28,6 +70,7 @@ credentials:
 apiv2:
   image:
     registry:
+      # HARDCODED: Replace with your container registry URL
       name: registry-rs.edgeorchestration.intel.com/edge-orch/
     pullPolicy: IfNotPresent
   serviceArgsProxy:
@@ -54,6 +97,7 @@ apiv2:
 inventory:
   image:
     registry:
+      # HARDCODED: Replace with your container registry URL
       name: registry-rs.edgeorchestration.intel.com/edge-orch/
     pullPolicy: IfNotPresent
   inventory:
@@ -62,6 +106,7 @@ inventory:
     pod:
       enabled: false
       image:
+        # HARDCODED: PostgreSQL version
         tag: 16.10-bookworm
     ssl: false
     secrets: inventory-local-postgresql
@@ -73,6 +118,7 @@ inventory:
 tenant-controller:
   image:
     registry:
+      # HARDCODED: Replace with your container registry URL
       name: registry-rs.edgeorchestration.intel.com/edge-orch/
     pullPolicy: IfNotPresent
   managerArgs:
@@ -95,8 +141,10 @@ tenant-controller:
 mps:
   image:
     registry:
+      # HARDCODED: Using Docker Hub, update if using private registry
       name: docker.io/
     repository: intel/oact-mps
+    # HARDCODED: MPS version
     tag: v2.14.2
     pullPolicy: IfNotPresent
   serviceAccount:
@@ -134,8 +182,10 @@ mps:
 rps:
   image:
     registry:
+      # HARDCODED: Using Docker Hub, update if using private registry
       name: docker.io/
     repository: intel/oact-rps
+    # HARDCODED: RPS version
     tag: v2.26.0
     pullPolicy: IfNotPresent
   serviceAccount:
@@ -173,6 +223,7 @@ rps:
 dm-manager:
   image:
     registry:
+      # HARDCODED: Replace with your container registry URL
       name: registry-rs.edgeorchestration.intel.com/edge-orch/
     pullPolicy: IfNotPresent
   serviceAccount:
@@ -192,6 +243,7 @@ dm-manager:
 onboarding-manager:
   image:
     registry:
+      # HARDCODED: Replace with your container registry URL
       name: registry-rs.edgeorchestration.intel.com/edge-orch/
     pullPolicy: IfNotPresent
   managerArgs:
@@ -204,6 +256,7 @@ onboarding-manager:
     gatewayNamespace: "orch-gateway"
   traefikApiGroup: "traefik.io/v1alpha1"
   env:
+    # HARDCODED: Tinkerbell Actions version for edge node provisioning
     tinkerActionsVersion: "1.20.0"
     oidc:
       oidc_server_url: "http://platform-keycloak.orch-platform.svc/realms/master"
@@ -224,6 +277,7 @@ onboarding-manager:
 dkam:
   image:
     registry:
+      # HARDCODED: Replace with your container registry URL
       name: registry-rs.edgeorchestration.intel.com/edge-orch/
     pullPolicy: IfNotPresent
   managerArgs:
@@ -242,7 +296,14 @@ infra-config:
     # Provisioning
     skipOSProvisioning: false
     
-    # Proxy settings
+    # ==============================================================================
+    # Proxy settings (ENVIRONMENT-SPECIFIC - Intel Internal Example)
+    # ==============================================================================
+    # WARNING: These are Intel-specific internal proxy servers provided as examples.
+    # Customize these values for your deployment environment, or set to empty strings
+    # if no proxy is required. The noProxy list should include your cluster domains
+    # and internal networks.
+    # ==============================================================================
     enProxyHTTP: "http://proxy-dmz.intel.com:912"
     enProxyHTTPS: "http://proxy-dmz.intel.com:912"
     enProxyFTP: "http://proxy-dmz.intel.com:911"
@@ -250,40 +311,48 @@ infra-config:
     enProxyNoProxy: "localhost,127.0.0.1,.caas.intel.com,.internal,10.0.0.0/8,192.168.0.0/16,cluster.local,.espd.infra-host.com,.pid.infra-host.com,.espdqa.infra-host.com,.devtools.intel.com"
     
     # Repository and artifact settings
+    # HARDCODED: Update these paths based on your artifact repository structure
     enDebianPackagesRepo: "edge-orch/en/deb"
     enFilesRsRoot: "files-edge-orch"
     enManifestRepo: "edge-orch/en/files/ena-manifest"
+    # HARDCODED: Edge Node Agent manifest version
     enAgentManifestTag: "1.4.11"
+    # HARDCODED: Embedded micro-OS image path and filename
     embImageUrl: "files-edge-orch/repository/microvisor/uos/emb_uos_x86_64_20251113.tar.gz"
     rsType: "no-auth"
     disableCoProfile: false
     disableO11yProfile: false
     
-    # Orchestrator service endpoints
-    orchInfra: "infra-node.orch-10-139-220-238.pid.infra-host.com:443"
-    orchCluster: "cluster-orch-node.orch-10-139-220-238.pid.infra-host.com:443"
-    orchUpdate: "update-node.orch-10-139-220-238.pid.infra-host.com:443"
-    orchAttestationStatus: "attest-node.orch-10-139-220-238.pid.infra-host.com:443"
-    orchRelease: "release.orch-10-139-220-238.pid.infra-host.com"
-    orchPlatformObsLogs: "logs-node.orch-10-139-220-238.pid.infra-host.com:443"
-    orchPlatformObsMetrics: "metrics-node.orch-10-139-220-238.pid.infra-host.com:443"
-    orchPlatformObsHost: "logs-node.kind.internal"
-    orchPlatformObsPort: "443"
-    orchPlatformObsMetricsHost: "metrics-node.kind.internal"
-    orchPlatformObsMetricsPort: "443"
-    orchKeycloak: "keycloak.orch-10-139-220-238.pid.infra-host.com:443"
-    orchTelemetry: "telemetry-node.orch-10-139-220-238.pid.infra-host.com:443"
-    orchTelemetryHost: "telemetry-node.kind.internal"
-    orchTelemetryPort: "443"
-    orchDeviceManager: "device-manager-node.orch-10-139-220-238.pid.infra-host.com:443"
+    # ==============================================================================
+    # Orchestrator service endpoints (ENVIRONMENT-SPECIFIC)
+    # ==============================================================================
+    # Replace "$CLUSTER_FQDN" with your actual cluster domain
+    # Pattern: <service-name>.$CLUSTER_FQDN:<port>
+    # ==============================================================================
+    orchInfra: "infra-node.$CLUSTER_FQDN:443"
+    orchCluster: "cluster-orch-node.$CLUSTER_FQDN:443"
+    orchUpdate: "update-node.$CLUSTER_FQDN:443"
+    orchAttestationStatus: "attest-node.$CLUSTER_FQDN:443"
+    orchRelease: "release.$CLUSTER_FQDN"
+    orchKeycloak: "keycloak.$CLUSTER_FQDN:443"
+    orchDeviceManager: "device-manager-node.$CLUSTER_FQDN:443"
     
-    # MPS and RPS endpoints for vPRO/AMT (Critical for vPRO functionality)
-    orchMPSHost: "mps.orch-10-139-220-238.pid.infra-host.com:4433"
-    orchMPSWHost: "mps-wss.orch-10-139-220-238.pid.infra-host.com:443"
-    orchRPSHost: "rps.orch-10-139-220-238.pid.infra-host.com:443"
-    orchRPSWHost: "rps-wss.orch-10-139-220-238.pid.infra-host.com:443"
+    # ==============================================================================
+    # MPS and RPS endpoints for vPRO/AMT (for vPRO functionality)
+    # ==============================================================================
+    # These endpoints are essential for Out-of-Band device management
+    # Replace the domain with your cluster domain
+    # ==============================================================================
+    orchMPSHost: "mps.$CLUSTER_FQDN:4433"
+    orchMPSWHost: "mps-wss.$CLUSTER_FQDN:443"
+    orchRPSHost: "rps.$CLUSTER_FQDN:443"
+    orchRPSWHost: "rps-wss.$CLUSTER_FQDN:443"
     
-    # Registry and file server
+    # ==============================================================================
+    # Registry and file server (ENVIRONMENT-SPECIFIC)
+    # ==============================================================================
+    # Update these to match your container registry and file server URLs
+    # ==============================================================================
     orchRegistry: "registry-rs.edgeorchestration.intel.com:9443"
     orchFileServer: "files-rs.edgeorchestration.intel.com:60444"
     orchAptSrcProxyPort: "60444"
@@ -295,18 +364,21 @@ infra-config:
     systemConfigVmOverCommitMemory: "1"
     systemConfigKernelPanicOnOops: "1"
     systemConfigKernelPanic: "10"
+    # HARDCODED: NTP servers - customize for your environment
     ntpServer: "corp.intel.com,ntp1.server.org,time.google.com"
     
     # Service endpoints
+    # HARDCODED: Update these to match your file server and container registry
     releaseServer: "files-rs.edgeorchestration.intel.com"
     registryService: "registry-rs.edgeorchestration.intel.com"
     keycloak: "keycloak.kind.internal"
     nameServers: []
-    provisioningSvc: "tinkerbell-nginx.orch-10-139-220-238.pid.infra-host.com"
-    tinkerSvc: "tinkerbell-server.orch-10-139-220-238.pid.infra-host.com"
+    provisioningSvc: "tinkerbell-nginx.$CLUSTER_FQDN"
+    tinkerSvc: "tinkerbell-server.$CLUSTER_FQDN"
+    # HARDCODED: CDN service for edge node content delivery
     cdnSvc: "files-rs.edgeorchestration.intel.com"
-    omSvc: "onboarding-node.orch-10-139-220-238.pid.infra-host.com"
-    omStreamSvc: "onboarding-stream.orch-10-139-220-238.pid.infra-host.com"
+    omSvc: "onboarding-node.$CLUSTER_FQDN"
+    omStreamSvc: "onboarding-stream.$CLUSTER_FQDN"
     
     # Extra hosts
     extraHosts: ""
@@ -314,7 +386,7 @@ infra-config:
     # Firewall configurations
     firewallReqAllow: |-
       [{
-        "sourceIp": "orch-10-139-220-238.pid.infra-host.com",
+        "sourceIp": "$CLUSTER_FQDN",
         "ports": "6443,10250",
         "ipVer": "ipv4",
         "protocol": "tcp"

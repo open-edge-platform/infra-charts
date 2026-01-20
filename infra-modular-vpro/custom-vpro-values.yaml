@@ -32,11 +32,11 @@
 
 # CLUSTER FQDN - DEFINE YOUR CLUSTER DOMAIN HERE
 # Example values:
-#   - orch-10-139-220-238.pid.infra-host.com (default/example)
-#   - orch-10-XX-XX-XX.espdqa.infra-host.com (QA environment)
+#   - orch-10-139-220-238.pid.infra-host.com
+#   - orch-10-XX-XX-XX.espdqa.infra-host.com
 #   - integration4.espd.infra-host.com
 #   - my-cluster.example.com
-CLUSTER_FQDN: "orch-10-139-220-238.pid.infra-host.com"
+#  CLUSTER_FQDN: "orch-10-139-220-238.pid.infra-host.com"
 
 # ==============================================================================
 # Additional customizations required:

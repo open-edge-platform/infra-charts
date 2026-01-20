@@ -8,21 +8,11 @@
 # - PostgreSQL cluster in orch-database namespace
 # - Keycloak in orch-platform namespace
 # - Vault in orch-platform namespace
-# - OpenTelemetry Collector in orch-platform namespace
-# - infra-config ConfigMap in orch-infra namespace (optional, uses chart defaults if not present)
-
 # ==============================================================================
 # ENVIRONMENT-SPECIFIC CONFIGURATION
 # ==============================================================================
-# Define your cluster FQDN here - this value will be substituted throughout
-# the file when using the provided deployment script (deploy-vpro.sh).
 #
-# METHOD 1: Use the deployment script (Recommended)
-# ------------------------------------------------------------------------------
-# 1. Set CLUSTER_FQDN below
-# 2. Run: ./deploy-vpro.sh
-#
-# METHOD 2: Manual search-and-replace
+# Manual search-and-replace
 # ------------------------------------------------------------------------------
 # Perform a global search-and-replace:
 #   Find:    $CLUSTER_FQDN

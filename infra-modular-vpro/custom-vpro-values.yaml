@@ -273,6 +273,12 @@ dkam:
     oidc:
       oidc_server_url: "http://platform-keycloak.orch-platform.svc/realms/master"
   resources: null
+  proxies:
+    http_proxy: "http://proxy-dmz.intel.com:912"
+    https_proxy: "http://proxy-dmz.intel.com:912"
+    ftp_proxy: "http://proxy-dmz.intel.com:911"
+    socks_proxy: "http://proxy-dmz.intel.com:1080"
+    no_proxy: "localhost,127.0.0.1,.caas.intel.com,.internal,10.0.0.0/8,192.168.0.0/16,cluster.local,.espd.infra-host.com,.pid.infra-host.com,.espdqa.infra-host.com,.devtools.intel.com"
 
 # infra-config configuration
 # This overrides values from the infra-config subchart (dependency)

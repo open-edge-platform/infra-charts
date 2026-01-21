@@ -286,7 +286,7 @@ dkam:
 infra-config:
   config:
     # Provisioning
-    skipOSProvisioning: false
+    skipOSProvisioning: true
     
     # ==============================================================================
     # Proxy settings (ENVIRONMENT-SPECIFIC - Intel Internal Example)

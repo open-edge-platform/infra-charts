@@ -309,8 +309,6 @@ infra-config:
     enManifestRepo: "edge-orch/en/files/ena-manifest"
     # HARDCODED: Edge Node Agent manifest version
     enAgentManifestTag: "1.4.11"
-    # HARDCODED: Embedded micro-OS image path and filename
-    embImageUrl: "files-edge-orch/repository/microvisor/uos/emb_uos_x86_64_20251113.tar.gz"
     rsType: "no-auth"
     disableCoProfile: false
     disableO11yProfile: false

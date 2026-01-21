@@ -363,10 +363,7 @@ infra-config:
     # HARDCODED: Update these to match your file server and container registry
     releaseServer: "files-rs.edgeorchestration.intel.com"
     registryService: "registry-rs.edgeorchestration.intel.com"
-    keycloak: "keycloak.kind.internal"
     nameServers: []
-    provisioningSvc: "tinkerbell-nginx.$CLUSTER_FQDN"
-    tinkerSvc: "tinkerbell-server.$CLUSTER_FQDN"
     # HARDCODED: CDN service for edge node content delivery
     cdnSvc: "files-rs.edgeorchestration.intel.com"
     omSvc: "onboarding-node.$CLUSTER_FQDN"

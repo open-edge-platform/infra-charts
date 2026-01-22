@@ -21,8 +21,8 @@
 # ==============================================================================
 
 # CLUSTER FQDN - DEFINE YOUR CLUSTER DOMAIN HERE
-# orch-10-139-220-238.pid.infra-host.com
-# All placeholders have been replaced with this value throughout the configuration.
+#
+# All placeholders have been replaced with CLUSTER FQDN value throughout the configuration.
 
 # ==============================================================================
 # Additional customizations required:

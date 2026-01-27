@@ -12,6 +12,9 @@ metadata:
   name: {{ include "mps.fullname" . }}
   annotations:
     # Reloader annotation to automatically restart deployment when vault-token secret changes
+    # The vault-token secret is renewed every 50 minutes by the amt-vault-job CronJob
+    # Reloader watches for secret changes and triggers a rolling restart to prevent 403 errors
+    # See: infra-charts/amt/charts/mps/templates/reloader-rbac.yaml for required RBAC
     secret.reloader.stakater.com/reload: "vault-token"
 spec:
   replicas: {{ .Values.replicaCount }}

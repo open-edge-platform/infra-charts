@@ -36,7 +36,7 @@ jobs:
       ORCH_DEFAULT_PASSWORD: ${{ secrets.ORCH_DEFAULT_PASSWORD }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8    # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd    # v6.0.2
         with:
           repository: open-edge-platform/edge-manageability-framework
           token: ${{ secrets.SYS_EMF_GH_TOKEN }}
@@ -151,7 +151,7 @@ jobs:
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ensim -n orch-infra --timeout=5m
 
       - name: Checkout ensim (virtual-edge-node) repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8     # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd     # v6.0.2
         with:
           repository: open-edge-platform/virtual-edge-node
           path: virtual-edge-node

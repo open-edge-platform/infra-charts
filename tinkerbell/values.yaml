@@ -19,21 +19,21 @@ traefikReverseProxy:
   # -- enabled is a switch to turn on/off the Traefik reverse proxy resource; Traefik MUST be deployed to orch-gateway ns before enabling it here.
   enabled: &traefikReverseProxy_enabled false
   # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
-  gatewayNamespace: orch-gateway
-  tinkServerDnsname: # add tinkserver dnsname
+  gatewayNamespace: &gatewayNamespace orch-gateway
+  tinkServerDnsname: &tinkServerDnsname # add tinkserver dnsname
   nginxDnsname: &nginxDnsname # add nginx dnsname
   # -- secretName is name of k8s secret containing TLS server cert.
-  secretName: tls-orch
+  secretName: &tlsSecretName tls-orch
   # -- matchRoute defines routing rules (e.g. Host(`http.sample.com`))
   matchRoute:
   # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
   tlsOption: gateway-tls
 
-traefikApiGroup: "traefik.containo.us/v1alpha1"
+traefikApiGroup: &traefikApiGroup "traefik.containo.us/v1alpha1"
 
 stack:
   enabled: true
-  name: tinkerbell
+  name: pa-server
   service:
     enabled: true
     type: LoadBalancer
@@ -144,16 +144,24 @@ tinkerbell_tink:
   name: tinkerbell-tink
   enabled: true
   controller:
+    enabled: true
     image:
       repository: quay.io/tinkerbell/tink-controller:v0.10.0
       pullPolicy: IfNotPresent
   server:
+    enabled: true
     name: tinkerbell-tink-server
     image:
       repository: quay.io/tinkerbell/tink:v0.10.0
       pullPolicy: IfNotPresent
     service:
       port: 42113
+    ingress:
+      enabled: *traefikReverseProxy_enabled
+      apiGroup: *traefikApiGroup
+      gatewayNamespace: *gatewayNamespace
+      hostname: *tinkServerDnsname
+      secretName: *tlsSecretName
 
 pvc:
   name: disk-pvc

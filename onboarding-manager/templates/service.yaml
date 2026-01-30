@@ -10,10 +10,12 @@ metadata:
 spec:
   type: {{ .Values.service.onboardingmgr.type }}
   ports:
+  {{- if .Values.service.onboardingmgr.enableIO }}
     - name: grpc
       port: {{ .Values.service.onboardingmgr.port }}
       targetPort: grpc-port
       protocol: TCP
+  {{- end }}
     - name: grpcnio
       port: {{ .Values.service.onboardingmgr.portnio }}
       targetPort: grpc-port-nio
@@ -27,7 +29,7 @@ spec:
   selector:
     {{- include "onboarding-manager.selectorLabels" . | nindent 4 }}
 ---
-{{- if .Values.traefikReverseProxy.enabled }}
+{{- if and .Values.traefikReverseProxy.enabled .Values.service.enableIO }}
 apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:

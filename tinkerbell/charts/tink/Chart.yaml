@@ -10,6 +10,6 @@ description: A Helm chart for tinkerbell_tink
 
 type: application
 
-version: 1.8.0
+version: 1.8.1
 
 appVersion: "1.4.0"

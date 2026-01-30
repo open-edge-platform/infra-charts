@@ -86,8 +86,6 @@ spec:
             value: "{{ .Values.env.tinkerActionsVersion }}"
           - name: TINKER_ARTIFACT_NAME
             value: "{{ .Values.env.tinkerActionsRepo }}"
-          - name: ONBMGR_PORT
-            value: "{{ .Values.service.onboardingmgr.port }}"
           - name: VAULT_URL
             value: {{ .Values.env.vaultUrl | default "" }}
           - name: VAULT_PKI_ROLE
@@ -132,9 +130,11 @@ spec:
           - name: RSPROXY_ADDRESS
             value: "{{ .Values.env.rsProxyRegistryAddress }}"
           ports:
+          {{- if .Values.service.onboardingmgr.enableIO }}
             - name: grpc-port
               containerPort: {{ .Values.service.onboardingmgr.port }}
               protocol: TCP
+          {{- end }}
             - name: grpc-port-nio
               containerPort: {{ .Values.service.onboardingmgr.portnio }}
               protocol: TCP

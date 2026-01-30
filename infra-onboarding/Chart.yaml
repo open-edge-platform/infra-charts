@@ -22,11 +22,11 @@ dependencies:
     repository: "file://../dkam"
   - name: tinkerbell
     condition: import.tinkerbell.enabled
-    version: "2.14.0-dev"
+    version: "2.14.0"
     repository: "file://../tinkerbell"
   - name: infra-config
     condition: import.infra-config.enabled
-    version: "0.7.0"
+    version: "0.7.1"
     repository: "file://../infra-config"
   - name: pxe-server
     condition: import.pxe-server.enabled

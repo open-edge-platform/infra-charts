@@ -9,7 +9,7 @@ metadata:
 spec:
   storageClassName: "{{ .Values.pvc.storageClassName }}"
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       # The amount of the volume's storage to request

@@ -14,6 +14,7 @@ config:
   rsType: no-auth
   disableCoProfile: false
   disableO11yProfile: false
+  skipOSProvisioning: false
 
   orchInfra: infra-node.kind.internal:443
   orchCluster: cluster-orch-edge-node.kind.internal:443

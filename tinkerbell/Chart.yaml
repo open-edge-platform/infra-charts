@@ -8,11 +8,11 @@ apiVersion: v2
 name: tinkerbell
 description: Edge Infrastructure Manager Tinkerbell Umbrella Chart
 type: application
-version: 2.14.0-dev
+version: 2.14.0
 appVersion: "0.0.1"
 dependencies:
   - name: tinkerbell_tink
-    version: "1.8.0"
+    version: "1.8.1"
     condition: tinkerbell_tink.enabled
     repository: "file://charts/tink"
   - name: tinkerbell_hegel

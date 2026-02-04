@@ -46,7 +46,7 @@ serviceArgsProxy:
   enableTracing: false
   enableAuditing: true
   enableAuth: true
-  scenario: "fulleim"
+  scenario: "vpro"
 
 serviceArgsGrpc:
   grpcAddress: "0.0.0.0:8090"
@@ -57,7 +57,7 @@ serviceArgsGrpc:
   enableTracing: false
   enableAuditing: true
   enableAuth: true
-  scenario: "fulleim"
+  scenario: "vpro"
 
 #humanReadableLogs: "enable"
 

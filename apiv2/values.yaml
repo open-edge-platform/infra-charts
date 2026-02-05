@@ -36,7 +36,7 @@ serviceAccount:
   name: ""
 
 # Set eimScenario once and propagate to both service args
-eimScenario: "fulleim"
+eimScenario: &eimScenario "fulleim"
 
 serviceArgsProxy:
   serverAddress: "0.0.0.0:8080"
@@ -49,7 +49,7 @@ serviceArgsProxy:
   enableTracing: false
   enableAuditing: true
   enableAuth: true
-  eimScenario: "{{ .Values.eimScenario }}"
+  eimScenario: *eimScenario
 
 serviceArgsGrpc:
   grpcAddress: "0.0.0.0:8090"
@@ -60,7 +60,7 @@ serviceArgsGrpc:
   enableTracing: false
   enableAuditing: true
   enableAuth: true
-  eimScenario: "{{ .Values.eimScenario }}"
+  eimScenario: *eimScenario
 
 #humanReadableLogs: "enable"
 

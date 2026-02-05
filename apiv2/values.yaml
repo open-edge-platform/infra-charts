@@ -35,8 +35,9 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-# Set eimScenario once and propagate to both service args
-eimScenario: "noobb"
+# Set eimScenario once and propagate to both services (proxy and grpc)
+# to ensure consistent scenario configuration across the API.
+eimScenario: "fulleim"
 
 serviceArgsProxy:
   serverAddress: "0.0.0.0:8080"

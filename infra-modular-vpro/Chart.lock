@@ -1,0 +1,33 @@
+dependencies:
+- name: apiv2
+  repository: file://../apiv2
+  version: 2.6.0-dev
+- name: inventory
+  repository: file://../inventory
+  version: 2.30.0-dev
+- name: tenant-controller
+  repository: file://../tenant-controller
+  version: 0.25.0-dev
+- name: credentials
+  repository: file://../credentials
+  version: 1.9.0-dev
+- name: mps
+  repository: file://../amt/charts/mps
+  version: 0.0.28
+- name: rps
+  repository: file://../amt/charts/rps
+  version: 0.0.19
+- name: dm-manager
+  repository: file://../amt/charts/dm-manager
+  version: 0.7.2
+- name: onboarding-manager
+  repository: file://../onboarding-manager
+  version: 1.40.0-dev
+- name: dkam
+  repository: file://../dkam
+  version: 1.31.0-dev
+- name: infra-config
+  repository: file://../infra-config
+  version: 0.7.0-dev
+digest: sha256:7b376f0067504c86461e88990633165c5644d16cb897183b8c2f2d2416094a39
+generated: "2026-01-19T05:42:09.700901133-08:00"

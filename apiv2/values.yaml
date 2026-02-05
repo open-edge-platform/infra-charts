@@ -35,6 +35,9 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+# Set eimScenario once and propagate to both service args
+eimScenario: "fulleim"
+
 serviceArgsProxy:
   serverAddress: "0.0.0.0:8080"
   baseRESTURL: "/edge-infra.orchestrator.apis/v2"
@@ -46,7 +49,7 @@ serviceArgsProxy:
   enableTracing: false
   enableAuditing: true
   enableAuth: true
-  scenario: "vpro"
+  eimScenario: "{{ .Values.eimScenario }}"
 
 serviceArgsGrpc:
   grpcAddress: "0.0.0.0:8090"
@@ -57,7 +60,7 @@ serviceArgsGrpc:
   enableTracing: false
   enableAuditing: true
   enableAuth: true
-  scenario: "vpro"
+  eimScenario: "{{ .Values.eimScenario }}"
 
 #humanReadableLogs: "enable"
 

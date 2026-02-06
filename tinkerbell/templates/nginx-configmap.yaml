@@ -34,6 +34,7 @@ data:
         access_log /var/log/nginx/access.log  main;
         sendfile on;
 {{- if not .Values.traefikReverseProxy.enabled }}
+        {{- if .Values.tinkerbell_smee.enabled }}
         server {
             listen {{ .Values.tinkerbell_smee.http.port }};
             location / {
@@ -44,6 +45,8 @@ data:
                 proxy_pass http://$smee_dns:{{ .Values.tinkerbell_smee.http.port }};
             }
         }
+        {{- end }}
+        {{- if .Values.tinkerbell_hegel.enabled }}
         server {
             listen {{ .Values.tinkerbell_hegel.service.port }};
             location / {
@@ -55,6 +58,8 @@ data:
                 proxy_pass http://$hegel_dns:{{ .Values.tinkerbell_hegel.service.port }};
             }
         }
+        {{- end }}
+        {{- if .Values.tinkerbell_tink.enabled }}
         server {
             listen {{ .Values.tinkerbell_tink.server.service.port }}
             http2;
@@ -66,6 +71,7 @@ data:
                 grpc_pass grpc://$tink_dns:{{ .Values.tinkerbell_tink.server.service.port }};
             }
         }
+        {{- end }}
 {{- end }}
         server {
             index index.html index.htm;

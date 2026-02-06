@@ -44,9 +44,8 @@ spec:
 {{- end }}
 ---
 
-# Traefik IngressRoute for api.kind.internal routing
+# Traefik IngressRoute for api routing
 # Routes migrated EIM APIs directly to apiv2 (bypassing nexus-api-gateway)
-# Routes all other APIs through nexus-api-gateway (existing behavior)
 #
 # 18 EIM services migrated (UI paths listed, middleware rewrites to backend):
 # 1. RegionService: /v1/projects/{projectName}/regions
@@ -77,11 +76,6 @@ spec:
 #     /v1/projects/{projectName}/os-update-policies
 # 18. OSUpdateRunService: /v1/projects/{projectName}/os-update-runs
 #
-# Non-migrated services route through nexus-api-gateway:
-# - AppDeployment: /v1/projects/{projectName}/appdeployment/*
-# - Alerts: /v1/projects/{projectName}/alerts/*
-# - (and other non-EIM services)
-#
 # Legacy paths (/edge-infra.orchestrator.apis/v2/*) supported via
 # additional_bindings in proto for backward compatibility, route to apiv2.
 
@@ -89,16 +83,17 @@ spec:
 apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:
-  name: nexus-api-http
+  name: eim-api-http
   namespace: orch-gateway
 spec:
   entryPoints:
     - websecure
   routes:
     # Route for multi-tenant compute endpoints - direct to apiv2 (bypass nexus-api-gw)
-    # 18 EIM services migrated: compute, sites, regions, locations, provides, workloads, workload_members, telemetry, localAccounts, customConfigs, os-update-policies, os-update-runs
+    # 18 EIM services migrated: compute, sites, regions, locations, provides, workloads,
+    # workload_members, telemetry, localAccounts, customConfigs, os-update-policies, os-update-runs, providers, schedules
     # NOTE: ActiveProjectID is extracted from JWT token roles at application level
-    - match: Host(`{{ required "A valid apiHostname entry required!" .Values.apiv2IngressRoute.apiHostname }}`) && PathRegexp(`^/v1/projects/[^/]+/(compute|sites|regions|locations|provides|workloads|workload_members|telemetry|localAccounts|customConfigs|os-update-policies|os-update-runs)(/.*)?$`)
+    - match: Host(`{{ required "A valid apiHostname entry required!" .Values.apiv2IngressRoute.apiHostname }}`) && PathRegexp(`^/v1/projects/[^/]+/(compute|sites|regions|locations|provides|workloads|workload_members|telemetry|localAccounts|customConfigs|os-update-policies|os-update-runs|providers|schedules)(/.*)?$`)
       kind: Rule
       priority: 50
       middlewares:

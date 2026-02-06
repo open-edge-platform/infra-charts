@@ -47,8 +47,7 @@ data:
     EOF
     }
 
-    KEYCLOAK_URL=$1
-    VAULT_URL=$2
+    VAULT_URL=$1
 
     if [[ "$HELP" || -z "$VAULT_URL" ]]; then
         usage

@@ -93,7 +93,7 @@ spec:
     # 18 EIM services migrated: compute, sites, regions, locations, provides, workloads,
     # workload_members, telemetry, localAccounts, customConfigs, os-update-policies, os-update-runs, providers, schedules
     # NOTE: ActiveProjectID is extracted from JWT token roles at application level
-    - match: Host(`{{ required "A valid apiHostname entry required!" .Values.apiv2IngressRoute.apiHostname }}`) && PathRegexp(`^/v1/projects/[^/]+/(compute|sites|regions|locations|provides|workloads|workload_members|telemetry|localAccounts|customConfigs|os-update-policies|os-update-runs|providers|schedules)(/.*)?$`)
+    - match: Host(`{{ required "A valid apiHostname entry required!" .Values.apiv2IngressRoute.apiHostname }}`) && PathRegexp(`^/v1/projects/[^/]+/(compute|sites|regions|locations|providers|schedules|workloads|workload_members|telemetry|localAccounts|customConfigs|os-update-policies|os-update-runs)(/.*)?$`)
       kind: Rule
       priority: 50
       middlewares:

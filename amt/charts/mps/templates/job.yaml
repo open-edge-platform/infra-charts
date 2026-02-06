@@ -30,23 +30,13 @@ spec:
               image: "{{ .Values.curlImage.name }}:{{ .Values.curlImage.tag }}"
               imagePullPolicy: {{ .Values.curlImage.pullPolicy }}
               command: ["/bin/sh"]
-              args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
+              args: ["/amt.sh", "http://vault.orch-platform.svc:8200"]
               securityContext:
                 capabilities:
                   drop:
                     - ALL
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
-              env:
-                - name: ADMIN_USER
-                  value: admin
-                - name: ADMIN_PASS
-                  valueFrom:
-                    secretKeyRef:
-                      name: platform-keycloak
-                      key: admin-password
-                - name: ADMIN_CLIENT
-                  value: system-client
               volumeMounts:
                 - mountPath: /amt.sh
                   subPath: amt.sh
@@ -88,23 +78,13 @@ spec:
           image: "{{ .Values.curlImage.name }}:{{ .Values.curlImage.tag }}"
           imagePullPolicy: {{ .Values.curlImage.pullPolicy }}
           command: ["/bin/sh"]
-          args: ["/amt.sh", "http://platform-keycloak.orch-platform:8080", "http://vault.orch-platform.svc:8200"]
+          args: ["/amt.sh", "http://vault.orch-platform.svc:8200"]
           securityContext:
             capabilities:
               drop:
                 - ALL
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-          env:
-            - name: ADMIN_USER
-              value: admin
-            - name: ADMIN_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: platform-keycloak
-                  key: admin-password
-            - name: ADMIN_CLIENT
-              value: system-client
           volumeMounts:
             - mountPath: /amt.sh
               subPath: amt.sh

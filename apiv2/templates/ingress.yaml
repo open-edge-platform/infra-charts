@@ -42,3 +42,90 @@ spec:
     customRequestHeaders:
       Host: {{ include "api.fullname" . }}-proxy.{{ .Release.Namespace }}.svc
 {{- end }}
+---
+
+# Traefik IngressRoute for api.kind.internal routing
+# Routes migrated EIM APIs directly to apiv2 (bypassing nexus-api-gateway)
+# Routes all other APIs through nexus-api-gateway (existing behavior)
+#
+# 18 EIM services migrated (UI paths listed, middleware rewrites to backend):
+# 1. RegionService: /v1/projects/{projectName}/regions
+# 2. SiteService: /v1/projects/{projectName}/sites
+#    (also /regions/{id}/sites -> rewritten to /sites)
+# 3. LocationService: /v1/projects/{projectName}/locations
+# 4. HostService: /v1/projects/{projectName}/compute/hosts
+#    (also /compute/hosts/summary -> /compute/hosts_summary)
+# 5. InstanceService: /v1/projects/{projectName}/compute/instances
+# 6. OperatingSystemService: /v1/projects/{projectName}/compute/os
+#    (rewritten to /compute/operating_systems)
+# 7. ProviderService: /v1/projects/{projectName}/providers
+# 8. WorkloadService: /v1/projects/{projectName}/workloads
+# 9. WorkloadMemberService:
+#    /v1/projects/{projectName}/workload_members
+# 10. ScheduleService: /v1/projects/{projectName}/schedules
+# 11. TelemetryLogsGroupService:
+#     /v1/projects/{projectName}/telemetry/loggroups
+# 12. TelemetryMetricsGroupService:
+#     /v1/projects/{projectName}/telemetry/metricgroups
+# 13. TelemetryLogsProfileService:
+#     /v1/projects/{projectName}/telemetry/logprofiles
+# 14. TelemetryMetricsProfileService:
+#     /v1/projects/{projectName}/telemetry/metricprofiles
+# 15. LocalAccountService: /v1/projects/{projectName}/localAccounts
+# 16. CustomConfigService: /v1/projects/{projectName}/customConfigs
+# 17. OSUpdatePolicyService:
+#     /v1/projects/{projectName}/os-update-policies
+# 18. OSUpdateRunService: /v1/projects/{projectName}/os-update-runs
+#
+# Non-migrated services route through nexus-api-gateway:
+# - AppDeployment: /v1/projects/{projectName}/appdeployment/*
+# - Alerts: /v1/projects/{projectName}/alerts/*
+# - (and other non-EIM services)
+#
+# Legacy paths (/edge-infra.orchestrator.apis/v2/*) supported via
+# additional_bindings in proto for backward compatibility, route to apiv2.
+
+{{- if .Values.traefikReverseProxy.enabled }}
+apiVersion: {{ .Values.traefikApiGroup }}
+kind: IngressRoute
+metadata:
+  name: nexus-api-http
+  namespace: orch-gateway
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # Route for multi-tenant compute endpoints - direct to apiv2 (bypass nexus-api-gw)
+    # 18 EIM services migrated: compute, sites, regions, locations, provides, workloads, workload_members, telemetry, localAccounts, customConfigs, os-update-policies, os-update-runs
+    # NOTE: ActiveProjectID is extracted from JWT token roles at application level
+    - match: Host(`{{ required "A valid apiHostname entry required!" .Values.apiv2IngressRoute.apiHostname }}`) && PathRegexp(`^/v1/projects/[^/]+/(compute|sites|regions|locations|provides|workloads|workload_members|telemetry|localAccounts|customConfigs|os-update-policies|os-update-runs)(/.*)?$`)
+      kind: Rule
+      priority: 50
+      middlewares:
+        - name: validate-jwt
+        - name: secure-headers
+      services:
+        - name: {{ required "A valid apiv2ServiceName entry required!" .Values.apiv2IngressRoute.apiv2ServiceName }}
+          namespace: {{ required "A valid apiv2ServiceNamespace entry required!" .Values.apiv2IngressRoute.apiv2ServiceNamespace }}
+          port: {{ required "A valid apiv2ServicePort entry required!" .Values.apiv2IngressRoute.apiv2ServicePort }}
+          scheme: http
+    # Route for old-style API paths - direct to apiv2
+    # Covers: instances, OS, regions, sites, locations, etc.
+    # NOTE: ActiveProjectID is now extracted from JWT token roles at application level
+    - match: Host(`{{ required "A valid apiHostname entry required!" .Values.apiv2IngressRoute.apiHostname }}`) && PathPrefix(`/edge-infra.orchestrator.apis/v2`)
+      kind: Rule
+      priority: 40
+      middlewares:
+        - name: validate-jwt
+        - name: secure-headers
+      services:
+        - name: {{ required "A valid apiv2ServiceName entry required!" .Values.apiv2IngressRoute.apiv2ServiceName }}
+          namespace: {{ required "A valid apiv2ServiceNamespace entry required!" .Values.apiv2IngressRoute.apiv2ServiceNamespace }}
+          port: {{ required "A valid apiv2ServicePort entry required!" .Values.apiv2IngressRoute.apiv2ServicePort }}
+          scheme: http
+  tls:
+    options:
+      name: {{ required "A valid tlsOptionName entry required!" .Values.apiv2IngressRoute.tlsOptionName }}
+      namespace: orch-gateway
+    secretName: {{ required "A valid orchSecretName entry required!" .Values.apiv2IngressRoute.orchSecretName }}
+{{- end }}

@@ -65,6 +65,9 @@ service:
   type: ClusterIP
   ciraport: 4433
   webapiport: 3000
+  # NodePorts only used when type: NodePort
+  ciranodeport: 4433
+  webapinodeport: 3000
 
 ingress:
   name: amt-api-mps

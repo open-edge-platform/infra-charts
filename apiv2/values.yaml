@@ -37,7 +37,7 @@ serviceAccount:
 
 # Set eimScenario once and propagate to both services (proxy and grpc)
 # to ensure consistent scenario configuration across the API.
-eimScenario: "fulleim"
+eimScenario: "vpro"
 
 serviceArgsProxy:
   serverAddress: "0.0.0.0:8080"

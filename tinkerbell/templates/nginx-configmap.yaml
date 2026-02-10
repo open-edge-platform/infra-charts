@@ -75,7 +75,7 @@ data:
 {{- end }}
         server {
             index index.html index.htm;
-            listen {{ .Values.stack.hook.port }};            
+            listen {{ .Values.stack.hook.port }};
             location / {
                 sendfile           on;
                 sendfile_max_chunk 1m;

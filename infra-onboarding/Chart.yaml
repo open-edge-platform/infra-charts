@@ -14,11 +14,11 @@ maintainers:
 dependencies:
   - name: onboarding-manager
     condition: import.onboarding-manager.enabled
-    version: "1.40.1"
+    version: "1.40.2"
     repository: "file://../onboarding-manager"
   - name: dkam
     condition: import.dkam.enabled
-    version: "1.31.0"
+    version: "1.31.1"
     repository: "file://../dkam"
   - name: tinkerbell
     condition: import.tinkerbell.enabled

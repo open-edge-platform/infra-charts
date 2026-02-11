@@ -135,3 +135,5 @@ serviceArgs:
   enableAuth: true
   invCacheUuidEnable: true
   invCacheStaleTimeout: 5m
+
+disabledProvisioning: false

@@ -136,4 +136,4 @@ serviceArgs:
   invCacheUuidEnable: true
   invCacheStaleTimeout: 5m
 
-disabledProvisioning: true
+disabledProvisioning: false

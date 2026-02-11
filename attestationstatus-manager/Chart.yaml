@@ -6,8 +6,8 @@ apiVersion: v2
 name: attestationstatus-manager
 description: Trusted Attestation Status Manager
 type: application
-version: 0.9.0-dev
-appVersion: 0.8.1
+version: 0.9.0
+appVersion: 0.9.0
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

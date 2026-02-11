@@ -85,14 +85,11 @@ spec:
           {{- if .Values.metrics.enabled }}
           - -enableMetrics=true
           {{- end }}
-          {{- if .Values.disabledProvisioning }}
-          - -disabledProvisioning={{ .Values.disabledProvisioning }}
-          {{- end }}
           - -baseTimeDuration
           - "{{ .Values.heartbeat.baseTimeDuration | int64 }}"
           - -timeoutTimes
           - "{{ .Values.heartbeat.timeoutTimes | int }}"
-
+          - -disabledProvisioning={{ .Values.disabledProvisioning }}
           {{- range $key, $value := .Values.serviceArgs }}
           - {{ print "-" $key | toYaml -}}={{- $value }}
           {{- end }}

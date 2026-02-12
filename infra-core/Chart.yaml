@@ -18,7 +18,7 @@ dependencies:
     repository: "file://../api"
   - name: apiv2
     condition: import.apiv2.enabled
-    version: "2.6.0"
+    version: "2.6.1"
     repository: "file://../apiv2"
   - name: exporter
     condition: import.exporter.enabled

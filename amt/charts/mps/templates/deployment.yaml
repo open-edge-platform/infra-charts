@@ -91,6 +91,7 @@ spec:
             - containerPort: 4433
               name: mpsws
               protocol: TCP
+          {{- with .Values.middleware }}
           volumeMounts:
           - name: middleware-function
             mountPath: /mps/dist/middleware/custom
@@ -98,6 +99,7 @@ spec:
         - name: middleware-function
           configMap:
             name: mps-middleware-configmap
+      {{- end }}
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

@@ -43,7 +43,7 @@ If `traefikReverseProxy` is disabled:
 If `traefikReverseProxy` is enabled:
 
 - Traefik service running in `orch-gateway` namespace provides `IngressRoute` to `tink-server`
-- NGINX based `Ingress` running in `orch-infra` namespace provides route to `pa-server`
+- NGINX based `Ingress` running in `orch-infra` namespace provides route to `tinkerbell`
 
 ### Why Smee is not required?
 

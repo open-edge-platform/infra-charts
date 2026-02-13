@@ -33,7 +33,7 @@ traefikApiGroup: &traefikApiGroup "traefik.containo.us/v1alpha1"
 
 stack:
   enabled: true
-  name: pa-server
+  name: tinkerbell
   service:
     enabled: true
     type: LoadBalancer

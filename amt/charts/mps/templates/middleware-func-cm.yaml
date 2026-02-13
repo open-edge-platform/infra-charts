@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-{{- with .Values.tenancyMiddleware }}
+{{- if .Values.tenancyMiddleware }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -28,6 +28,9 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: "dm-manager"
 
+tenancyMiddleware:
+  enabled: true
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: false

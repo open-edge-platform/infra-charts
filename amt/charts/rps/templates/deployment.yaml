@@ -82,13 +82,17 @@ spec:
               name: rps
             - containerPort: {{ .Values.service.webapiport }}
               name: rpsweb
+          {{- if .Values.tenancyMiddleware }}
           volumeMounts:
           - name: middleware-function
             mountPath: /rps/dist/middleware/custom
+          {{- end }}
+      {{- if .Values.tenancyMiddleware }}
       volumes:
         - name: middleware-function
           configMap:
             name: rps-middleware-configmap
+      {{- end }}
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

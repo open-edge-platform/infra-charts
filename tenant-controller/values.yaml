@@ -30,6 +30,7 @@ managerArgs:
   initResourcesDefinitionPath: /configuration/default/resources.json
   lenovoResourcesDefinitionPath: /configuration/default/resources-lenovo.json
   disableCredentialsManagement: false
+  skipOSProvisioning: false
 
 metrics:
   enabled: false

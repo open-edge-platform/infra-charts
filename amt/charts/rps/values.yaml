@@ -25,6 +25,9 @@ rps:
 nameOverride: ""
 fullnameOverride: "rps"
 
+tenancyMiddleware:
+  enabled: true
+
 job:
   name: setup-databases-rps
   configmap: rps-configmap

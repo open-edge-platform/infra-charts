@@ -32,6 +32,9 @@ mps:
 nameOverride: ""
 fullnameOverride: "mps"
 
+tenancyMiddleware:
+  enabled: true
+
 job:
   name: amt-vault-job
   schedule: "*/50 * * * *"

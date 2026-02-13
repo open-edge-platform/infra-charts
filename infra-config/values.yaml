@@ -18,6 +18,7 @@ config:
   enTokenClients: "node-agent,hd-agent,cluster-agent,platform-update-agent,platform-observability-agent,platform-telemetry-agent,prometheus,connect-agent,attestation-manager,platform-manageability-agent"
   disableCoProfile: false
   disableO11yProfile: false
+  skipOSProvisioning: false
 
   orchInfra: infra-node.kind.internal:443
   orchCluster: cluster-orch-edge-node.kind.internal:443

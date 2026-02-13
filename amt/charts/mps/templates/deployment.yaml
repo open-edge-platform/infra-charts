@@ -91,12 +91,12 @@ spec:
             - containerPort: 4433
               name: mpsws
               protocol: TCP
-          {{- if .Values.tenancyMiddleware }}
+          {{- if .Values.tenancyMiddleware.enabled }}
           volumeMounts:
           - name: middleware-function
             mountPath: /mps/dist/middleware/custom
           {{- end }}
-      {{- if .Values.tenancyMiddleware }}
+      {{- if .Values.tenancyMiddleware.enabled }}
       volumes:
         - name: middleware-function
           configMap:

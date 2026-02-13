@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-
+{{- if .Values.tenancyMiddleware }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,3 +9,4 @@ metadata:
 data:
   multiTenancyMiddleware.js: |-
     {{ .Files.Get "multiTenancyMiddleware.js" }}
+{{- end }}

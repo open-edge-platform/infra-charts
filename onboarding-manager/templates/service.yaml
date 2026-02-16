@@ -10,7 +10,7 @@ metadata:
 spec:
   type: {{ .Values.service.onboardingmgr.type }}
   ports:
-  {{- if .Values.service.onboardingmgr.enableIO }}
+  {{- if .Values.service.enableIO }}
     - name: grpc
       port: {{ .Values.service.onboardingmgr.port }}
       targetPort: grpc-port

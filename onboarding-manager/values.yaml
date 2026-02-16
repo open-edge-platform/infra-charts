@@ -135,4 +135,5 @@ multiTenancy:
   enableCredentialsGroupCache: false
 
 certs:
+  secretNameBootsCert: boots-ca-cert
   secretNameOrchCaCert: gateway-ca-cert

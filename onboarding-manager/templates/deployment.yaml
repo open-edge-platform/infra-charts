@@ -133,7 +133,7 @@ spec:
           - name: RSPROXY_ADDRESS
             value: "{{ .Values.env.rsProxyRegistryAddress }}"
           ports:
-          {{- if .Values.service.onboardingmgr.enableIO }}
+          {{- if .Values.service.enableIO }}
             - name: grpc-port
               containerPort: {{ .Values.service.onboardingmgr.port }}
               protocol: TCP

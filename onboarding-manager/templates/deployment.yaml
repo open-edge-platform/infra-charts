@@ -74,9 +74,6 @@ spec:
           - name: infra-config-volume
             mountPath: "/etc/infra-config"
             readOnly: true
-          - name: boots-ca-cert
-            mountPath: "/etc/ssl/boots-ca-cert"
-            readOnly: true
           - name: orch-ca-cert
             mountPath: "/etc/ssl/orch-ca-cert"
             readOnly: true
@@ -150,10 +147,6 @@ spec:
         - name: infra-config-volume
           configMap:
             name: infra-config
-        - name: boots-ca-cert
-          secret:
-            secretName: {{ .Values.certs.secretNameBootsCert }}
-            optional: true
         - name: orch-ca-cert
           secret:
             secretName: {{ .Values.certs.secretNameOrchCaCert }}

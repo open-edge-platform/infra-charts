@@ -13,11 +13,11 @@ maintainers:
   - name: Edge Infrastructure Manager Team
 dependencies:
   - name: mps
-    version: "0.0.32"
+    version: "0.0.33"
     condition: import.mps.enabled
     repository: "file://charts/mps"
   - name: rps
-    version: "0.0.20"
+    version: "0.0.21"
     condition: import.rps.enabled
     repository: "file://charts/rps"
   - name: dm-manager

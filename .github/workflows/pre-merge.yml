@@ -78,23 +78,45 @@ jobs:
         run: |
           set -euo pipefail
 
-          kind create cluster -n orch-infra-test --image "kindest/node:v1.26.4"
+          # 1. Create cluster with extra mount for local-path storage
+          cat <<EOF > kind-config.yaml
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+            - role: control-plane
+              extraMounts:
+                - hostPath: /tmp/kind-storage
+                  containerPath: /opt/local-path
+          EOF
+
+          kind create cluster --name orch-infra-test --image kindest/node:v1.26.4 --config kind-config.yaml
+
           kubectl create ns orch-infra
 
-          # Install local-path provisioner
+          # 2. Install local-path provisioner pointing to mounted folder
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: local-path-storage
+          ---
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+            name: local-path
+            annotations:
+              storageclass.kubernetes.io/is-default-class: "true"
+          provisioner: rancher.io/local-path
+          reclaimPolicy: Delete
+          volumeBindingMode: Immediate
+          EOF
+
           kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
 
-          # Wait for provisioner
+          # 3. Wait for provisioner pod to be ready
           kubectl rollout status deployment/local-path-provisioner -n local-path-storage --timeout=2m
 
-          # Delete default StorageClass
-          kubectl delete storageclass local-path
-
-          # Patch the official manifest to use Immediate
-          curl -s https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml \
-            | sed 's/WaitForFirstConsumer/Immediate/' \
-            | kubectl apply -f -
-
+          # 4. Verify storageclass exists
           kubectl get storageclass
 
       - name: Printenv

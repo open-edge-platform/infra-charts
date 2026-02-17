@@ -149,6 +149,8 @@ jobs:
       - name: Verify Kind deployment
         run: |
           # The sleep is required, else no resources exist at all and the following commands just fail
+          cat /proc/cpuinfo
+          cat /proc/meminfo
           sleep 180
           kubectl get pods -n orch-infra
           kubectl get pv -A

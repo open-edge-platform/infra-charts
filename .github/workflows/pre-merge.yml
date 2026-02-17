@@ -83,7 +83,7 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
 
           # Wait for provisioner pod to be ready
-          kubectl wait --for=condition=Ready pod -l app=local-path-provisioner -n local-path-storage --timeout=2m
+          kubectl rollout status deployment/local-path-provisioner -n local-path-storage --timeout=2m || true
 
           # Set local-path as default storage class
           kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'

@@ -51,9 +51,3 @@ server:
   metrics:
     enabled: false
     port: 8081
-  ingress:
-    enabled: false
-    apiGroup: traefik.containo.us/v1alpha1
-    gatewayNamespace: orch-gateway
-    hostname: ""
-    secretName: tls-orch

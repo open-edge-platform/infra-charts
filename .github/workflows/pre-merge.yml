@@ -79,6 +79,11 @@ jobs:
           kind create cluster -n orch-infra-test --image "kindest/node:v1.26.4"
           kubectl create ns orch-infra
 
+          # --- FIX: Install local-path storage provisioner for PVCs ---
+          kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+          # Set as default storage class (if not already)
+          kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
       - name: Printenv
         run: printenv
 

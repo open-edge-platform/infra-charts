@@ -182,9 +182,16 @@ jobs:
           kubectl get pods -n orch-infra
           kubectl get pv -A || true
 
-          echo "==== Waiting for critical PVCs to bind ===="
-          for pvc in dkam-tink-shared-pvc postgresql-pvc-inventory-postgresql-0; do
-            kubectl wait --for=condition=Bound pvc $pvc -n orch-infra --timeout=15m
+          echo "==== Waiting for all PVCs to exist ===="
+          for pvc in $(kubectl get pvc -n orch-infra -o name); do
+            echo "Waiting for $pvc to exist..."
+            kubectl wait --for=condition=Exists $pvc -n orch-infra --timeout=5m
+          done
+
+          echo "==== Waiting for all PVCs to bind ===="
+          for pvc in $(kubectl get pvc -n orch-infra -o name); do
+            echo "Waiting for $pvc to be Bound..."
+            kubectl wait --for=condition=Bound $pvc -n orch-infra --timeout=15m
           done
 
           echo "==== Waiting for Deployments rollout ===="

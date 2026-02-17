@@ -77,25 +77,18 @@ jobs:
       - name: Create kind cluster
         run: |
           set -euo pipefail
+
           kind create cluster -n orch-infra-test --image "kindest/node:v1.26.4"
 
-          # Install pinned local-path storage provisioner (deterministic CI)
+          # Install pinned local-path provisioner
           kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.26/deploy/local-path-storage.yaml
-
-          # Wait for provisioner to be ready
           kubectl wait --for=condition=available deployment/local-path-provisioner \
             -n local-path-storage --timeout=5m
 
           echo "==== Fixing StorageClasses ===="
-          # Remove default from standard if it exists (Kind creates it)
-          kubectl patch storageclass standard \
-            -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}' \
-            || true
+          kubectl delete storageclass standard || true
 
-          # Delete local-path StorageClass (volumeBindingMode is immutable)
           kubectl delete storageclass local-path || true
-
-          # Recreate local-path StorageClass with Immediate binding
           kubectl apply -f - <<EOF
           apiVersion: storage.k8s.io/v1
           kind: StorageClass

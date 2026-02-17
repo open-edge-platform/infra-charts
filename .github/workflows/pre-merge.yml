@@ -77,6 +77,18 @@ jobs:
       - name: Create kind cluster
         run: |
           kind create cluster -n orch-infra-test --image "kindest/node:v1.26.4"
+
+          # Install local-path storage provisioner (Kind does not guarantee one)
+          kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+          # Wait for provisioner to be ready
+          kubectl wait --for=condition=available deployment/local-path-provisioner \
+            -n local-path-storage --timeout=5m
+
+          # Make it the default StorageClass
+          kubectl patch storageclass local-path \
+            -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
           kubectl create ns orch-infra
 
       - name: Printenv
@@ -168,8 +180,8 @@ jobs:
           kubectl get pods -n orch-infra
           kubectl get pv -A || true
 
-          echo "==== Waiting for PVCs to bind (if provisioner exists) ===="
-          kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=5m || true
+          echo "==== Waiting for PVCs to bind ===="
+          kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=5m
 
           echo "==== Waiting for Deployments rollout ===="
           for d in $(kubectl get deployment -n orch-infra -o name); do

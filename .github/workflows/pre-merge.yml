@@ -78,6 +78,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Create Kind cluster
           kind create cluster -n orch-infra-test --image "kindest/node:v1.26.4"
 
           # Install pinned local-path provisioner
@@ -86,22 +87,27 @@ jobs:
             -n local-path-storage --timeout=5m
 
           echo "==== Fixing StorageClasses ===="
-          kubectl delete storageclass standard || true
 
+          # Remove default from standard if exists
+          kubectl patch storageclass standard \
+            -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}' || true
+
+          # Recreate local-path as default with Immediate binding
           kubectl delete storageclass local-path || true
           kubectl apply -f - <<EOF
-          apiVersion: storage.k8s.io/v1
-          kind: StorageClass
-          metadata:
-            name: local-path
-            annotations:
-              storageclass.kubernetes.io/is-default-class: "true"
-          provisioner: rancher.io/local-path
-          reclaimPolicy: Delete
-          volumeBindingMode: Immediate
-          EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+EOF
 
-          kubectl create ns orch-infra
+          # Create namespace for charts
+          kubectl create ns orch-infra || true
 
       - name: Printenv
         run: printenv
@@ -185,15 +191,16 @@ jobs:
           echo "==== Storage Classes ===="
           kubectl get storageclass || true
 
-          echo "==== PVC Status ===="
-          kubectl get pvc -n orch-infra || true
-
           echo "==== Current cluster state ===="
           kubectl get pods -n orch-infra
           kubectl get pv -A || true
 
           echo "==== Waiting for PVCs to bind ===="
-          kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=5m
+          for pvc in $(kubectl get pvc -n orch-infra -o jsonpath='{.items[*].metadata.name}'); do
+            echo "Waiting for PVC $pvc to bind..."
+            kubectl wait --for=condition=Bound pvc/$pvc -n orch-infra --timeout=10m || \
+              (kubectl describe pvc $pvc -n orch-infra && exit 1)
+          done
 
           echo "==== Waiting for Deployments rollout ===="
           for d in $(kubectl get deployment -n orch-infra -o name); do

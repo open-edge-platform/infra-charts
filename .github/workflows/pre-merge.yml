@@ -81,8 +81,13 @@ jobs:
 
           # --- FIX: Install local-path storage provisioner for PVCs ---
           kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
-          # Set as default storage class (if not already)
+
+          # Wait for provisioner pod to be ready
+          kubectl wait --for=condition=Ready pod -l app=local-path-provisioner -n local-path-storage --timeout=2m
+
+          # Set local-path as default storage class
           kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
 
       - name: Printenv
         run: printenv
@@ -98,6 +103,7 @@ jobs:
           MANAGERS_DEV_VALUES=""
           EXTERNAL_DEV_VALUES=""
           ONBOARDING_DEV_VALUES=""
+
           if [ "${INFRA_CORE_RELEASE}" -eq 0 ]; then
             echo "Infra Core dev version"
             CORE_DEV_VALUES=${DEV_VALUES}
@@ -123,32 +129,39 @@ jobs:
             echo "Infra Onboarding release"
           fi
 
+          # --- Helm installs with storage class overrides for CI ---
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
             --set import.credentials.enabled=false \
             --set import.tenant-controller.enabled=false \
             --set tenant-controller.managerArgs.disableCredentialsManagement=true \
             --set inventory.postgresql.pod.enabled=true \
-            --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" ${CORE_DEV_VALUES} \
+            --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" \
+            --set inventory.postgresql.persistence.storageClass=local-path \
+            ${CORE_DEV_VALUES} \
             infra-core ./infra-core
 
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
             --set loca-manager.serviceArgs.disableCredentialsManagement=true \
             --set loca-metadata-manager.serviceArgs.disableCredentialsManagement=true \
-            --set import.loca-credentials.enabled=false ${EXTERNAL_DEV_VALUES} \
+            --set import.loca-credentials.enabled=false \
             --set import.amt.enabled=false \
+            ${EXTERNAL_DEV_VALUES} \
             infra-external ./infra-external
 
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
-            --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" ${MANAGERS_DEV_VALUES} \
+            --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" \
+            --set inventory.postgresql.persistence.storageClass=local-path \
+            ${MANAGERS_DEV_VALUES} \
             infra-managers ./infra-managers
 
-          # TODO: find a way to at least deploy OM, it currently depends on the RS.
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
             --set onboarding-manager.managerArgs.disableCredentialsManagement=true \
             --set import.dkam.enabled=false \
             --set import.onboarding-manager.enabled=false \
             --set tinkerbell.pvc.enabled=true \
-            --set tinkerbell.pvc.storageSize=128Mi ${ONBOARDING_DEV_VALUES} \
+            --set tinkerbell.pvc.storageSize=128Mi \
+            --set tinkerbell.pvc.storageClassName=local-path \
+            ${ONBOARDING_DEV_VALUES} \
             infra-onboarding ./infra-onboarding
 
       - name: Verify Kind deployment

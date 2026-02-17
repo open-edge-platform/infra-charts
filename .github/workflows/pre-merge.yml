@@ -76,18 +76,30 @@ jobs:
 
       - name: Create kind cluster
         run: |
+          set -euo pipefail
           kind create cluster -n orch-infra-test --image "kindest/node:v1.26.4"
 
-          # Install local-path storage provisioner (Kind does not guarantee one)
-          kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+          # Install pinned local-path storage provisioner (deterministic CI)
+          kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.26/deploy/local-path-storage.yaml
 
           # Wait for provisioner to be ready
           kubectl wait --for=condition=available deployment/local-path-provisioner \
             -n local-path-storage --timeout=5m
 
-          # Make it the default StorageClass
+          echo "==== Fixing StorageClasses ===="
+          # Remove default from standard if it exists
+          kubectl patch storageclass standard \
+            -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}' \
+            || true
+
+          # Ensure local-path is default
           kubectl patch storageclass local-path \
             -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+          # Force Immediate binding to avoid WaitForFirstConsumer deadlock in Kind
+          kubectl patch storageclass local-path \
+            --type merge \
+            -p '{"volumeBindingMode":"Immediate"}'
 
           kubectl create ns orch-infra
 

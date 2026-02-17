@@ -78,45 +78,23 @@ jobs:
         run: |
           set -euo pipefail
 
-          # 1. Create cluster with extra mount for local-path storage
-          cat <<EOF > kind-config.yaml
-          kind: Cluster
-          apiVersion: kind.x-k8s.io/v1alpha4
-          nodes:
-            - role: control-plane
-              extraMounts:
-                - hostPath: /tmp/kind-storage
-                  containerPath: /opt/local-path
-          EOF
+          # 1. Create cluster
+          kind create cluster --name orch-infra-test --image kindest/node:v1.26.4
 
-          kind create cluster --name orch-infra-test --image kindest/node:v1.26.4 --config kind-config.yaml
+          # 2. Create orch namespace
+          kubectl create ns orch-infra || true
 
-          kubectl create ns orch-infra
+          # 3. The local-path StorageClass is already created by kind,
+          #    no need to patch or delete it. Just ensure the provisioner namespace exists
+          kubectl create ns local-path-storage || true
 
-          # 2. Install local-path provisioner pointing to mounted folder
-          cat <<EOF | kubectl apply -f -
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: local-path-storage
-          ---
-          apiVersion: storage.k8s.io/v1
-          kind: StorageClass
-          metadata:
-            name: local-path
-            annotations:
-              storageclass.kubernetes.io/is-default-class: "true"
-          provisioner: rancher.io/local-path
-          reclaimPolicy: Delete
-          volumeBindingMode: Immediate
-          EOF
-
+          # 4. Apply the default local-path provisioner manifest (safe: will not overwrite immutable fields)
           kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
 
-          # 3. Wait for provisioner pod to be ready
+          # 5. Wait for provisioner pod to be ready
           kubectl rollout status deployment/local-path-provisioner -n local-path-storage --timeout=2m
 
-          # 4. Verify storageclass exists
+          # 6. Verify StorageClass
           kubectl get storageclass
 
       - name: Printenv
@@ -160,7 +138,7 @@ jobs:
           fi
 
           # --- Helm installs with storage class overrides for CI ---
-          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+          helm install -n orch-infra --wait --timeout 15m --set global.registry.name="${PUBLIC_RS}" \
             --set import.credentials.enabled=false \
             --set import.tenant-controller.enabled=false \
             --set tenant-controller.managerArgs.disableCredentialsManagement=true \
@@ -170,7 +148,7 @@ jobs:
             ${CORE_DEV_VALUES} \
             infra-core ./infra-core
 
-          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+          helm install -n orch-infra --wait --timeout 15m --set global.registry.name="${PUBLIC_RS}" \
             --set loca-manager.serviceArgs.disableCredentialsManagement=true \
             --set loca-metadata-manager.serviceArgs.disableCredentialsManagement=true \
             --set import.loca-credentials.enabled=false \
@@ -178,13 +156,13 @@ jobs:
             ${EXTERNAL_DEV_VALUES} \
             infra-external ./infra-external
 
-          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+          helm install -n orch-infra --wait --timeout 15m --set global.registry.name="${PUBLIC_RS}" \
             --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" \
             --set inventory.postgresql.persistence.storageClass=local-path \
             ${MANAGERS_DEV_VALUES} \
             infra-managers ./infra-managers
 
-          helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+          helm install -n orch-infra --wait --timeout 15m --set global.registry.name="${PUBLIC_RS}" \
             --set onboarding-manager.managerArgs.disableCredentialsManagement=true \
             --set import.dkam.enabled=false \
             --set import.onboarding-manager.enabled=false \

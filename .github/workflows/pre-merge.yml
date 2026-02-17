@@ -87,19 +87,26 @@ jobs:
             -n local-path-storage --timeout=5m
 
           echo "==== Fixing StorageClasses ===="
-          # Remove default from standard if it exists
+          # Remove default from standard if it exists (Kind creates it)
           kubectl patch storageclass standard \
             -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}' \
             || true
 
-          # Ensure local-path is default
-          kubectl patch storageclass local-path \
-            -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+          # Delete local-path StorageClass (volumeBindingMode is immutable)
+          kubectl delete storageclass local-path || true
 
-          # Force Immediate binding to avoid WaitForFirstConsumer deadlock in Kind
-          kubectl patch storageclass local-path \
-            --type merge \
-            -p '{"volumeBindingMode":"Immediate"}'
+          # Recreate local-path StorageClass with Immediate binding
+          kubectl apply -f - <<EOF
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+            name: local-path
+            annotations:
+              storageclass.kubernetes.io/is-default-class: "true"
+          provisioner: rancher.io/local-path
+          reclaimPolicy: Delete
+          volumeBindingMode: Immediate
+          EOF
 
           kubectl create ns orch-infra
 

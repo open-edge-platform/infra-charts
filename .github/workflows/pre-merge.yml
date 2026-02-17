@@ -147,6 +147,7 @@ jobs:
             infra-onboarding ./infra-onboarding
 
       - name: Verify Kind deployment
+        shell: bash
         run: |
           set -euo pipefail
 
@@ -157,26 +158,33 @@ jobs:
           echo "==== Waiting for node readiness ===="
           kubectl wait --for=condition=Ready nodes --all --timeout=5m
 
-          echo "==== Current cluster state ===="
-          kubectl get nodes -o wide
-          kubectl get pods -n orch-infra
-          kubectl get pv -A
-          kubectl get pvc -A
+          echo "==== Storage Classes ===="
+          kubectl get storageclass || true
 
-          echo "==== Waiting for PVCs to bind ===="
+          echo "==== PVC Status ===="
+          kubectl get pvc -n orch-infra || true
+
+          echo "==== Current cluster state ===="
+          kubectl get pods -n orch-infra
+          kubectl get pv -A || true
+
+          echo "==== Waiting for PVCs to bind (if provisioner exists) ===="
           kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=5m || true
 
           echo "==== Waiting for Deployments rollout ===="
-          kubectl rollout status deployment --all -n orch-infra --timeout=10m
+          for d in $(kubectl get deployment -n orch-infra -o name); do
+            kubectl rollout status "$d" -n orch-infra --timeout=10m
+          done
 
           echo "==== Waiting for StatefulSets rollout ===="
-          kubectl rollout status statefulset --all -n orch-infra --timeout=10m
+          for s in $(kubectl get statefulset -n orch-infra -o name); do
+            kubectl rollout status "$s" -n orch-infra --timeout=10m
+          done
 
           echo "==== Final Pod Status ===="
           kubectl get pods -n orch-infra -o wide
-
           echo "All services up and running"
-        shell: bash
+
   final-check:
     permissions:
       contents: read

@@ -88,11 +88,6 @@ jobs:
           # Set local-path as default storage class
           kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-          # --- Wait for critical PVCs to bind before deploying Helm charts ---
-          for pvc in dkam-tink-shared-pvc postgresql-pvc-inventory-postgresql-0; do
-            kubectl wait --for=condition=Bound pvc $pvc -n orch-infra --timeout=15m
-          done
-
       - name: Printenv
         run: printenv
 
@@ -183,15 +178,14 @@ jobs:
           echo "==== Storage Classes ===="
           kubectl get storageclass || true
 
-          echo "==== PVC Status ===="
-          kubectl get pvc -n orch-infra || true
-
           echo "==== Current cluster state ===="
           kubectl get pods -n orch-infra
           kubectl get pv -A || true
 
-          echo "==== Waiting for PVCs to bind (if provisioner exists) ===="
-          kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=15m || true
+          echo "==== Waiting for critical PVCs to bind ===="
+          for pvc in dkam-tink-shared-pvc postgresql-pvc-inventory-postgresql-0; do
+            kubectl wait --for=condition=Bound pvc $pvc -n orch-infra --timeout=15m
+          done
 
           echo "==== Waiting for Deployments rollout ===="
           for d in $(kubectl get deployment -n orch-infra -o name); do

@@ -145,7 +145,7 @@ jobs:
             --set inventory.postgresql.pod.enabled=true \
             --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" \
             --set inventory.postgresql.persistence.storageClass=local-path \
-            --set global.imagePullSecrets={} \
+            --set global.imagePullSecrets=[] \
             ${CORE_DEV_VALUES} \
             infra-core ./infra-core
 
@@ -154,14 +154,14 @@ jobs:
             --set loca-metadata-manager.serviceArgs.disableCredentialsManagement=true \
             --set import.loca-credentials.enabled=false \
             --set import.amt.enabled=false \
-            --set global.imagePullSecrets={} \
+            --set global.imagePullSecrets=[] \
             ${EXTERNAL_DEV_VALUES} \
             infra-external ./infra-external
 
           helm install -n orch-infra --wait --timeout 15m --set global.registry.name="${PUBLIC_RS}" \
             --set inventory.postgresql.auth.password="${ORCH_DEFAULT_PASSWORD}" \
             --set inventory.postgresql.persistence.storageClass=local-path \
-            --set global.imagePullSecrets={} \
+            --set global.imagePullSecrets=[] \
             ${MANAGERS_DEV_VALUES} \
             infra-managers ./infra-managers
 
@@ -172,7 +172,7 @@ jobs:
             --set tinkerbell.pvc.enabled=true \
             --set tinkerbell.pvc.storageSize=128Mi \
             --set tinkerbell.pvc.storageClassName=local-path \
-            --set global.imagePullSecrets={} \
+            --set global.imagePullSecrets=[] \
             ${ONBOARDING_DEV_VALUES} \
             infra-onboarding ./infra-onboarding
 

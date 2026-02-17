@@ -182,6 +182,17 @@ jobs:
           kubectl get pods -n orch-infra
           kubectl get pv -A || true
 
+          echo "==== Waiting for any PVC to appear ===="
+          for i in {1..12}; do
+            pvc_count=$(kubectl get pvc -n orch-infra --no-headers 2>/dev/null | wc -l)
+            if [ "$pvc_count" -gt 0 ]; then
+              echo "Found $pvc_count PVC(s)"
+              break
+            fi
+            echo "No PVCs yet, retrying... ($i/12)"
+            sleep 5
+          done
+
           echo "==== Waiting for all PVCs to bind ===="
           for pvc in $(kubectl get pvc -n orch-infra -o name); do
             echo "Waiting for $pvc to be Bound..."

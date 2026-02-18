@@ -89,6 +89,7 @@ spec:
           - "{{ .Values.heartbeat.baseTimeDuration | int64 }}"
           - -timeoutTimes
           - "{{ .Values.heartbeat.timeoutTimes | int }}"
+          - -disabledProvisioning={{ .Values.disabledProvisioning }}
           {{- range $key, $value := .Values.serviceArgs }}
           - {{ print "-" $key | toYaml -}}={{- $value }}
           {{- end }}

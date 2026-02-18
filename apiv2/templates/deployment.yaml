@@ -54,6 +54,7 @@ spec:
             {{- if .Values.metrics.enabled }}
             - -enableMetrics=true
             {{- end }}
+            - -eimScenario={{ .Values.eimScenario }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port.proxy }}
@@ -112,6 +113,7 @@ spec:
             {{- if .Values.metrics.enabled }}
             - -enableMetrics=true
             {{- end }}
+            - -eimScenario={{ .Values.eimScenario }}
           ports:
             - name: grpc
               containerPort: {{ .Values.service.port.grpc }}

@@ -41,7 +41,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set enviroment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@8fc2349c02d438e1707f99343069963fb49d3eba  # v2026.0.6
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@467367d6f859a4654f2645ca78efd60035cf390c  # v2026.0.8
         with:
           gh_token: ${{ secrets.SYS_EMF_GH_TOKEN }}
 
@@ -147,26 +147,38 @@ jobs:
             infra-onboarding ./infra-onboarding
 
       - name: Verify Kind deployment
+        shell: bash
         run: |
-          # The sleep is required, else no resources exist at all and the following commands just fail
-          sleep 180
+          echo "==== Waiting for node readiness ===="
+          kubectl wait --for=condition=Ready nodes --all --timeout=5m
+
+          echo "==== Storage Classes ===="
+          kubectl get storageclass || true
+
+          echo "==== PVC Status ===="
+          kubectl get pvc -n orch-infra || true
+
+          echo "==== Current cluster state ===="
           kubectl get pods -n orch-infra
-          kubectl get pv -A
-          kubectl get pvc -A
-          deploy_failed=0
-          timeout 10m kubectl wait -n orch-infra --for=condition=Ready pods --all --timeout=10m || deploy_failed=1
-          if [ "$deploy_failed" -eq 1 ]; then
-            kubectl get pods -n orch-infra
-            # Print debugging details and exit with an error if kubectl wait times out
-            kubectl describe pods -n orch-infra
-            kubectl get all -A
-            kubectl get pv -A
-            kubectl get pvc -A
-            kubectl describe nodes
-            helm ls -A
-            exit "$deploy_failed"
-          fi
+          kubectl get pv -A || true
+
+          echo "==== Waiting for PVCs to bind (if provisioner exists) ===="
+          kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=5m || true
+
+          echo "==== Waiting for Deployments rollout ===="
+          for d in $(kubectl get deployment -n orch-infra -o name); do
+            kubectl rollout status "$d" -n orch-infra --timeout=10m
+          done
+
+          echo "==== Waiting for StatefulSets rollout ===="
+          for s in $(kubectl get statefulset -n orch-infra -o name); do
+            kubectl rollout status "$s" -n orch-infra --timeout=10m
+          done
+
+          echo "==== Final Pod Status ===="
+          kubectl get pods -n orch-infra -o wide
           echo "All services up and running"
+
   final-check:
     permissions:
       contents: read

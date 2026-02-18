@@ -149,12 +149,6 @@ jobs:
       - name: Verify Kind deployment
         shell: bash
         run: |
-          set -euo pipefail
-
-          echo "==== System Info ===="
-          cat /proc/cpuinfo
-          cat /proc/meminfo
-
           echo "==== Waiting for node readiness ===="
           kubectl wait --for=condition=Ready nodes --all --timeout=5m
 

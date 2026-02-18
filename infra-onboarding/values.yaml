@@ -29,12 +29,3 @@ import:
 
 # Below are all sub-chart overrides
 # dkam:
-
-# tinkerbell:
-#   stack:
-#     enabled: true
-#   tinkerbell_tink:
-#     enabled: true
-# onboarding-manager:
-#   service:
-#     enableIO: true

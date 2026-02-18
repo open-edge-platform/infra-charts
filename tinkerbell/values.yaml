@@ -163,3 +163,5 @@ pvc:
   enabled: false
   storageClassName: standard
   storageSize: 3Gi
+  accessModes:
+    - ReadWriteOnce

@@ -9,11 +9,7 @@ metadata:
 spec:
   storageClassName: "{{ .Values.pvc.storageClassName }}"
   accessModes:
-{{- if .Values.pvc.accessModes }}
-{{ toYaml .Values.pvc.accessModes | indent 4 }}
-{{- else }}
-    - ReadWriteMany
-{{- end }}
+    - ReadWriteOnce
   resources:
     requests:
       # The amount of the volume's storage to request

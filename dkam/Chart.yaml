@@ -6,7 +6,7 @@ name: dkam
 description: Edge Infrastructure Manager DKAM
 type: application
 version: 1.31.3
-appVersion: "1.33.5"
+appVersion: "1.33.6"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:

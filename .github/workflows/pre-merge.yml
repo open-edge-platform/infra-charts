@@ -22,7 +22,7 @@ jobs:
   pre-merge-pipeline:
     permissions:
       contents: read
-    runs-on: ubuntu-24.04-4core-16GB
+    runs-on: ubuntu-24.04-16core-64GB
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd    # v6.0.2
@@ -149,6 +149,7 @@ jobs:
       - name: Verify Kind deployment
         shell: bash
         run: |
+          set -x
           echo "==== Waiting for node readiness ===="
           kubectl wait --for=condition=Ready nodes --all --timeout=5m
 
@@ -164,19 +165,98 @@ jobs:
 
           echo "==== Waiting for PVCs to bind (if provisioner exists) ===="
           kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=5m || true
+          echo "==== Initial Pod Status ===="
+          kubectl get pods -n orch-infra -o wide
+
+          echo "==== Pod Events Before Rollout ===="
+          kubectl get events -n orch-infra --sort-by='.lastTimestamp' || true
+
+          echo "==== Node Resources ===="
+          kubectl top nodes || true
+          kubectl describe nodes || true
+
+          echo "==== Namespace Resources ===="
+          kubectl get all -n orch-infra
+
+          # Function to get detailed pod info on failure
+          debug_pod_failure() {
+            local resource=$1
+            local resource_name=$(echo "$resource" | cut -d'/' -f2)
+            
+            echo "==== FAILURE: Debugging $resource ===="
+            kubectl describe "$resource" -n orch-infra || true
+            
+            echo "==== Events for $resource ===="
+            kubectl get events -n orch-infra --field-selector involvedObject.name="$resource_name" --sort-by='.lastTimestamp' || true
+            
+            echo "==== Pods for $resource ===="
+            kubectl get pods -n orch-infra -l "app.kubernetes.io/instance=${resource_name}" -o wide || true
+            
+            echo "==== Pod Logs for $resource ===="
+            for pod in $(kubectl get pods -n orch-infra -l "app.kubernetes.io/instance=${resource_name}" -o name 2>/dev/null); do
+              echo "---- Logs from $pod ----"
+              kubectl logs "$pod" -n orch-infra --tail=100 --all-containers=true || true
+              echo "---- Previous logs from $pod ----"
+              kubectl logs "$pod" -n orch-infra --tail=100 --previous --all-containers=true 2>/dev/null || true
+            done
+            
+            echo "==== ReplicaSet Status for $resource ===="
+            kubectl get rs -n orch-infra -l "app.kubernetes.io/instance=${resource_name}" -o wide || true
+          }
 
           echo "==== Waiting for Deployments rollout ===="
+          DEPLOYMENT_TIMEOUT=20m
+          DEPLOYMENT_FAILURES=0
+
           for d in $(kubectl get deployment -n orch-infra -o name); do
-            kubectl rollout status "$d" -n orch-infra --timeout=10m
+            echo "---- Rolling out $d ----"
+            kubectl get "$d" -n orch-infra -o wide
+            
+            if ! kubectl rollout status "$d" -n orch-infra --timeout="${DEPLOYMENT_TIMEOUT}"; then
+              echo "ERROR: Deployment $d failed to rollout"
+              debug_pod_failure "$d"
+              DEPLOYMENT_FAILURES=$((DEPLOYMENT_FAILURES + 1))
+            else
+              echo "SUCCESS: $d rolled out successfully"
+            fi
           done
 
+          echo "==== Intermediate Pod Status ===="
+          kubectl get pods -n orch-infra -o wide
+
           echo "==== Waiting for StatefulSets rollout ===="
+          STATEFULSET_TIMEOUT=15m
+          STATEFULSET_FAILURES=0
+          
           for s in $(kubectl get statefulset -n orch-infra -o name); do
-            kubectl rollout status "$s" -n orch-infra --timeout=10m
+            echo "---- Rolling out $s ----"
+            kubectl get "$s" -n orch-infra -o wide
+            
+            if ! kubectl rollout status "$s" -n orch-infra --timeout="${STATEFULSET_TIMEOUT}"; then
+              echo "ERROR: StatefulSet $s failed to rollout"
+              debug_pod_failure "$s"
+              STATEFULSET_FAILURES=$((STATEFULSET_FAILURES + 1))
+            else
+              echo "SUCCESS: $s rolled out successfully"
+            fi
           done
 
           echo "==== Final Pod Status ===="
           kubectl get pods -n orch-infra -o wide
+          
+          echo "==== Final Events ===="
+          kubectl get events -n orch-infra --sort-by='.lastTimestamp' | tail -50 || true
+          
+          echo "==== Resource Usage ===="
+          kubectl top pods -n orch-infra || true
+
+          # Check for failures
+          TOTAL_FAILURES=$((DEPLOYMENT_FAILURES + STATEFULSET_FAILURES))
+          if [ "$TOTAL_FAILURES" -gt 0 ]; then
+            echo "ERROR: $DEPLOYMENT_FAILURES deployment(s) and $STATEFULSET_FAILURES statefulset(s) failed to rollout"
+            exit 1
+          fi
+          
           echo "All services up and running"
 
   final-check:

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-{{- if .Values.traefikReverseProxy.enabled }}
+{{- if and .Values.traefikReverseProxy.enabled .Values.tinkerbell_tink.enabled }}
 apiVersion: {{ .Values.traefikApiGroup }}
 kind: IngressRoute
 metadata:

@@ -5,9 +5,9 @@
 # Original file can be found at https://github.com/tinkerbell/charts.
 
 {{- $registry := .Values.global.registry -}}
-{{- if .Values.stack.image.registry }}
+{{ if .Values.stack.image.registry }}
   {{- $registry = .Values.stack.image.registry -}}
-{{- end }}
+{{ end }}
 {{- if .Values.stack.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -75,11 +75,11 @@ spec:
           exec nginx -g 'daemon off;' -c /tmp/nginx.conf
         env:
           - name: DOWNLOAD_URL
-            {{- if .Values.traefikReverseProxy.enabled }}
+            {{ if .Values.traefikReverseProxy.enabled }}
             value: {{  printf "https://%v/tink-stack" .Values.traefikReverseProxy.nginxDnsname | quote }}
-            {{- else }}
+            {{ else }}
             value: {{  printf "https://%v/tink-stack" .Values.loadBalancerIP | quote }}
-            {{- end }}
+            {{ end }}
           - name: GRPC_AUTHORITY
             value: {{ printf "%s:%v" .Values.stack.tinkServer.ip .Values.stack.tinkServer.port | quote }}
           - name: TINK_WORKER_IMAGE
@@ -87,20 +87,20 @@ spec:
           - name: ADDITIONAL_KERNEL_ARGS
             value: {{ .Values.tinkerbell_smee.additionalKernelArgs | join " " | quote }}
         ports:
-        {{- if .Values.tinkerbell_hegel.enabled }}
+        {{ if .Values.tinkerbell_hegel.enabled }}
         - containerPort: {{ .Values.tinkerbell_hegel.deployment.port }}
           protocol: TCP
           name: {{ .Values.tinkerbell_hegel.deployment.portName }}
-        {{- end }}
-        {{- if .Values.tinkerbell_tink.enabled }}
+        {{ end }}
+        {{ if .Values.tinkerbell_tink.enabled }}
         - containerPort: {{ .Values.tinkerbell_tink.server.deployment.port }}
           protocol: TCP
           name: {{ .Values.tinkerbell_tink.server.deployment.portName }}
-        {{- end }}
+        {{ end }}
         - containerPort: {{ .Values.stack.hook.port }}
           protocol: TCP
           name: hook-http
-        {{- if .Values.tinkerbell_smee.enabled }}
+        {{ if .Values.tinkerbell_smee.enabled }}
         - containerPort: {{ .Values.tinkerbell_smee.http.port }}
           protocol: TCP
           name: {{ .Values.tinkerbell_smee.http.name }}
@@ -110,7 +110,7 @@ spec:
         - containerPort: {{ .Values.tinkerbell_smee.syslog.port }}
           protocol: UDP
           name: {{ .Values.tinkerbell_smee.syslog.name }}
-        {{- end }}
+        {{ end }}
         livenessProbe:
           httpGet:
             port: {{ .Values.stack.hook.port }}

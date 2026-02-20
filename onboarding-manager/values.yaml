@@ -49,6 +49,7 @@ securityContext:
   runAsUser: 65534
 
 service:
+  enableIO: true
   onboardingmgr:
     type: ClusterIP
     port: 50054

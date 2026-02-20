@@ -119,6 +119,7 @@ jobs:
           fi
 
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+            --set global.persistence.enabled=false \
             --set import.credentials.enabled=false \
             --set import.tenant-controller.enabled=false \
             --set tenant-controller.managerArgs.disableCredentialsManagement=true \
@@ -161,19 +162,6 @@ jobs:
           echo "==== Current cluster state ===="
           kubectl get pods -n orch-infra
           kubectl get pv -A || true
-
-          echo "==== Waiting for PVCs to bind (if provisioner exists) ===="
-          kubectl wait --for=condition=Bound pvc --all -n orch-infra --timeout=5m || true
-
-          echo "==== Waiting for Deployments rollout ===="
-          for d in $(kubectl get deployment -n orch-infra -o name); do
-            kubectl rollout status "$d" -n orch-infra --timeout=10m
-          done
-
-          echo "==== Waiting for StatefulSets rollout ===="
-          for s in $(kubectl get statefulset -n orch-infra -o name); do
-            kubectl rollout status "$s" -n orch-infra --timeout=10m
-          done
 
           echo "==== Final Pod Status ===="
           kubectl get pods -n orch-infra -o wide

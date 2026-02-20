@@ -92,9 +92,11 @@ spec:
           protocol: TCP
           name: {{ .Values.tinkerbell_hegel.deployment.portName }}
         {{ end }}
+        {{ if .Values.tinkerbell_tink.enabled }}
         - containerPort: {{ .Values.tinkerbell_tink.server.deployment.port }}
           protocol: TCP
           name: {{ .Values.tinkerbell_tink.server.deployment.portName }}
+        {{ end }}
         - containerPort: {{ .Values.stack.hook.port }}
           protocol: TCP
           name: hook-http
@@ -204,9 +206,11 @@ spec:
     port: {{ .Values.tinkerbell_hegel.deployment.port }}
     protocol: TCP
   {{ end }}
+  {{ if .Values.tinkerbell_tink.enabled }}
   - name: {{ .Values.tinkerbell_tink.server.name }}
     port: {{ .Values.tinkerbell_tink.server.deployment.port }}
     protocol: TCP
+  {{ end }}
   - name: {{ .Values.stack.hook.name }}
     port: {{ .Values.stack.hook.port }}
     protocol: TCP

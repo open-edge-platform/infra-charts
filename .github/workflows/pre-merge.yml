@@ -148,23 +148,25 @@ jobs:
             infra-onboarding ./infra-onboarding
 
       - name: Verify Kind deployment
-        shell: bash
         run: |
-          echo "==== Waiting for node readiness ===="
-          kubectl wait --for=condition=Ready nodes --all --timeout=5m
-
-          echo "==== Storage Classes ===="
-          kubectl get storageclass || true
-
-          echo "==== PVC Status ===="
-          kubectl get pvc -n orch-infra || true
-
-          echo "==== Current cluster state ===="
+          # The sleep is required, else no resources exist at all and the following commands just fail
+          sleep 180
           kubectl get pods -n orch-infra
-          kubectl get pv -A || true
-
-          echo "==== Final Pod Status ===="
-          kubectl get pods -n orch-infra -o wide
+          kubectl get pv -A
+          kubectl get pvc -A
+          deploy_failed=0
+          timeout 10m kubectl wait -n orch-infra --for=condition=Ready pods --all --timeout=10m || deploy_failed=1
+          if [ "$deploy_failed" -eq 1 ]; then
+            kubectl get pods -n orch-infra
+            # Print debugging details and exit with an error if kubectl wait times out
+            kubectl describe pods -n orch-infra
+            kubectl get all -A
+            kubectl get pv -A
+            kubectl get pvc -A
+            kubectl describe nodes
+            helm ls -A
+            exit "$deploy_failed"
+          fi
           echo "All services up and running"
 
   final-check:

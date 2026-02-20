@@ -119,6 +119,7 @@ jobs:
           fi
 
           helm install -n orch-infra --set global.registry.name="${PUBLIC_RS}" \
+            --set global.persistence.enabled=false \
             --set import.credentials.enabled=false \
             --set import.tenant-controller.enabled=false \
             --set tenant-controller.managerArgs.disableCredentialsManagement=true \

@@ -154,5 +154,4 @@ apiv2IngressRoute:
   apiv2ServiceNamespace: "orch-infra"
   apiv2ServicePort: 8080
   apiv2PathRewriteTarget: "edge-infra.orchestrator.apis/v2/compute"
-  tlsOptionName: "gateway-tls"
-  orchSecretName: "tls-orch"
+

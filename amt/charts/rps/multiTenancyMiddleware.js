@@ -75,7 +75,6 @@
                     return sendUnauthorizedResponse('Required access not found')
                 }
             }
-            req.tenantId = tenantId
         }
 
         next()

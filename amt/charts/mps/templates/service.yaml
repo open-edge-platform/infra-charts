@@ -8,16 +8,23 @@ metadata:
   labels:
     {{- include "mps.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   ports:
   - port: {{ .Values.service.ciraport }}
     name: cira
     protocol: TCP
     appProtocol: tcp
     targetPort: {{ .Values.service.ciraport }}
+    {{- if and (eq .Values.service.type "NodePort") (.Values.service.ciraNodePort) }}
+    nodePort: {{ .Values.service.ciraNodePort }}
+    {{- end }}
+    
   - port: {{ .Values.service.webapiport }}
     name: webapi
     protocol: TCP
     targetPort: {{ .Values.service.webapiport }}
+    {{- if and (eq .Values.service.type "NodePort") (.Values.service.webapiNodePort) }}
+    nodePort: {{ .Values.service.webapiNodePort }}
+    {{- end }}
   selector:
     {{- include "mps.selectorLabels" . | nindent 4 }}

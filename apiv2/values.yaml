@@ -35,9 +35,14 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+# Set eimScenario once and propagate to both services (proxy and grpc)
+# to ensure consistent scenario configuration across the API.
+eimScenario: "fulleim"
+
 serviceArgsProxy:
   serverAddress: "0.0.0.0:8080"
-  baseRESTURL: "/edge-infra.orchestrator.apis/v2"
+  baseRESTURL: ""
+  nexusAPIURL: "http://svc-iam-nexus-api-gw.orch-iam.svc:8082"
   oamServerAddress: "0.0.0.0:2379"
   globalLogLevel: "info"
   echoDebug: false
@@ -142,3 +147,12 @@ traefikReverseProxy:
   tlsOption: gateway-tls
 
 traefikApiGroup: "traefik.containo.us/v1alpha1"
+
+apiv2IngressRoute:
+  apiHostname: "api.kind.internal"
+  apiv2ServiceName: "apiv2-proxy"
+  apiv2ServiceNamespace: "orch-infra"
+  apiv2ServicePort: 8080
+  apiv2PathRewriteTarget: "edge-infra.orchestrator.apis/v2/compute"
+  tlsOptionName: "gateway-tls"
+  orchSecretName: "tls-orch"

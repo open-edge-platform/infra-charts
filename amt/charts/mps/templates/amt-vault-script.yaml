@@ -15,7 +15,7 @@ data:
     # Script Name: amt.sh
     # Description: This script will acquire the service token to login to vault,
     #              fetch the vault token to create secret.
-    # Usage: ./amt.sh <KEYCLOAK_URL> <VAULT_URL>
+    # Usage: ./amt.sh <VAULT_URL>
     #    -h:             help (optional)
 
     set -xe
@@ -37,20 +37,19 @@ data:
     Creation of secret for MPS and RPS services.
 
     Usage:
-      $(basename "$0") <KEYCLOAK_URL> <VAULT_URL>
+      $(basename "$0") <VAULT_URL>
 
     ex:
-    ./amt.sh http://localhost:8090 http://localhost:8200
+    ./amt.sh http://localhost:8200
 
     Options:
         -h:             help (optional)
     EOF
     }
 
-    KEYCLOAK_URL=$1
-    VAULT_URL=$2
+    VAULT_URL=$1
 
-    if [[ "$HELP" || -z "$KEYCLOAK_URL" || -z "$VAULT_URL" || -z "$ADMIN_USER" || -z "$ADMIN_PASS" || -z "$ADMIN_CLIENT" ]]; then
+    if [[ "$HELP" || -z "$VAULT_URL" ]]; then
         usage
         exit 1
     fi

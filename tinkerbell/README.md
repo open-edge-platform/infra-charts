@@ -18,7 +18,7 @@ This chart brings up a full Tinkerbell stack on a Kubernetes cluster using the H
 These charts have been forked from the open source repo [github.com/tinkerbell/charts](https://github.com/tinkerbell/charts)
 Summary of all the changes and contributions can be found [here](CHANGELOG.md)
 
-The following components have been derived from the open source Tinkerbell stack:
+The following components have been derived from the open-source Tinkerbell stack:
 
 - [Tink](https://github.com/tinkerbell/tink)
 - NGINX server

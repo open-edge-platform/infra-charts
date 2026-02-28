@@ -5,8 +5,8 @@ apiVersion: v2
 name: infra-external
 description: Edge Infrastructure Manager External Umbrella Chart
 type: application
-version: "2.12.8"
-appVersion: "2.11.5"
+version: "2.12.9"
+appVersion: "2.11.6"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:

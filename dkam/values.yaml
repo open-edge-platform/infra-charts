@@ -70,6 +70,7 @@ securityContext:
 
 volumeSecurityContext:
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
   capabilities:
     drop:
       - ALL

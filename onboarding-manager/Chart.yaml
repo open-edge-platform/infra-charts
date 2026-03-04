@@ -5,8 +5,8 @@ apiVersion: v2
 name: onboarding-manager
 description: Edge Infrastructure Manager Onboarding Manager
 type: application
-version: 1.40.4
-appVersion: "1.39.8"
+version: 1.40.5
+appVersion: "1.39.9"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:

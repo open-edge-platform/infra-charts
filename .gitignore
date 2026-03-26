@@ -17,11 +17,12 @@ infra-external/amt/charts/*.tgz
 infra-managers/Chart.lock
 infra-managers/charts/*.tgz
 infra-onboarding/Chart.lock
-infra-onboarding/charts/*.tgz
+# infra-onboarding/charts/*.tgz  # intentionally committed for ArgoCD Git source on om-dkam-redeploy branch
 tinkerbell/Chart.lock
 tinkerbell/charts/*.tgz
 
 *.tgz
+!infra-onboarding/charts/*.tgz
 
 ci/
 gitleaks.tar.gz

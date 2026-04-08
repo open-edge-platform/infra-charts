@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for vpro-installer-generator
+---
+
+# Source ConfigMap containing orchestrator configuration
+sourceConfigMap:
+  name: infra-config
+
+# Target ConfigMap that will contain the generated installer script
+targetConfigMap:
+  name: vpro-installer
+
+# Secrets containing CA certificates
+certificateSecrets:
+  orchCaCert:
+    name: gateway-ca-cert
+  bootsCaCert:
+    name: boots-ca-cert

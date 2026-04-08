@@ -5,8 +5,8 @@ apiVersion: v2
 name: infra-core
 description: Edge Infrastructure Manager Core Umbrella Chart
 type: application
-version: "2.20.0"
-appVersion: "2.20.0"
+version: "2.20.0-dev"
+appVersion: "2.20.0-dev"
 annotations: {}
 home: edge-orchestrator.intel.com
 maintainers:
@@ -14,7 +14,7 @@ maintainers:
 dependencies:
   - name: apiv2
     condition: import.apiv2.enabled
-    version: "2.7.0"
+    version: "2.7.0-dev"
     repository: "file://../apiv2"
   - name: exporter
     condition: import.exporter.enabled

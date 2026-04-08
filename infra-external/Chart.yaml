@@ -14,7 +14,7 @@ maintainers:
 dependencies:
   - name: loca-manager
     condition: import.loca-manager.enabled
-    version: "2.20.1"
+    version: "2.21.0-dev"
     repository: "file://../loca-manager"
   - name: loca-credentials
     condition: import.loca-credentials.enabled
@@ -22,13 +22,13 @@ dependencies:
     repository: "file://../loca-credentials"
   - name: loca-metadata-manager
     condition: import.loca-metadata-manager.enabled
-    version: "1.5.1"
+    version: "1.6.0-dev"
     repository: "file://../loca-metadata"
   - name: loca-templates-manager
     condition: import.loca-templates-manager.enabled
-    version: "1.5.1"
+    version: "1.6.0-dev"
     repository: "file://../loca-templates-manager"
   - name: amt
     condition: import.amt.enabled
-    version: "0.8.5"
+    version: "0.9.0-dev"
     repository: "file://../amt"

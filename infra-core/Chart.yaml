@@ -18,11 +18,11 @@ dependencies:
     repository: "file://../apiv2"
   - name: exporter
     condition: import.exporter.enabled
-    version: "1.24.2"
+    version: "1.25.0-dev"
     repository: "file://../exporter"
   - name: inventory
     condition: import.inventory.enabled
-    version: "2.30.3"
+    version: "2.31.0-dev"
     repository: "file://../inventory"
   - name: credentials
     condition: import.credentials.enabled
@@ -30,7 +30,7 @@ dependencies:
     repository: "file://../credentials"
   - name: tenant-controller
     condition: import.tenant-controller.enabled
-    version: "0.25.4"
+    version: "0.26.0-dev"
     repository: "file://../tenant-controller"
   - name: tenant-config
     condition: import.tenant-config.enabled

@@ -15,6 +15,8 @@ import:
     enabled: true
   dm-manager:
     enabled: true
+  kvm-manager:
+    enabled: false
 
 mps:
   postgresql:
@@ -45,3 +47,16 @@ rps:
     #   name: null
     #   imagePullSecrets:
     #     - name: ""
+
+kvm-manager:
+  image:
+    repository: infra/kvm-manager
+    pullPolicy: IfNotPresent
+  serviceArgs:
+    inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+    mpsAddress: "http://mps.orch-infra.svc.cluster.local:3000"
+    mpsDomain: ""
+    traceURL: ""
+    oamServerAddress: ""
+  tracing:
+    enabled: false

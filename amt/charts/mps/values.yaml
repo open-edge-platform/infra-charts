@@ -70,7 +70,7 @@ service:
   webapiport: 3000
 
 ingress:
-  name: amt-api-mps
+  name: amt-api-mps-http
 
 serviceAccount:
   enabled: true
@@ -88,7 +88,7 @@ traefikReverseProxy:
   # -- gatewayNamespace specifies namespace of Traefik and related resources (e.g. k8s secret or tls option).
   gatewayNamespace: orch-gateway
   # -- secretName is name of k8s secret containing TLS server cert.
-  secretName: tls-demo
+  secretName: tls-orch
   # -- matchRoute defines routing rules (e.g. Host(`http.sample.com`))
   matchRoute:
   # -- tlsOption is the name of the Traefik option for handling TLS or mTLS connections.
@@ -116,3 +116,9 @@ postgresql:
     pullPolicy: IfNotPresent
   type: "local"
   ssl: "false"
+
+mpsIngressRoute:
+  mpsApiHostname: "api.kind.internal"
+  mpsServiceName: "mps"
+  mpsServiceNamespace: "orch-infra"
+  mpsServicePort: 3000

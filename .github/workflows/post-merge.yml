@@ -42,7 +42,7 @@ jobs:
       security-events: write
       id-token: write
       actions: read
-    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@d40dfda9598df896aa20cb1dc2c950d6444e8fa7  # 2026.0.19
+    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@bf82f7924caaac6ba2f388b6ec6ac4edd65f48ee  # 2026.1.1
     with:
       run_build: false
       run_version_tag: false
@@ -74,7 +74,7 @@ jobs:
 
       # TODO: maybe we can simplify and avoid the heavy lifting of the bootstrap action
       - name: Set environment
-        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@e39d4d950f41613b4fbf522f54a651f027e1fb56  # 2026.0.13
+        uses: open-edge-platform/orch-ci/.github/actions/bootstrap@072332a8215754f6496bf97c8f3c7559dba5fdc1  # 2026.0.13
         with:
           gh_token: ${{ secrets.SYS_EMF_GH_TOKEN }}
 
@@ -91,7 +91,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
           aws-region: us-west-2
 
-      - uses: aws-actions/amazon-ecr-login@183a1442edf41672e66566b7fc560e297a290896     # v2.1.1
+      - uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78     # v2.1.2
         with:
           registries: "080137407410"
 

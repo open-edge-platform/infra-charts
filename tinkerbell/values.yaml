@@ -105,6 +105,7 @@ tinkerbell_smee:
     additionalKernelArgs: &kernelArgs
       - "DEBUG=false"
       - "TIMEOUT=120s"
+      - "AUTO_DETECT=true"
 
     # This will be the IP address that machines use to reach Boots (via unicast for DHCP) for netbooting. It should be a unused IP address in your network.
     remoteIp: *publicIP

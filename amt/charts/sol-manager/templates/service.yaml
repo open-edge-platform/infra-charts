@@ -10,10 +10,6 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - name: sol-proxy
-      port: {{ .Values.solProxy.port }}
-      targetPort: sol-proxy
-      protocol: TCP
     {{- if .Values.metrics.enabled }}
     - name: metrics
       port: {{ .Values.metrics.port }}

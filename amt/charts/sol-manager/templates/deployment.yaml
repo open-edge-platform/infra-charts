@@ -56,9 +56,6 @@ spec:
           args:
             - -inventoryAddress={{ .Values.serviceArgs.inventoryAddress }}
             - -mpsAddress={{ .Values.serviceArgs.mpsAddress }}
-            - -mpsDomain={{ .Values.serviceArgs.mpsDomain }}
-            - -solProxyAddr={{ .Values.serviceArgs.solProxyAddr }}
-            - -solProxyDomain={{ .Values.serviceArgs.solProxyDomain }}
             - -InsecureSkipVerify={{ .Values.serviceArgs.insecureSkipVerify }}
             - -oamServerAddress={{ .Values.serviceArgs.oamServerAddress }}
             - -reconcilePeriod={{ .Values.serviceArgs.reconcilePeriod }}
@@ -72,10 +69,6 @@ spec:
             - -enableMetrics=true
             - -metricsAddress={{ .Values.serviceArgs.metricsAddress }}
             {{- end }}
-          ports:
-            - name: sol-proxy
-              containerPort: {{ .Values.solProxy.port }}
-              protocol: TCP
           {{- if .Values.serviceArgs.oamServerAddress }}
           {{- $oamservport := (splitList ":" .Values.serviceArgs.oamServerAddress) | last | atoi }}
           livenessProbe:

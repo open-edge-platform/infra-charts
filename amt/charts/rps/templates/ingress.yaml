@@ -37,6 +37,28 @@ spec:
         port: {{ .Values.service.websocketServerport }}
         scheme: http
         namespace: {{ .Release.Namespace }}
+  - match: Host(`{{ required "A valid rpsApiHostname entry required!" .Values.rpsIngressRoute.rpsApiHostname }}`) && PathRegexp(`^/v1/projects/[^/]+/(dm/amt/admin/domains)(/.*)?$`)
+    kind: Rule
+    priority: 50
+    middlewares:
+       - name: validate-jwt
+       - name: secure-headers
+    services:
+      - name: {{ required "A valid rpsServiceName entry required!" .Values.rpsIngressRoute.rpsServiceName }}
+        port: {{ required "A valid rpsServicePort entry required!" .Values.rpsIngressRoute.rpsServicePort }}
+        scheme: http
+        namespace: {{ required "A valid rpsServiceNamespace entry required!" .Values.rpsIngressRoute.rpsServiceNamespace }}
+  - match: Host(`{{ required "A valid rpsApiHostname entry required!" .Values.rpsIngressRoute.rpsApiHostname }}`) && PathPrefix(`/api/v1`)
+    kind: Rule
+    priority: 40
+    middlewares:
+       - name: validate-jwt
+       - name: secure-headers
+    services:
+      - name: {{ required "A valid rpsServiceName entry required!" .Values.rpsIngressRoute.rpsServiceName }}
+        port: {{ required "A valid rpsServicePort entry required!" .Values.rpsIngressRoute.rpsServicePort }}
+        scheme: http
+        namespace: {{ required "A valid rpsServiceNamespace entry required!" .Values.rpsIngressRoute.rpsServiceNamespace }}
   - match: "Host(`{{ .Values.traefikReverseProxy.host.webport.name }}`) && PathPrefix(`/`)"
     kind: Rule
     middlewares:
@@ -47,5 +69,10 @@ spec:
         scheme: http
         namespace: {{ .Release.Namespace }}
   tls:
+  {{- if .Values.traefikReverseProxy.tlsOption }}
+    options:
+      name: {{ .Values.traefikReverseProxy.tlsOption }}
+      namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+  {{- end }}
     secretName: {{ .Values.traefikReverseProxy.secretName }}
 {{- end }}

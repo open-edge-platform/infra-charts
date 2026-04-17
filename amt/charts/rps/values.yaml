@@ -27,6 +27,7 @@ fullnameOverride: "rps"
 
 tenancyMiddleware:
   enabled: true
+  nexusAPIURL: "http://svc-iam-nexus-api-gw.orch-iam.svc:8082"
 
 job:
   name: setup-databases-rps

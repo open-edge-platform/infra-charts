@@ -10,9 +10,8 @@ global:
 replicaCount: 1
 
 image:
-  repository: inayak/kvm-manager
-  tag: "test-8-4"
-  pullPolicy: Always
+  repository: infra/kvm-manager
+  pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   # Image specific takes precedence
   # registry:
@@ -83,27 +82,21 @@ extraEnv: []
 
 serviceArgs:
   # Internal cluster DNS — kvm-manager runs in the same cluster as inventory and MPS
-  inventoryAddress: "inventory.orch-infra.svc:50051"
-  mpsAddress: "http://mps.orch-infra.svc:3000"
-  # mpsDomain: public WSS FQDN written into kvm_session_url in inventory.
-  # This is what orch-cli/browser uses to open the WebSocket relay.
-  mpsDomain: "mps-wss.orch-10-139-218-43.pid.infra-host.com"
-  oamServerAddress: "0.0.0.0:50002"
-  metricsAddress: ":8081"
+  inventoryAddress: "inventory.orch-infra.svc.cluster.local:50051"
+  mpsAddress: "http://mps.orch-infra.svc.cluster.local:3000"
+  oamServerAddress: "0.0.0.0:2379"
   reconcilePeriod: "1m"
   requestTimeout: "30s"
-  # insecureGRPC: skip TLS for inventory gRPC (dev cluster, no client certs)
+  # insecureGRPC: skip TLS for inventory gRPC — set false in production with client certs
   insecureGRPC: "true"
-  # traceURL only used when tracing.enabled=true
-  traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+  # traceURL: only used when tracing.enabled=true
+  traceURL: ""
 
 tracing:
-  # Disable for standalone test — no telemetry collector dependency
   enabled: false
 
-service:
-  type: ClusterIP
-
+# TODO: Clean up metrics — kvm-manager has no KVM metrics instrumented.
+# Remove this block, serviceMonitor.yaml, and the metrics port in service.yaml
 metrics:
   enabled: false
   port: 8081

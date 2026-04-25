@@ -56,20 +56,20 @@ spec:
           args:
             - -inventoryAddress={{ .Values.serviceArgs.inventoryAddress }}
             - -mpsAddress={{ .Values.serviceArgs.mpsAddress }}
-            - -mpsDomain={{ .Values.serviceArgs.mpsDomain }}
-            - -oamServerAddress={{ .Values.serviceArgs.oamServerAddress }}
             - -reconcilePeriod={{ .Values.serviceArgs.reconcilePeriod }}
             - -requestTimeout={{ .Values.serviceArgs.requestTimeout }}
             - -insecureGRPC={{ .Values.serviceArgs.insecureGRPC }}
+            - -oamServerAddress={{ .Values.serviceArgs.oamServerAddress }}
             {{- if .Values.tracing.enabled }}
             - -enableTracing=true
             - -traceURL={{ .Values.serviceArgs.traceURL }}
             {{- end }}
+            # TODO: Clean up metrics,kvm-manager has no custom KVM metrics instrumented yet.
+            # Remove enableMetrics flag, serviceMonitor, and metrics port
             {{- if .Values.metrics.enabled }}
             - -enableMetrics=true
-            - -metricsAddress={{ .Values.serviceArgs.metricsAddress }}
+            - -metricsAddress=:{{ .Values.metrics.port }}
             {{- end }}
-          {{- if .Values.serviceArgs.oamServerAddress }}
           {{- $oamservport := (splitList ":" .Values.serviceArgs.oamServerAddress) | last | atoi }}
           livenessProbe:
             grpc:
@@ -82,7 +82,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
-          {{- end }}
           {{- if .Values.metrics.enabled }}
           ports:
             - name: metrics

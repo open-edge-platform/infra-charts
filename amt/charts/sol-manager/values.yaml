@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-FileCopyrightText: (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 global:
@@ -11,7 +11,7 @@ replicaCount: 1
 
 image:
   repository: jagrat0302/sol-manager
-  tag: "0.2.10-dev"
+  tag: "0.2.11-dev"
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   # Image specific takes precedence

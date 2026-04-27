@@ -22,7 +22,7 @@ dependencies:
     repository: "file://../exporter"
   - name: inventory
     condition: import.inventory.enabled
-    version: "2.31.2"
+    version: "2.31.1"
     repository: "file://../inventory"
   - name: credentials
     condition: import.credentials.enabled

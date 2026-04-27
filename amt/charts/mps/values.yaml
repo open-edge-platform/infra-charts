@@ -33,7 +33,7 @@ nameOverride: ""
 fullnameOverride: "mps"
 
 tenancyMiddleware:
-  enabled: true
+  enabled: false
 
 job:
   name: amt-vault-job

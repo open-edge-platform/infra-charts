@@ -26,7 +26,7 @@
             }
 
             const userAgent = req.get('User-Agent')
-            if ( userAgent !== 'dm-manager') {
+            if ( userAgent !== 'dm-manager' && userAgent !== 'kvm-manager') {
                 // Check for auth header and decode access roles
                 const authHeader = req.get('Authorization')
                 if ( isNullOrEmpty(authHeader) || isUndefined(authHeader) ) {

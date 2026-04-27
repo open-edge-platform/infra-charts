@@ -1,6 +1,27 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
     // SPDX-License-Identifier: Apache-2.0
 
+    // Queries the project service API to resolve a project UUID from a project name.
+    // Mirrors the behaviour of ResolveProjectUUID in orch-library/go/pkg/middleware/projectcontext.
+    const resolveProjectUUID = async (projectName, authHeader, projectServiceURL) => {
+        const reqURL = `${projectServiceURL}/v1/projects?member-role=true`
+        const headers = {}
+        if ( authHeader ) {
+            headers['Authorization'] = authHeader
+        }
+        const resp = await fetch(reqURL, { method: 'GET', headers })
+        if ( !resp.ok ) {
+            throw new Error(`Project service returned status ${resp.status}`)
+        }
+        const projects = await resp.json()
+        for ( const project of projects ) {
+            if ( project.name === projectName ) {
+                return project?.status?.projectStatus?.uID ?? ''
+            }
+        }
+        throw new Error(`Project not found: ${projectName}`)
+    }
+
     const multiTenancyMiddleware = async (req, res, next) => {
         const isNullOrEmpty = (value) => value === null || value === ''
         const isUndefined = (value) => value === undefined
@@ -13,7 +34,23 @@
             // If NB check if header ActiveProjectID found
             const tenantId = req.get('ActiveProjectID')
             if ( isNullOrEmpty(tenantId) || isUndefined(tenantId) ) {
-                return sendUnauthorizedResponse('ActiveProjectID header not found')
+                const projectMatch = apiUrl.match(/\/v1\/projects\/([^/]+)/)
+                if ( projectMatch ) {
+                    const projectName = projectMatch[1]
+                    const projectServiceURL = process.env.NEXUS_API_URL || 'http://localhost:8082'
+                    const authHeader = req.get('Authorization') || ''
+                    try {
+                        const projectUUID = await resolveProjectUUID(projectName, authHeader, projectServiceURL)
+                        if ( isNullOrEmpty(projectUUID) || isUndefined(projectUUID) ) {
+                            return sendUnauthorizedResponse('Failed to resolve project UUID')
+                        }
+                        req.headers['activeprojectid'] = projectUUID
+                    } catch (err) {
+                        return sendUnauthorizedResponse(`Failed to resolve project UUID: ${err.message}`)
+                    }
+                } else {
+                    return sendUnauthorizedResponse('ActiveProjectID header not found')
+                }
             }
 
             const userAgent = req.get('User-Agent')

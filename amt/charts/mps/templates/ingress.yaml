@@ -14,6 +14,28 @@ spec:
   entryPoints:
   - websecure
   routes:
+  - match: Host(`{{ required "A valid mpsApiHostname entry required!" .Values.mpsIngressRoute.mpsApiHostname }}`) && PathRegexp(`^/v1/projects/[^/]+/(dm/amt/generalSettings|dm/devices)(/.*)?$`)
+    kind: Rule
+    priority: 50
+    middlewares:
+       - name: validate-jwt
+       - name: secure-headers
+    services:
+      - name: {{ required "A valid mpsServiceName entry required!" .Values.mpsIngressRoute.mpsServiceName }}
+        port: {{ required "A valid mpsServicePort entry required!" .Values.mpsIngressRoute.mpsServicePort }}
+        scheme: http
+        namespace: {{ required "A valid mpsServiceNamespace entry required!" .Values.mpsIngressRoute.mpsServiceNamespace }}
+  - match: Host(`{{ required "A valid mpsApiHostname entry required!" .Values.mpsIngressRoute.mpsApiHostname }}`) && PathPrefix(`/api/v1`)
+    kind: Rule
+    priority: 40
+    middlewares:
+       - name: validate-jwt
+       - name: secure-headers
+    services:
+      - name: {{ required "A valid mpsServiceName entry required!" .Values.mpsIngressRoute.mpsServiceName }}
+        port: {{ required "A valid mpsServicePort entry required!" .Values.mpsIngressRoute.mpsServicePort }}
+        scheme: http
+        namespace: {{ required "A valid mpsServiceNamespace entry required!" .Values.mpsIngressRoute.mpsServiceNamespace }}
   - match: "Host(`{{ .Values.traefikReverseProxy.host.webport.name}}`) && PathPrefix(`/`)"
     kind: Rule
     middlewares:
@@ -22,8 +44,13 @@ spec:
       - name: {{ include "mps.fullname" . }}
         port: {{ .Values.service.webapiport }}
         scheme: http
-        namespace: {{ .Release.Namespace }} 
+        namespace: {{ .Release.Namespace }}
   tls:
+  {{- if .Values.traefikReverseProxy.tlsOption }}
+    options:
+      name: {{ .Values.traefikReverseProxy.tlsOption }}
+      namespace: {{ .Values.traefikReverseProxy.gatewayNamespace }}
+  {{- end }}
     secretName: {{ .Values.traefikReverseProxy.secretName }}
 
 ---

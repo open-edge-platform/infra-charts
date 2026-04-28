@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{{- if or .Values.metrics.enabled .Values.serviceArgs.oamServerAddress }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kvm-manager.fullname" . }}
+  labels:
+    {{- include "kvm-manager.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    {{- if .Values.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+    {{- end }}
+    {{- if .Values.serviceArgs.oamServerAddress }}
+    {{- $oamservport := (splitList ":" .Values.serviceArgs.oamServerAddress) | last | atoi }}
+    - name: oam
+      port: {{ $oamservport }}
+      targetPort: {{ $oamservport }}
+      protocol: TCP
+    {{- end }}
+  selector:
+    {{- include "kvm-manager.selectorLabels" . | nindent 4 }}
+{{- end }}

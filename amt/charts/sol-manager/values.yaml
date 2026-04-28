@@ -101,3 +101,7 @@ tracing:
 
 service:
   type: ClusterIP
+
+metrics:
+  enabled: false
+  port: 8081

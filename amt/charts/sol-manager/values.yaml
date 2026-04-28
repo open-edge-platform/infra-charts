@@ -1,0 +1,107 @@
+# SPDX-FileCopyrightText: (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+global:
+  registry:
+    name: null
+    imagePullSecrets:
+      - name: ""
+
+replicaCount: 1
+
+image:
+  repository: infra/sol-manager
+  pullPolicy: IfNotPresent
+  # Overrides the images tag whose default is the chart appVersion.
+  # Image specific takes precedence
+  # registry:
+  #   name: null
+  #   imagePullSecrets:
+  #     - name: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "sol-manager"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  name: "orch-svc"
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65534
+
+resources:
+  limits:
+    cpu: 400m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes:
+  - name: infra-config-volume
+    configMap:
+      name: infra-config
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+  - name: infra-config-volume
+    mountPath: "/etc/infra-config"
+    readOnly: true
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+extraEnv: []
+
+serviceArgs:
+  # Internal cluster DNS — sol-manager runs in the same cluster as inventory and MPS
+  inventoryAddress: "inventory.orch-infra.svc:50051"
+  mpsAddress: "http://mps.orch-infra.svc:3000"
+  oamServerAddress: "0.0.0.0:50002"
+  metricsAddress: ":8081"
+  reconcilePeriod: "1m"
+  requestTimeout: "30s"
+  # insecureGRPC: skip TLS for inventory gRPC (dev cluster, no client certs)
+  insecureGRPC: "true"
+  # insecureSkipVerify: skip TLS verification for MPS WebSocket relay (dev only)
+  insecureSkipVerify: "true"
+  # traceURL only used when tracing.enabled=true
+  traceURL: "orchestrator-observability-opentelemetry-collector.orch-platform.svc:4318"
+
+tracing:
+  # Disable for standalone test — no telemetry collector dependency
+  enabled: false
+
+service:
+  type: ClusterIP
+
+metrics:
+  enabled: false
+  port: 8081

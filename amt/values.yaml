@@ -17,6 +17,8 @@ import:
     enabled: true
   kvm-manager:
     enabled: true
+  sol-manager:
+    enabled: true
 
 mps:
   postgresql:

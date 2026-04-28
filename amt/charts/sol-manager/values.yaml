@@ -10,10 +10,9 @@ global:
 replicaCount: 1
 
 image:
-  repository: jagrat0302/sol-manager
-  tag: "0.2.11-dev"
-  pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
+  repository: infra/sol-manager
+  pullPolicy: IfNotPresent
+  # Overrides the images tag whose default is the chart appVersion.
   # Image specific takes precedence
   # registry:
   #   name: null

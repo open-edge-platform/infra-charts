@@ -48,7 +48,7 @@ jobs:
           git config --global url."https://${{ secrets.SYS_EMF_GH_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Setup asdf and install dependencies
-        uses: open-edge-platform/orch-ci/.github/actions/setup-asdf@main     # zizmor: ignore[unpinned-uses]
+        uses: open-edge-platform/orch-ci/.github/actions/setup-asdf@a95228137803b756aae327668c115db235802982  # v2026.1.3   zizmor: ignore[unpinned-uses]
 
       - name: Get current git hash of the infra-charts PR
         id: get-git-hash-charts

@@ -29,6 +29,6 @@ dependencies:
     condition: import.kvm-manager.enabled
     repository: "file://charts/kvm-manager"
   - name: sol-manager
-    version: "0.1.0"
+    version: "0.1.2"
     condition: import.sol-manager.enabled
     repository: "file://charts/sol-manager"

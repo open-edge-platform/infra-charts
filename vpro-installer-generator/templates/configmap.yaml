@@ -1,0 +1,784 @@
+# SPDX-FileCopyrightText: (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+{{- $infraConfig := lookup "v1" "ConfigMap" .Release.Namespace .Values.sourceConfigMap.name }}
+{{- if $infraConfig }}
+{{- $configYaml := index $infraConfig.data "config.yaml" }}
+{{- $config := $configYaml | fromYaml }}
+{{- $orchCaCert := lookup "v1" "Secret" .Release.Namespace "gateway-ca-cert" }}
+{{- $bootsCaCert := lookup "v1" "Secret" .Release.Namespace "boots-ca-cert" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.targetConfigMap.name }}
+  namespace: {{ .Release.Namespace }}
+data:
+  edge-node-installer.sh: |-
+    #!/bin/bash
+    
+    # SPDX-FileCopyrightText: (C) 2026 Intel Corporation
+    # SPDX-License-Identifier: Apache-2.0
+    
+    set -euo pipefail
+    {{- if index $config "enProxyHTTP" }}
+    grep -qF "http_proxy" /etc/environment || echo http_proxy={{ index $config "enProxyHTTP" }} >> /etc/environment
+    grep -qF "https_proxy" /etc/environment || echo https_proxy={{ index $config "enProxyHTTPS" | default (index $config "enProxyHTTP") }} >> /etc/environment
+    {{- end }}
+    {{- if index $config "enProxyFTP" }}
+    grep -qF "ftp_proxy" /etc/environment || echo ftp_proxy={{ index $config "enProxyFTP" }} >> /etc/environment
+    {{- end }}
+    {{- if index $config "enProxySocks" }}
+    grep -qF "socks_proxy" /etc/environment || echo socks_proxy={{ index $config "enProxySocks" }} >> /etc/environment
+    {{- end }}
+    {{- if index $config "enProxyNoProxy" }}
+    grep -qF "no_proxy" /etc/environment || echo no_proxy={{ index $config "enProxyNoProxy" }} >> /etc/environment
+    {{- end }}
+    . /etc/environment
+    {{- if index $config "enProxyHTTP" }}
+    export http_proxy https_proxy
+    {{- end }}
+    {{- if index $config "enProxyFTP" }}
+    export ftp_proxy
+    {{- end }}
+    {{- if index $config "enProxySocks" }}
+    export socks_proxy
+    {{- end }}
+    {{- if index $config "enProxyNoProxy" }}
+    export no_proxy
+    {{- end }}
+    
+    # TODO: Investigate and find the root cause of the issue with the HOME environment variable not found.
+    # Set the HOME environment variable if not already set
+    export HOME=/root
+    
+    SETUP_STATUS_FILENAME="install_pkgs_status"
+    STATUS_FILENAME=".success_install_status"
+    SCRIPT_DIR=$(pwd)
+    touch "$SCRIPT_DIR/$SETUP_STATUS_FILENAME"
+    touch "$SCRIPT_DIR/$STATUS_FILENAME"
+
+    FILE_SERVER="{{ index $config "orchFileServer" }}"
+    REGISTRY="{{ index $config "orchRegistry" }}"
+    RPS_HOST="{{ index $config "orchRPSHost" }}"
+    KEYCLOAK="{{ index $config "orchKeycloak" }}"
+    RELEASE="{{ index $config "orchRelease" }}"
+
+    # Write agent variables to /etc/edge-node/node/agent_variables
+    mkdir -p /etc/edge-node/node
+    cat <<EOF > /etc/edge-node/node/agent_variables
+    CLUSTER_ORCH_URL={{ index $config "orchCluster" }}
+    HW_INVENTORY_URL={{ index $config "orchInfra" }}
+    NODE_ONBOARDING_ENABLED=true
+    NODE_ONBOARDING_URL={{ index $config "orchInfra" }}
+    NODE_ONBOARDING_HEARTBEAT=10s
+    NODE_ACCESS_URL={{ index $config "orchKeycloak" }}
+    NODE_RS_URL={{ index $config "orchRelease" }}
+    NODE_SERVICE_CLIENTS={{ index $config "enServiceClients" }}
+    NODE_OUTBOUND_CLIENTS={{ index $config "enOutboundClients" }}
+    NODE_METRICS_ENABLED={{ index $config "enMetricsEnabled" | default "false" }}
+    NODE_TOKEN_CLIENTS={{ index $config "enTokenClients" }}
+    CADDY_APT_PROXY_URL=$(echo "$FILE_SERVER" | cut -d: -f1)
+    CADDY_APT_PROXY_PORT=$(echo "$FILE_SERVER" | cut -d: -f2)
+    REGISTRY_URL=$(echo "$REGISTRY" | cut -d: -f1)
+    CADDY_REGISTRY_PROXY_URL=$(echo "$REGISTRY" | cut -d: -f1)
+    CADDY_REGISTRY_PROXY_PORT=$(echo "$REGISTRY" | cut -d: -f2)
+    PLATFORM_MANAGEABILITY_URL={{ index $config "orchDeviceManager" }}
+    PLATFORM_MANAGEABILITY_METRICS={{ index $config "enMetricsEnabled" | default "false" }}
+    RPS_ADDRESS=$(echo "$RPS_HOST" | cut -d: -f1)
+    KEYCLOAK_FQDN=$(echo "$KEYCLOAK" | cut -d: -f1)
+    RELEASE_FQDN=$(echo "$RELEASE" | cut -d: -f1)
+    RS_TYPE={{ index $config "rsType" | default "no-auth" }}
+    DEB_PACKAGES_REPO={{ index $config "enDebianPackagesRepo" }}
+    FILE_RS_ROOT={{ index $config "enFilesRsRoot" }}
+    EOF
+    source /etc/edge-node/node/agent_variables
+
+    {{- if and $orchCaCert $bootsCaCert }}
+    # Both certificates present - use gateway cert and append boots cert
+    {{- $gatewayCertB64 := index $orchCaCert.data "ca.crt" }}
+    {{- $bootsCertB64 := index $bootsCaCert.data "ca.crt" }}
+    GATEWAY_CA_CERT_B64='{{ $gatewayCertB64 }}'
+    BOOTS_CA_CERT_B64='{{ $bootsCertB64 }}'
+    CA_CERT=$(echo "$GATEWAY_CA_CERT_B64" | base64 -d)
+    CA_PEM=$(echo "$GATEWAY_CA_CERT_B64" | base64 -d)
+    BOOTS_CERT=$(echo "$BOOTS_CA_CERT_B64" | base64 -d)
+    CA_CERT="${CA_CERT}
+    ${BOOTS_CERT}"
+    CA_PEM="${CA_PEM}
+    ${BOOTS_CERT}"
+    {{- else if $orchCaCert }}
+    {{- $gatewayCertB64 := index $orchCaCert.data "ca.crt" }}
+    GATEWAY_CA_CERT_B64='{{ $gatewayCertB64 }}'
+    CA_CERT=$(echo "$GATEWAY_CA_CERT_B64" | base64 -d)
+    CA_PEM=$(echo "$GATEWAY_CA_CERT_B64" | base64 -d)
+    {{- else }}
+    CA_CERT="# CA certificate not found"
+    CA_PEM="# CA certificate not found"
+    {{- end }}
+
+    # Kernel configuration
+    KERNEL_CONFIG_OVER_COMMIT_MEMORY={{ index $config "systemConfigVmOverCommitMemory" | default "1" }}
+    KERNEL_CONFIG_KERNEL_PANIC={{ index $config "systemConfigKernelPanic" | default "10" }}
+    KERNEL_CONFIG_PANIC_ON_OOPS={{ index $config "systemConfigKernelPanicOnOops" | default "1" }}
+    KERNEL_CONFIG_MAX_USER_INSTANCE={{ index $config "systemConfigFsInotifyMaxUserInstances" | default "8192" }}
+
+    # Agent manifest configuration
+    MANIFEST_REGISTRY="{{ index $config "registryService" }}"
+    MANIFEST_REPO="{{ index $config "enManifestRepo" }}"
+    MANIFEST_TAG="{{ index $config "enAgentManifestTag" }}"
+    MANIFEST_FILE="ena-manifest.yaml"
+
+    # Agent versions (will be populated from manifest)
+    DEVICE_DISCOVERY_VERSION=""
+    NODE_AGENT_VERSION=""
+    PLATFORM_MANAGEABILITY_VERSION=""
+    PLATFORM_TELEMETRY_VERSION=""
+    CADDY_VERSION=""
+    APT_DISTRO=""
+
+    # Function to extract version from manifest YAML
+    get_version_from_manifest() {
+        local package_name=$1
+        local manifest_file=$2
+        grep -A 1 "name: $package_name" "$manifest_file" | grep "version:" | awk '{print $2}' | head -1 || true
+    }
+
+    # Function to extract codename from manifest YAML
+    get_codename_from_manifest() {
+        local manifest_file=$1
+        grep "codename:" "$manifest_file" | awk '{print $2}' | head -1 || true
+    }
+
+    download_and_parse_manifest() {
+        if grep -q "download_and_parse_manifest done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping manifest download"
+        else
+            echo "Downloading agent manifest..."
+            oras pull "${MANIFEST_REGISTRY}/${MANIFEST_REPO}:${MANIFEST_TAG}" -o "$SCRIPT_DIR"
+            
+            if [ ! -f "$SCRIPT_DIR/$MANIFEST_FILE" ]; then
+                echo "ERROR: Failed to download manifest file"
+                exit 1
+            fi
+            
+            echo "download_and_parse_manifest done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+
+    install_dependencies() {
+        if grep -q "install_dependencies done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_dependencies"
+        else
+            echo "Install all dependencies."
+            rm -f /etc/apt/sources.list.d/edge-node.list
+            apt-get update
+            echo -e "\e[32m[install git python3-pip]\e[0m"
+            sudo apt-get install -y curl wget unzip apparmor iptables lvm2 cryptsetup lxc tpm2-abrmd tpm2-tools software-properties-common python3-venv git jq libpq5 python3-pip ca-certificates gnupg dmidecode libace-dev cmake python3 libglib2.0-dev libcurl4-openssl-dev libxerces-c-dev libnl-3-dev libnl-route-3-dev libxml2-dev libidn2-0-dev xsltproc docbook-xsl devscripts
+
+            groupadd -f bm-agents -g 500 --system       
+            id -u node-agent &>/dev/null || useradd node-agent --system -g bm-agents -s /sbin/nologin
+            id -u platform-update-agent &>/dev/null || useradd platform-update-agent --system -g bm-agents -s /sbin/nologin
+            echo "install_dependencies done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    install_fws(){
+        if grep -q "install_fws done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_fws"
+        else
+            # Enable UFW
+            echo "Enable firewall"
+            systemctl enable ufw
+            echo "y" | ufw enable
+            ufw default allow outgoing
+            
+            # Parse JSON firewall rules and generate UFW commands
+            {{- $reqRules := index $config "firewallReqAllow" | default "[]" }}
+            {{- $cfgRules := index $config "firewallCfgAllow" | default "[]" }}
+            
+            # Process required firewall rules
+            FW_REQ_RULES='{{ $reqRules | replace "\n" "" | replace "  " "" }}'
+
+            # Process config firewall rules
+            FW_CFG_RULES='{{ $cfgRules | replace "\n" "" | replace "  " "" }}'
+
+            # Function to generate UFW commands from JSON
+            generate_ufw_commands() {
+                local json_rules="$1"
+                echo "$json_rules" | jq -r '.[] | 
+                    if .sourceIp != "" and .sourceIp != null then
+                        "ufw allow from $(dig +short " + .sourceIp + " | tail -n1) to any port " + .ports + 
+                        (if .protocol != "" and .protocol != null then " proto " + .protocol else "" end)
+                    else
+                        if .protocol != "" and .protocol != null then
+                            "ufw allow in to any port " + .ports + " proto " + .protocol
+                        else
+                            "ufw allow in to any port " + .ports
+                        end
+                    end' 2>/dev/null || true
+            }
+
+            # Generate and execute UFW commands for required rules
+            if [ -n "$FW_REQ_RULES" ] && [ "$FW_REQ_RULES" != "[]" ]; then
+                echo "Applying required firewall rules..."
+                while IFS= read -r cmd; do
+                    [ -n "$cmd" ] && eval "$cmd"
+                done < <(generate_ufw_commands "$FW_REQ_RULES")
+            fi
+
+            # Generate and execute UFW commands for config rules
+            if [ -n "$FW_CFG_RULES" ] && [ "$FW_CFG_RULES" != "[]" ]; then
+                echo "Applying config firewall rules..."
+                while IFS= read -r cmd; do
+                    [ -n "$cmd" ] && eval "$cmd"
+                done < <(generate_ufw_commands "$FW_CFG_RULES")
+            fi
+            
+            ufw reload
+            echo "install_fws done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    enable_kernel_config(){
+        if grep -q "enable_kernel_config done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping enable_kernel_config"
+        else
+            echo "Enable kernel config"
+            sysctl -w vm.overcommit_memory=${KERNEL_CONFIG_OVER_COMMIT_MEMORY}
+            sysctl -w kernel.panic=${KERNEL_CONFIG_KERNEL_PANIC}
+            sysctl -w kernel.panic_on_oops=${KERNEL_CONFIG_PANIC_ON_OOPS}
+            sysctl -w fs.inotify.max_user_instances=${KERNEL_CONFIG_MAX_USER_INSTANCE}
+            echo vm.overcommit_memory=${KERNEL_CONFIG_OVER_COMMIT_MEMORY} | tee -a /etc/sysctl.conf
+            echo kernel.panic=${KERNEL_CONFIG_KERNEL_PANIC} | tee -a /etc/sysctl.conf
+            echo kernel.panic_on_oops=${KERNEL_CONFIG_PANIC_ON_OOPS} | tee -a /etc/sysctl.conf
+            echo fs.inotify.max_user_instances=${KERNEL_CONFIG_MAX_USER_INSTANCE} | tee -a /etc/sysctl.conf
+            sysctl -p
+            echo "enable_kernel_config done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    enable_NTP(){
+        if grep -q "enable_NTP done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+                    echo "Skipping enable_NTP"
+        else
+        echo "Enable NTP"
+        ufw allow 123/udp
+        apt-get install systemd-timesyncd -y -q
+        cp /etc/systemd/timesyncd.conf /etc/systemd/timesyncd.conf.bak
+        ntpServers="{{ index $config "ntpServer" }}"
+        timeServers="NTP="
+        IFS=',' read -ra servers <<< "$ntpServers"
+        for server in "${servers[@]}"; do
+                timeServers="$timeServers $server"
+        done
+        sed  's/.*#NTP=*./'"$timeServers"'/g' /etc/systemd/timesyncd.conf | sudo tee /etc/systemd/timesyncd.conf >>/dev/null
+        timedatectl set-ntp true
+        systemctl restart systemd-timesyncd
+        systemctl status systemd-timesyncd.service
+            echo "enable_NTP done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    install_syslogrotate_job(){
+    if grep -q "install_syslogrotate_job done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+        echo "Skipping install_syslogrotate_job"
+    else
+    ##### Managing log rotation
+    echo "Install sys log"
+    if ! sudo grep -q "cron.emf" "/etc/crontab"; then
+      sudo sed -i '$ d' /etc/crontab
+      echo "*/5 *   * * *   root    cd / && run-parts --report /etc/cron.emf" | sudo tee -a /etc/crontab
+      echo "#" | sudo tee -a /etc/crontab
+    fi
+
+    sudo rm -rf /etc/cron.emf
+    sudo mkdir -p /etc/cron.emf
+    sudo tee /etc/cron.emf/logrotate << 'END'
+    #!/bin/sh
+    /usr/sbin/logrotate /etc/logrotate.conf
+    EXITVALUE=$?
+    if [ $EXITVALUE != 0 ]; then
+        /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE]"
+    fi
+    exit $EXITVALUE
+    END
+
+    sudo chmod +x /etc/cron.emf/logrotate
+
+    sudo tee /etc/logrotate.d/rsyslog << 'END'
+    /var/log/syslog
+    /var/log/mail.info
+    /var/log/mail.warn
+    /var/log/mail.err
+    /var/log/mail.log
+    /var/log/daemon.log
+    /var/log/kern.log
+    /var/log/auth.log
+    /var/log/user.log
+    /var/log/lpr.log
+    /var/log/cron.log
+    /var/log/debug
+    /var/log/messages
+    {
+            rotate 4
+            weekly
+            missingok
+            size 1G
+            notifempty
+            compress
+            delaycompress
+            sharedscripts
+            postrotate
+                    /usr/lib/rsyslog/rsyslog-rotate
+            endscript
+    }
+    END
+
+    sudo systemctl restart rsyslog.service
+
+    sudo systemctl restart cron.service
+    sudo /usr/sbin/logrotate /etc/logrotate.conf
+    ##### Managing log rotation
+    echo "install_syslogrotate_job done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+    fi
+    }
+
+    install_CA_cert(){
+        if grep -q "install_CA_cert done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_CA_cert"
+        else
+            echo "Installing CA certificates..."
+            echo "$CA_CERT" > /usr/local/share/ca-certificates/orch-ca.crt && update-ca-certificates -f
+            # Copy CA certificate to /etc/intel_edge_node to allow Observability pod to mount
+            mkdir -p /etc/intel_edge_node/orch-ca-cert
+            chmod 755 /etc/intel_edge_node/orch-ca-cert
+            chown root:root /etc/intel_edge_node/orch-ca-cert
+            echo "$CA_CERT" > /etc/intel_edge_node/orch-ca-cert/orch-ca.crt
+            echo "Writing CA PEM to /etc/intel_edge_node/orch-ca-cert/orch-ca.pem"
+            echo "$CA_PEM" > /etc/intel_edge_node/orch-ca-cert/orch-ca.pem
+            chmod 644 /etc/intel_edge_node/orch-ca-cert/orch-ca.crt
+            chmod 644 /etc/intel_edge_node/orch-ca-cert/orch-ca.pem
+            chown root:root /etc/intel_edge_node/orch-ca-cert/orch-ca.crt
+            chown root:root /etc/intel_edge_node/orch-ca-cert/orch-ca.pem
+            echo "CA certificates installed successfully"
+            echo "install_CA_cert done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    install_oras(){
+        if grep -q "install_oras done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_oras"
+        else
+            echo "Install oras CLI tool"
+            echo "setup oras"
+            ORAS_VERSION="1.1.0"
+            expected_checksum="e09e85323b24ccc8209a1506f142e3d481e6e809018537c6b3db979c891e6ad7"
+            curl -LO "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+            if [ -f "oras_1.1.0_linux_amd64.tar.gz" ]; then
+                actual_checksum=$(sha256sum "oras_1.1.0_linux_amd64.tar.gz" | cut -d' ' -f1)
+                if [ "$actual_checksum" != "$expected_checksum" ]; then
+                    echo "Checksum mismatch. File may be corrupted."
+                    exit 1
+                fi
+                echo "Checksum verification successful."
+            else
+                echo "Downloaded file does not exist. Aborting installation."
+                exit 1
+            fi
+            mkdir -p oras-install/
+            tar -zxf oras_${ORAS_VERSION}_*.tar.gz -C oras-install/
+            sudo mv oras-install/oras /usr/local/bin/
+            rm -rf oras_${ORAS_VERSION}_*.tar.gz oras-install/
+            echo "install_oras done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    install_device_discovery(){
+        if grep -q "install_device_discovery done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_device_discovery"
+        else
+            # Pre-seed debconf values for device-discovery-agent package
+            echo "device-discovery-agent device-discovery-agent/onboarding.serviceURL string {{ index $config "omSvc" }}" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/onboarding.servicePort string 443" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/discovery.serviceURL string {{ index $config "omStreamSvc" }}" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/auth.keycloakURL string {{ index $config "orchKeycloak" }}" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/onboarding.caCertPath string /etc/intel_edge_node/orch-ca-cert/orch-ca.pem" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/sysinfo.autoDetect boolean true" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/debug boolean false" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/disableInteractive boolean true" | debconf-set-selections
+            echo "device-discovery-agent device-discovery-agent/useKernelArgs boolean false" | debconf-set-selections
+            
+            echo "Download device-discovery-agent package version: $DEVICE_DISCOVERY_VERSION"
+            DD_PKGFILE="./device-discovery-agent_${DEVICE_DISCOVERY_VERSION}_amd64.deb"
+            
+            oras pull "{{ index $config "registryService" }}/{{ index $config "enDebianPackagesRepo" }}/device-discovery-agent:${DEVICE_DISCOVERY_VERSION}"
+            
+            if [ ! -f "${DD_PKGFILE}" ]; then
+                echo "device-discovery debian package could not be downloaded. Aborting installation"
+                exit 1
+            fi
+            
+            echo "Install device-discovery package"
+            apt-get install -y -o Dpkg::Options::="--force-confnew" "${DD_PKGFILE}"
+            
+            echo "Remove device-discovery debian"
+            rm -f "${DD_PKGFILE}"
+            
+            # Verify CA certificate is accessible
+            if [ ! -f "/etc/intel_edge_node/orch-ca-cert/orch-ca.pem" ]; then
+                echo "ERROR: CA certificate not found at /etc/intel_edge_node/orch-ca-cert/orch-ca.pem"
+                exit 1
+            fi
+            
+            # Check device-discovery service status
+            echo "Checking device-discovery service status..."
+            systemctl status device-discovery-agent --no-pager || true
+            
+            echo "Wait for device-discovery service to complete onboarding..."
+            # Wait for client credentials to be provisioned
+            max_wait=300  # 5 minutes timeout
+            elapsed=0
+            while [[ ! -s "/etc/intel_edge_node/client-credentials/client_id" || ! -s "/etc/intel_edge_node/client-credentials/client_secret" ]]; do
+                if [ $elapsed -ge $max_wait ]; then
+                    echo "ERROR: Timeout waiting for client credentials after ${max_wait}s"
+                    echo "Service status:"
+                    systemctl status device-discovery-agent --no-pager || true
+                    echo "Recent service logs:"
+                    journalctl -u device-discovery-agent -n 50 --no-pager || true
+                    echo "Checking credential directory:"
+                    ls -la /etc/intel_edge_node/client-credentials/ 2>/dev/null || echo "Directory does not exist"
+                    exit 1
+                fi
+                echo "Waiting for device-discovery to provision credentials... (${elapsed}s)"
+                sleep 5
+                elapsed=$((elapsed + 5))
+            done
+            
+            echo "Client credentials provisioned successfully"
+            CLIENT_ID=$(cat /etc/intel_edge_node/client-credentials/client_id)
+            CLIENT_SECRET=$(cat /etc/intel_edge_node/client-credentials/client_secret)
+            
+            echo "install_device_discovery done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    install_lms_rpc(){
+        if grep -q "install_lms_rpc done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_lms_rpc"
+        else
+            # Download, build and install LMS
+            LMS_VERSION="2506.0.0.0"
+            expected_checksum="bfdcbfb6b2a739321998a0772767c1532ede70f4bd38cdbe48488b59d118a086"
+
+            curl -fsSL --connect-timeout 30 --max-time 300 \
+            "https://github.com/intel/lms/archive/refs/tags/v${LMS_VERSION}.tar.gz" \
+            -o "v${LMS_VERSION}.tar.gz"
+
+            if [ -f "v${LMS_VERSION}.tar.gz" ]; then
+                actual_checksum=$(sha256sum "v${LMS_VERSION}.tar.gz" | cut -d' ' -f1)
+                if [ "$actual_checksum" != "$expected_checksum" ]; then
+                    echo "ERROR: Checksum mismatch. Expected: $expected_checksum, Got: $actual_checksum"
+                    rm -f "v${LMS_VERSION}.tar.gz"
+                    exit 1
+                fi
+                echo "Checksum verification successful."
+                
+                tar -xzf "v${LMS_VERSION}.tar.gz"
+                rm -f "v${LMS_VERSION}.tar.gz"
+                cd "lms-${LMS_VERSION}" || exit 1
+                
+                export LMS_ROOT="$PWD"
+                mkdir -p build && cd build || exit 1
+                
+                cmake -Wno-dev -DBUILD_SHARED_LIBS=OFF -DNETWORK_NM=OFF \
+                    -DNETWORK_CN=OFF -DCMAKE_INSTALL_PREFIX=/usr "$LMS_ROOT"
+                
+                if ! make -j"$(($(nproc) / 2))"; then
+                    echo "ERROR: LMS build failed"
+                    exit 1
+                fi
+                
+                # Create package without sudo, then install with sudo
+                if ! make package; then
+                    echo "ERROR: LMS package creation failed"
+                    exit 1
+                fi
+                
+                if [ -f "./lms-2506.0.0-Linux.deb" ]; then
+                    echo "LMS package built successfully"
+                    if sudo apt-get install -y -o Dpkg::Options::="--force-confnew" "./lms-2506.0.0-Linux.deb"; then
+                        echo "LMS package installed successfully"
+                        sudo systemctl stop lms.service
+                        sudo systemctl disable lms.service
+                        sudo systemctl mask lms.service
+                        rm -f "lms-2506.0.0-Linux.deb"
+                    else
+                        echo "WARNING: Failed to install LMS package. Platform manageability features may not work properly."
+                        echo "Continuing with installation..."
+                    fi
+                else
+                    echo "ERROR: LMS package not found. Build failed."
+                    exit 1
+                fi
+            else
+                echo "ERROR: Failed to download LMS source. Aborting installation."
+                exit 1
+            fi
+
+            #Download RPC binary
+            echo "Download RPC binary"
+            expected_checksum="609b3a69f6534005ca0bf62b12b04c1d18cbc28decc6cf2d5d03d0bc521d9de8"
+            curl -LO "https://github.com/device-management-toolkit/rpc-go/releases/download/v2.48.2/rpc_linux_x64.tar.gz"
+
+            if [ -f "rpc_linux_x64.tar.gz" ]; then
+                actual_checksum=$(sha256sum "rpc_linux_x64.tar.gz" | cut -d' ' -f1)
+                if [ "$actual_checksum" != "$expected_checksum" ]; then
+                    echo "Checksum mismatch. File may be corrupted."
+                fi
+                echo "Checksum verification successful."
+                tar -xvf rpc_linux_x64.tar.gz -C /usr/bin
+                rm -rf rpc_linux_x64.tar.gz
+                mv /usr/bin/rpc_linux_x64 /usr/bin/rpc
+            else
+                echo "Downloaded file does not exist. Aborting installation."
+                exit 1
+            fi
+            echo "install_lms_rpc done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    get_rs_token() {
+        if [ "{{ index $config "rsType" | default "noauth" }}" == "auth" ]; then
+            # Temp file to store response
+            tempfile=$(mktemp)
+
+            echo "get access token from orchestrator"
+            # Save the response to the temporary file
+            curl -X POST -u "$CLIENT_ID:$CLIENT_SECRET" -d "grant_type=client_credentials" https://$KEYCLOAK_FQDN/realms/master/protocol/openid-connect/token -o "$tempfile"
+
+            # Check the exit status of curl
+            if [ ! -s "$tempfile" ]; then
+                echo "error in getting Keycloak token"
+                rm "$tempfile"
+                exit 1
+            fi
+
+            # Parse the response with jq
+            AT=$(jq -r '.access_token' "$tempfile")
+            rm "$tempfile"
+
+            # Get RS token now
+            tempfile=$(mktemp)
+            curl -XGET https://{{ index $config "orchRelease" }}/token -H "Authorization: Bearer $AT" -o "$tempfile"
+
+            if [ ! -s "$tempfile" ]; then
+                echo "error in getting Release Service token"
+                rm "$tempfile"
+                exit 1
+            fi
+
+            RS_AT=$(cat "$tempfile")
+            rm "$tempfile"
+            echo "$RS_AT"  # Return the token
+        else
+            echo "RS_TYPE is not auth"
+            echo ""  # Return empty string for non-auth
+        fi
+    }
+
+    install_node_agent(){
+        if grep -q "install_node_agent done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_node_agent"
+        else
+            rm -f /etc/apt/sources.list.d/edge-node.list
+            RS_AT=$(get_rs_token)      
+
+            USERNAME="etcd"
+
+            # Check if the etcd already exists
+            if id "$USERNAME" &>/dev/null; then
+                echo "User '$USERNAME' already exists."
+            else
+                # Add the etcd if it doesn't exist
+                useradd -r -c "etcd user" -s /sbin/nologin -M "$USERNAME" -U
+                echo "User '$USERNAME' added successfully."
+            fi
+
+            echo "node-agent node-agent/onboarding.serviceURL string {{ index $config "orchInfra" }}" | debconf-set-selections
+            echo "node-agent node-agent/status.serviceClients string {{ index $config "enServiceClients" }}" | debconf-set-selections
+            echo "node-agent node-agent/status.outboundClients string {{ index $config "enOutboundClients" }}" | debconf-set-selections
+            echo "node-agent node-agent/metrics.enabled string {{ index $config "enMetricsEnabled" | default "false" }}" | debconf-set-selections
+            echo "node-agent node-agent/auth.accessTokenURL string {{ index $config "orchKeycloak" }}" | debconf-set-selections
+            echo "node-agent node-agent/auth.rsTokenURL string {{ index $config "orchRelease" }}" | debconf-set-selections
+            echo "node-agent node-agent/auth.tokenClients string {{ index $config "enTokenClients" }}" | debconf-set-selections
+            echo "node-agent node-agent/proxy.aptSourceURL string $CADDY_APT_PROXY_URL" | debconf-set-selections
+            echo "node-agent node-agent/proxy.aptSourceProxyPort string $CADDY_APT_PROXY_PORT" | debconf-set-selections
+            echo "node-agent node-agent/proxy.aptSourceFilesRSRoot string {{ index $config "enFilesRsRoot" }}" | debconf-set-selections
+            echo "node-agent node-agent/auth.RSType string {{ index $config "rsType" | default "noauth" }}" | debconf-set-selections
+
+            echo "Install caddy for node agent..."
+
+            echo "download caddy deb package version: $CADDY_VERSION..."
+            CADDY_PKGFILE="./caddy_${CADDY_VERSION}_linux_amd64.deb"
+            if [ "{{ index $config "rsType" | default "noauth" }}" == "auth" ]; then
+                echo "${RS_AT}" | oras pull "{{ index $config "registryService" }}/{{ index $config "enDebianPackagesRepo" }}/caddy:${CADDY_VERSION}" --password-stdin
+            else
+                oras pull "{{ index $config "registryService" }}/{{ index $config "enDebianPackagesRepo" }}/caddy:${CADDY_VERSION}"
+            fi
+
+            if [ ! -f "${CADDY_PKGFILE}" ]; then
+                echo "caddy debian package could not be downloaded. Aborting installation"
+                exit 1
+            fi
+
+            echo "install caddy"
+            apt-get install -y "${CADDY_PKGFILE}"
+
+            echo "remove caddy debian"
+            rm -f "${CADDY_PKGFILE}"
+
+            echo "Install node agent..."
+            echo "download node agent version: $NODE_AGENT_VERSION..."
+            PKGFILE="./node-agent_${NODE_AGENT_VERSION}_amd64.deb"
+
+            echo "download node agent"
+             if [ "{{ index $config "rsType" | default "noauth" }}" == "auth" ]; then
+                echo "${RS_AT}" | oras pull "{{ index $config "registryService" }}/{{ index $config "enDebianPackagesRepo" }}/node-agent:${NODE_AGENT_VERSION}" --password-stdin
+            else
+                oras pull "{{ index $config "registryService" }}/{{ index $config "enDebianPackagesRepo" }}/node-agent:${NODE_AGENT_VERSION}"
+            fi
+
+            if [ ! -f "${PKGFILE}" ]; then
+                echo "node agent debian could not be downloaded. Aborting installation"
+                exit 1
+            fi
+
+            echo "install node agent"
+            apt-get install -y -o Dpkg::Options::="--force-confnew" "${PKGFILE}"
+
+            echo "remove node agent debian"
+            rm -f "${PKGFILE}"
+
+            echo "wait for node agent and client proxy to start"
+            while true; do
+                http_status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:{{ index $config "orchAptSrcProxyPort" }}/{{ index $config "enFilesRsRoot" }}/edge-node.asc")
+                if [ "$http_status" -eq 200 ]; then
+                    echo "Client proxy is active"
+                    break
+                else
+                    echo "HTTP status code is $http_status. Retrying in 5 seconds..."
+                    sleep 5
+                fi
+            done
+
+            echo "setup apt source"
+            if [ "{{ index $config "rsType" | default "no-auth" }}" == "auth" ]; then
+                curl -kfsSL "https://$CADDY_APT_PROXY_URL/{{ index $config "enFilesRsRoot" }}/edge-node.asc" -H "Authorization: Bearer $RS_AT" -o /etc/apt/trusted.gpg.d/edge-node.asc
+            else
+                curl -kfsSL "https://$CADDY_APT_PROXY_URL/{{ index $config "enFilesRsRoot" }}/edge-node.asc" -o /etc/apt/trusted.gpg.d/edge-node.asc
+            fi
+            echo "deb http://localhost:{{ index $config "orchAptSrcProxyPort" }}/{{ index $config "enFilesRsRoot" }}/repository $APT_DISTRO main" | tee /etc/apt/sources.list.d/edge-node.list
+
+            apt-get update
+            echo "install_node_agent done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    install_PMA() {
+        if grep -q "install_PMA done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping install_PMA"
+        else
+            echo "Install PMA version: $PLATFORM_MANAGEABILITY_VERSION..."
+            amt_output=$(rpc amtinfo)
+            if echo "$amt_output" | grep -iqE "AMT Pro Corporate|Intel Standard Manageability Corporate" > /dev/null; then
+                echo "platform-manageability-agent platform-manageability-agent/manageability.serviceURL string {{ index $config "orchDeviceManager" }}" | debconf-set-selections
+                echo "platform-manageability-agent platform-manageability-agent/rpsAddress string string $RPS_ADDRESS" | debconf-set-selections
+                echo "platform-manageability-agent platform-manageability-agent/metrics.enabled string {{ index $config "enMetricsEnabled" | default "false" }}" | debconf-set-selections
+                apt-get install -y -o Dpkg::Options::="--force-confnew" platform-manageability-agent=${PLATFORM_MANAGEABILITY_VERSION}
+            else
+                sed -i '/serviceClients:/ s/platform-manageability-agent, *//; /serviceClients:/ s/, *platform-manageability-agent//; /serviceClients:/ s/platform-manageability-agent//' /etc/edge-node/node/confs/node-agent.yaml
+            fi
+            echo "install_PMA done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+      fi
+    }
+
+    install_syslogrotate_ufw(){
+    if grep -q "install_syslogrotate_ufw done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+        echo "Skipping install_syslogrotate_ufw"
+    else
+    sudo tee /etc/logrotate.d/ufw << 'END'
+    /var/log/ufw.log
+    {
+            rotate 4
+            weekly
+            missingok
+            notifempty
+            size 1G
+            compress
+            delaycompress
+            sharedscripts
+            postrotate
+                    [ -x /usr/lib/rsyslog/rsyslog-rotate ] && /usr/lib/rsyslog/rsyslog-rotate || true
+            endscript
+    }
+    END
+
+    sudo systemctl restart ufw.service
+    sudo ufw logging low
+    echo "install_syslogrotate_ufw done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+    fi
+    }
+
+    disable_unattended_upgrade(){
+        if grep -q "disable_unattended_upgrade done" "$SCRIPT_DIR"/$STATUS_FILENAME; then
+            echo "Skipping disable_unattended_upgrade"
+        else
+        echo "Disable unattended upgrade"
+            config_file="/etc/apt/apt.conf.d/20auto-upgrades"
+            if [ -f "$config_file" ]; then
+                sed -i 's/APT::Periodic::Update-Package-Lists "1";/APT::Periodic::Update-Package-Lists "0";/' "$config_file"
+                sed -i 's/APT::Periodic::Unattended-Upgrade "1";/APT::Periodic::Unattended-Upgrade "0";/' "$config_file"
+                echo "APT::Periodic::Update-Package-Lists set to \"0\" in $config_file"
+            else
+                echo "Error: $config_file does not exist."
+                exit 1
+            fi
+            apt remove -y unattended-upgrades
+            echo "disable_unattended_upgrade done" | tee -a "$SCRIPT_DIR"/$STATUS_FILENAME
+        fi
+    }
+
+    install_dependencies 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    install_fws 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    enable_kernel_config 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    enable_NTP 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    install_syslogrotate_job 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    echo "Install agents..........................."
+    install_CA_cert 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    install_oras 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    download_and_parse_manifest 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    
+    # Load versions from manifest file
+    if [ -f "$SCRIPT_DIR/$MANIFEST_FILE" ]; then
+        DEVICE_DISCOVERY_VERSION=$(get_version_from_manifest "device-discovery-agent" "$SCRIPT_DIR/$MANIFEST_FILE")
+        NODE_AGENT_VERSION=$(get_version_from_manifest "node-agent" "$SCRIPT_DIR/$MANIFEST_FILE")
+        PLATFORM_MANAGEABILITY_VERSION=$(get_version_from_manifest "platform-manageability-agent" "$SCRIPT_DIR/$MANIFEST_FILE")
+        PLATFORM_TELEMETRY_VERSION=$(get_version_from_manifest "platform-telemetry-agent" "$SCRIPT_DIR/$MANIFEST_FILE")
+        CADDY_VERSION=$(get_version_from_manifest "caddy" "$SCRIPT_DIR/$MANIFEST_FILE")
+        APT_DISTRO=$(get_codename_from_manifest "$SCRIPT_DIR/$MANIFEST_FILE")
+    fi
+    
+    install_device_discovery 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    install_lms_rpc 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    install_node_agent 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    install_PMA 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    install_syslogrotate_ufw 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    disable_unattended_upgrade 2>&1 | tee -a "$SCRIPT_DIR"/$SETUP_STATUS_FILENAME
+    echo "Installation completed Successfuly on EdgeNode!!!!"
+    echo "Installation done" > "$SCRIPT_DIR"/.base_pkg_install_done
+{{- else }}
+# ERROR: infra-config ConfigMap not found
+# Please ensure '{{ .Values.sourceConfigMap.name }}' exists in namespace '{{ .Release.Namespace }}'
+{{- end }}

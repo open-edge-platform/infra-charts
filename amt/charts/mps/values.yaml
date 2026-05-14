@@ -33,7 +33,8 @@ nameOverride: ""
 fullnameOverride: "mps"
 
 tenancyMiddleware:
-  enabled: false
+  enabled: true
+  nexusAPIURL: "http://svc-iam-nexus-api-gw.orch-iam.svc:8082"
 
 job:
   name: amt-vault-job

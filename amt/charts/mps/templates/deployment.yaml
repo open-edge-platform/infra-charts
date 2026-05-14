@@ -85,6 +85,10 @@ spec:
                   key: vault-token
             - name: "MPS_JWT_SECRET"
               value: "notUsed"
+            {{- if .Values.tenancyMiddleware.enabled }}
+            - name: "NEXUS_API_URL"
+              value: "{{ .Values.tenancyMiddleware.nexusAPIURL }}"
+            {{- end }}
           ports:
             - containerPort: 3000
               name: mps

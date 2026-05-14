@@ -77,6 +77,10 @@ spec:
                   key: vault-token
             - name: "RPS_VAULT_ROLE" # Added Vault role
               value: "{{ .Values.rps.vaultRole }}"
+            {{- if .Values.tenancyMiddleware.enabled }}
+            - name: "NEXUS_API_URL"
+              value: "{{ .Values.tenancyMiddleware.nexusAPIURL }}"
+            {{- end }}
           ports:
             - containerPort: {{ .Values.service.websocketServerport }}
               name: rps

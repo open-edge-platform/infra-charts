@@ -26,7 +26,13 @@ nameOverride: ""
 fullnameOverride: "rps"
 
 tenancyMiddleware:
-  enabled: true
+  # Disabled for the nexus-replacement deployment: nexus-api-gw is gone, and
+  # orch-cli now injects project context via /v1/projects/{name}/dm/amt/...
+  # path rewrites that the rewrite-rps Traefik middleware strips before
+  # forwarding to the upstream service. The fallback resolveProjectUUID code
+  # in multiTenancyMiddleware.js depends on NEXUS_API_URL pointing at the
+  # deleted svc-iam-nexus-api-gw and would 401 every request.
+  enabled: false
   nexusAPIURL: "http://svc-iam-nexus-api-gw.orch-iam.svc:8082"
 
 job:

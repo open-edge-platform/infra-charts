@@ -37,7 +37,7 @@ data:
 #
 # Single replica + Recreate strategy: there is no benefit to overlapping
 # refreshes, and concurrent refreshers would race on the `vault-token` Secret.
-# HA via leader election (Lease) is deferred — see ADR-002.
+# HA via leader election (Lease) is deferred.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

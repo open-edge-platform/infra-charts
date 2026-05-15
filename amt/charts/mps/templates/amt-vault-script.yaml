@@ -28,7 +28,7 @@ data:
 
     # emit_event prints a single-line JSON record to stdout, captured by the
     # cluster log stack. Replaces the per-Job history we lost when migrating
-    # from CronJob to a long-running Deployment (see ADR-002).
+    # from CronJob to a long-running Deployment.
     # Args: outcome stage detail [http_status]
     emit_event() {
       printf '{"event":"vault_refresh","iteration":"%s","outcome":"%s","stage":"%s","detail":"%s","http_status":"%s","ts":"%s"}\n' \
@@ -176,5 +176,5 @@ data:
 
     # Istio sidecar quitquitquit was previously needed because amt.sh ran inside
     # a one-shot Job that could not terminate while the sidecar was alive. The
-    # script now runs inside a long-running refresher Deployment (ADR-002) that
+    # script now runs inside a long-running refresher Deployment that
     # must keep the mesh up between iterations, so the quit logic is removed.

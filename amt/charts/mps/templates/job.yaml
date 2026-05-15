@@ -1,63 +1,59 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-apiVersion: batch/v1
-kind: CronJob
+# Status ConfigMap. amt.sh PATCHes `lastSuccess` and `lastIteration` here on
+# every successful refresh. Provides at-a-glance liveness without parsing logs:
+#   kubectl get cm {{ .Values.refresher.statusConfigMap }} -o yaml
+# `resource-policy: keep` so the CM survives `helm uninstall` and retains the
+# last-known refresh state for post-mortem inspection.
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: "{{ .Values.job.name }}"
-spec:
-  schedule: "{{ .Values.job.schedule }}"
-  concurrencyPolicy: Replace
-  jobTemplate:
-    spec:
-      template:
-        metadata:
-          {{- with .Values.podAnnotations }}
-          annotations:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          labels:
-            {{- include "mps.labels" . | nindent 12 }}
-        spec:
-          restartPolicy: OnFailure
-          serviceAccountName: {{ .Values.rbac.serviceaccount }}
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 65534
-            seccompProfile:
-              type: RuntimeDefault
-          containers:
-            - name: amt
-              image: "{{ .Values.curlImage.name }}:{{ .Values.curlImage.tag }}"
-              imagePullPolicy: {{ .Values.curlImage.pullPolicy }}
-              command: ["/bin/sh"]
-              args: ["/amt.sh", "{{ .Values.mps.vault_url }}"]
-              securityContext:
-                capabilities:
-                  drop:
-                    - ALL
-                allowPrivilegeEscalation: false
-                readOnlyRootFilesystem: true
-              volumeMounts:
-                - mountPath: /amt.sh
-                  subPath: amt.sh
-                  name: amt-vol
-                - mountPath: /tmp
-                  name: tmp-vol
-          volumes:
-            - name: amt-vol
-              configMap:
-                name: amt-vault-script
-                defaultMode: 0777
-            - name: tmp-vol
-              emptyDir: {}
+  name: "{{ .Values.refresher.statusConfigMap }}"
+  annotations:
+    "helm.sh/resource-policy": keep
+  labels:
+    {{- include "mps.labels" . | nindent 4 }}
+data:
+  lastSuccess: ""
+  lastIteration: ""
 ---
-# FIXME: ITEP-70124 This job is only a temporary solution to run the amt.sh script once at the beginning of the deployment.
-apiVersion: batch/v1
-kind: Job
+# Long-running Vault token refresher.
+#
+# Why a Deployment + sleep loop instead of a CronJob:
+#   - Cron cannot express an even 50-min cadence (50 does not divide 60). The
+#     previous schedule `*/50 * * * *` fired at :00 and :50, producing a real
+#     gap pattern of 50/10/50/10 min. A user session started right after the
+#     :50 refresh was killed by Reloader ~10 min later when the :00 refresh
+#     fired, far below the required 40-min session guarantee.
+#   - An in-process `sleep {{ .Values.refresher.intervalSeconds }}` produces an
+#     exact spacing, so every freshly-started session is guaranteed at least
+#     `intervalSeconds` of valid token before the next Reloader-triggered roll.
+#
+# Crash semantics: if the pod exits for any reason, the Deployment restarts it
+# and the loop's first action is `amt.sh` (an immediate refresh). One session
+# may be killed earlier than expected, but the next session still gets the full
+# `intervalSeconds`. The crash is recorded in pod restartCount and previous-logs.
+#
+# Single replica + Recreate strategy: there is no benefit to overlapping
+# refreshes, and concurrent refreshers would race on the `vault-token` Secret.
+# HA via leader election (Lease) is deferred — see ADR-002.
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: "init-{{ .Values.job.name }}"
+  name: "{{ .Values.refresher.name }}"
+  labels:
+    {{- include "mps.labels" . | nindent 4 }}
+    app.kubernetes.io/component: vault-refresher
 spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mps
+      app.kubernetes.io/component: vault-refresher
+      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -65,9 +61,14 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "mps.labels" . | nindent 8 }}
+        helm.sh/chart: {{ include "mps.chart" . }}
+        app.kubernetes.io/name: {{ include "mps.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/component: vault-refresher
+        app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+        app: mps
     spec:
-      restartPolicy: OnFailure
       serviceAccountName: {{ .Values.rbac.serviceaccount }}
       securityContext:
         runAsNonRoot: true
@@ -78,8 +79,48 @@ spec:
         - name: amt
           image: "{{ .Values.curlImage.name }}:{{ .Values.curlImage.tag }}"
           imagePullPolicy: {{ .Values.curlImage.pullPolicy }}
-          command: ["/bin/sh"]
-          args: ["/amt.sh", "{{ .Values.mps.vault_url }}"]
+          # The loop intentionally exits the container if amt.sh fails (set -e).
+          # kubelet then restarts the pod, which runs a fresh refresh on the
+          # next iteration — leaving a restartCount + previous-logs trail for
+          # operators, similar to what CronJob/Job history used to provide.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              ITERATION=0
+              while true; do
+                ITERATION=$((ITERATION + 1))
+                export ITERATION
+                /amt.sh "$VAULT_URL"
+                sleep "$INTERVAL"
+              done
+          env:
+            - name: VAULT_URL
+              value: "{{ .Values.mps.vault_url }}"
+            - name: INTERVAL
+              value: "{{ .Values.refresher.intervalSeconds }}"
+            - name: STATUS_CONFIGMAP
+              value: "{{ .Values.refresher.statusConfigMap }}"
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          # Liveness: amt.sh `touch`es /tmp/last_success after every successful
+          # refresh. If the file mtime falls behind `livenessMaxAgeSeconds`
+          # (e.g. amt.sh hangs mid-iteration, or the loop is wedged), kubelet
+          # restarts the pod and the loop runs an immediate refresh on next
+          # boot. `initialDelaySeconds` allows the first iteration to complete
+          # before the probe starts checking.
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "[ $(( $(date +%s) - $(stat -c %Y /tmp/last_success 2>/dev/null || echo 0) )) -lt {{ .Values.refresher.livenessMaxAgeSeconds }} ]"
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
           securityContext:
             capabilities:
               drop:

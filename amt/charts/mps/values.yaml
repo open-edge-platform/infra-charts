@@ -33,7 +33,14 @@ nameOverride: ""
 fullnameOverride: "mps"
 
 tenancyMiddleware:
-  enabled: true
+  # Disabled for the nexus-replacement deployment: nexus-api-gw is gone, and
+  # orch-cli now injects project context via /v1/projects/{name}/dm/... path
+  # rewrites that the rewrite-mps Traefik middleware strips before forwarding
+  # to the upstream service. The fallback resolveProjectUUID code in
+  # multiTenancyMiddleware.js depends on NEXUS_API_URL pointing at the
+  # deleted svc-iam-nexus-api-gw and would 401 every request.
+  enabled: false
+  nexusAPIURL: "http://svc-iam-nexus-api-gw.orch-iam.svc:8082"
 
 # Long-running Vault token refresher.
 # Replaces the previous CronJob (`*/50 * * * *`), which produced a 50/10/50/10 min

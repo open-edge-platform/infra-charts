@@ -21,6 +21,33 @@ data:
     set -xe
     set -o pipefail
 
+    # ITERATION is provided by the refresher Deployment's loop wrapper. The
+    # one-shot bootstrap path (no wrapper) defaults to "init".
+    ITERATION="${ITERATION:-init}"
+    STATUS_CONFIGMAP="${STATUS_CONFIGMAP:-amt-vault-refresh-status}"
+
+    # emit_event prints a single-line JSON record to stdout, captured by the
+    # cluster log stack. Replaces the per-Job history we lost when migrating
+    # from CronJob to a long-running Deployment.
+    # Args: outcome stage detail [http_status]
+    emit_event() {
+      printf '{"event":"vault_refresh","iteration":"%s","outcome":"%s","stage":"%s","detail":"%s","http_status":"%s","ts":"%s"}\n' \
+        "$ITERATION" "$1" "$2" "$3" "${4:-}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    }
+
+    # patch_status_cm records last successful refresh in the status ConfigMap.
+    # Uses the same projected-SA-token + curl pattern that this script already
+    # uses to write the vault-token Secret below.
+    patch_status_cm() {
+      local ts; ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      local next; next="$(( $(date +%s) + ${INTERVAL:-0} ))"
+      curl -s -k -o /dev/null -X PATCH \
+        "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/{{ .Release.Namespace }}/configmaps/${STATUS_CONFIGMAP}" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/merge-patch+json" \
+        -d "{\"data\":{\"lastSuccess\":\"${ts}\",\"lastIteration\":\"${ITERATION}\",\"nextScheduledEpoch\":\"${next}\"}}" || true
+    }
+
     HELP=""
 
     while getopts 'h' flag; do
@@ -70,12 +97,14 @@ data:
         break
       fi
       echo "ERROR: $vault_login_output"
+      emit_event "failure" "vault_login" "vault login attempt failed" ""
       sleep 10
       retry_count=$((retry_count + 1))
     done
 
     if [ $retry_count -eq $max_retries ]; then
       echo "ERROR: Too many errors in logging into Vault!"
+      emit_event "failure" "vault_login" "max_retries_exceeded" ""
       exit 1
     fi
 
@@ -98,6 +127,9 @@ data:
 
       if [[ "${POST_RETURN_CODE}" =~ "201" ]]; then
         echo "Vault token created successfully!"
+        emit_event "success" "secret_create" "vault-token Secret created" "$POST_RETURN_CODE"
+        touch /tmp/last_success
+        patch_status_cm
         break
       else
         if [[ "${POST_RETURN_CODE}" =~ "409" ]]; then
@@ -117,22 +149,32 @@ data:
               }')
           if [[ "${PUT_RETURN_CODE}" =~ "200" ]]; then
             echo "Vault token updated successfully!"
+            emit_event "success" "secret_update" "vault-token Secret updated" "$PUT_RETURN_CODE"
+            touch /tmp/last_success
+            patch_status_cm
             break
           else
             echo "Error creating vault token secret, retrying..."
+            emit_event "failure" "secret_update" "PUT vault-token failed" "$PUT_RETURN_CODE"
             sleep 10
             retry_count=$((retry_count + 1))
           fi
+        else
+          echo "Unexpected POST status, retrying..."
+          emit_event "failure" "secret_create" "unexpected POST status" "$POST_RETURN_CODE"
+          sleep 10
+          retry_count=$((retry_count + 1))
         fi
       fi
     done
 
-    
-    # If Istio proxy is available, quit sidecar
-    if curl -s -f http://127.0.0.1:15020/healthz/ready; then
-       response=$(curl -o /dev/null -w "%{http_code}" --location  -v --request POST http://127.0.0.1:15000/quitquitquit --header 'Content-Type: text/plain')
-       if [[ ! "${response}" =~ "200" ]]; then
-          echo "ERROR: Error while quiting Istio proxy"
-          exit 1
-       fi
+    if [ $retry_count -eq $max_retries ]; then
+      echo "ERROR: Too many errors writing vault-token Secret!"
+      emit_event "failure" "secret_write" "max_retries_exceeded" ""
+      exit 1
     fi
+
+    # Istio sidecar quitquitquit was previously needed because amt.sh ran inside
+    # a one-shot Job that could not terminate while the sidecar was alive. The
+    # script now runs inside a long-running refresher Deployment that
+    # must keep the mesh up between iterations, so the quit logic is removed.

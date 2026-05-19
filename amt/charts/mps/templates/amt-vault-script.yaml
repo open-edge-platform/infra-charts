@@ -8,7 +8,7 @@ metadata:
   name: amt-vault-script
 data:
   amt.sh: |
-    #!/bin/bash
+    #!/bin/sh
 
     # DO NOT MODIFY - SEE DESCRIPTION
 
@@ -58,7 +58,7 @@ data:
     done
     shift $((OPTIND -1))
 
-    function usage {
+    usage() {
         cat >&2 <<EOF
     Purpose:
     Creation of secret for MPS and RPS services.
@@ -76,7 +76,7 @@ data:
 
     VAULT_URL=$1
 
-    if [[ "$HELP" || -z "$VAULT_URL" ]]; then
+    if [ -n "$HELP" ] || [ -z "$VAULT_URL" ]; then
         usage
         exit 1
     fi
@@ -91,7 +91,7 @@ data:
              "$VAULT_URL/v1/auth/kubernetes/login" \
              -H "Authorization: Bearer $TOKEN" \
              -d '{"jwt": "'"${TOKEN}"'", "role": "orch-svc"}') && \
-          [[ ! "$vault_login_output" =~ "errors" ]]; then
+          ! printf '%s' "$vault_login_output" | grep -q 'errors'; then
         echo "Vault login successful!"
         VAULT_TOKEN=$(echo "$vault_login_output" | jq -r  '.auth.client_token')
         break
@@ -125,14 +125,14 @@ data:
             }
           }')
 
-      if [[ "${POST_RETURN_CODE}" =~ "201" ]]; then
+      if [ "${POST_RETURN_CODE}" = "201" ]; then
         echo "Vault token created successfully!"
         emit_event "success" "secret_create" "vault-token Secret created" "$POST_RETURN_CODE"
         touch /tmp/last_success
         patch_status_cm
         break
       else
-        if [[ "${POST_RETURN_CODE}" =~ "409" ]]; then
+        if [ "${POST_RETURN_CODE}" = "409" ]; then
           PUT_RETURN_CODE=$(curl -s -o /dev/null -w "%{http_code}" -k -X PUT \
             "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/{{ .Release.Namespace }}/secrets/vault-token" \
             -H "Authorization: Bearer $TOKEN" \
@@ -147,7 +147,7 @@ data:
                   "vault-token": "'$(echo -n "$VAULT_TOKEN" | base64 -w0)'"
                 }
               }')
-          if [[ "${PUT_RETURN_CODE}" =~ "200" ]]; then
+          if [ "${PUT_RETURN_CODE}" = "200" ]; then
             echo "Vault token updated successfully!"
             emit_event "success" "secret_update" "vault-token Secret updated" "$PUT_RETURN_CODE"
             touch /tmp/last_success

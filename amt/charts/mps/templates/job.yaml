@@ -91,7 +91,7 @@ spec:
               while true; do
                 ITERATION=$((ITERATION + 1))
                 export ITERATION
-                /amt.sh "$VAULT_URL"
+                sh /amt.sh "$VAULT_URL"
                 sleep "$INTERVAL"
               done
           env:

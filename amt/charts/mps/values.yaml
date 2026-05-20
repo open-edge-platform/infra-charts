@@ -42,9 +42,25 @@ tenancyMiddleware:
   enabled: false
   nexusAPIURL: "http://svc-iam-nexus-api-gw.orch-iam.svc:8082"
 
+# Long-running Vault token refresher.
+# Replaces the previous CronJob (`*/50 * * * *`), which produced a 50/10/50/10 min
+# gap pattern and could not guarantee a 40-min user session before MPS/RPS were
+# rolled by Reloader. The refresher Deployment runs amt.sh in a sleep loop with
+# an exact `intervalSeconds` cadence. See
+# `edge-manageability-framework/design-proposals/adr-amt-token-vault-refresh.md`.
+refresher:
+  name: amt-vault-refresher
+  # Spacing between two successful Vault token refreshes.
+  # Must be < Vault token TTL (default 60 min) and provide enough headroom for
+  # the longest user session expected against MPS/RPS.
+  intervalSeconds: 3000
+  # Liveness probe fails if /tmp/last_success has not been touched within this
+  # window, causing kubelet to restart the pod and trigger an immediate refresh.
+  livenessMaxAgeSeconds: 3300
+  # Status ConfigMap that amt.sh PATCHes after each successful refresh.
+  statusConfigMap: amt-vault-refresh-status
+
 job:
-  name: amt-vault-job
-  schedule: "*/50 * * * *"
   secretjob:
     name: amt-dbpassword-secret-job
     configmap: mps-db-configmap

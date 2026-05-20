@@ -10,6 +10,14 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["create", "get","update", "list", "watch", "patch"]
+# Allow the refresher Deployment (running as the same ServiceAccount) to PATCH
+# the status ConfigMap with the timestamp of each successful Vault token
+# refresh. Restricted by resourceNames to a single object so the SA cannot
+# tamper with any other ConfigMap in the namespace.
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: ["{{ .Values.refresher.statusConfigMap }}"]
+  verbs: ["get", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

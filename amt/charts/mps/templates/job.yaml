@@ -51,7 +51,7 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: mps
+      app: amt-vault-refresher
       app.kubernetes.io/component: vault-refresher
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
@@ -67,7 +67,7 @@ spec:
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/component: vault-refresher
         app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-        app: mps
+        app: amt-vault-refresher
     spec:
       serviceAccountName: {{ .Values.rbac.serviceaccount }}
       securityContext:

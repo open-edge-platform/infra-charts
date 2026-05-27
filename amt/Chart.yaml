@@ -6,8 +6,8 @@ apiVersion: v2
 name: amt
 description: Edge Infrastructure Manager AMT
 type: application
-version: 0.10.7
-appVersion: "0.7.11"
+version: 0.10.8
+appVersion: "0.7.12"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team
@@ -21,7 +21,7 @@ dependencies:
     condition: import.rps.enabled
     repository: "file://charts/rps"
   - name: dm-manager
-    version: "0.9.3"
+    version: "0.9.4"
     condition: import.dm-manager.enabled
     repository: "file://charts/dm-manager"
   - name: kvm-manager

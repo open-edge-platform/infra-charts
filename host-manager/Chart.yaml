@@ -5,8 +5,8 @@ apiVersion: v2
 name: host-manager
 description: Edge Infrastructure Manager Host Manager
 type: application
-version: 1.30.3
-appVersion: "1.26.5"
+version: 1.30.4
+appVersion: "1.26.6"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

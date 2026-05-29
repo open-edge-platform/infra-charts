@@ -5,8 +5,8 @@ apiVersion: v2
 name: exporter
 description: Edge Infrastructure Manager Exporter
 type: application
-version: 1.25.5
-appVersion: "1.27.6"
+version: 1.25.6
+appVersion: "1.27.7"
 home: edge-orchestrator.intel.com
 maintainers:
   - name: Edge Infrastructure Manager Team

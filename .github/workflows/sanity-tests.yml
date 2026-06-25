@@ -31,7 +31,7 @@ jobs:
       ORCH_DEFAULT_PASSWORD: ${{ secrets.ORCH_DEFAULT_PASSWORD }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10    # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0    # v7.0.0
         with:
           repository: open-edge-platform/edge-manageability-framework
           token: ${{ secrets.SYS_EMF_GH_TOKEN }}
@@ -46,7 +46,7 @@ jobs:
         uses: open-edge-platform/orch-ci/.github/actions/setup-asdf@a95228137803b756aae327668c115db235802982  # v2026.1.3 zizmor: ignore[unpinned-uses]
 
       - name: Checkout infra-charts repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10    # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0    # v7.0.0
         with:
           repository: open-edge-platform/infra-charts
           path: infra-charts
@@ -167,7 +167,7 @@ jobs:
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ensim -n orch-infra --timeout=5m
 
       - name: Checkout ensim (virtual-edge-node) repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10     # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0     # v7.0.0
         with:
           repository: open-edge-platform/virtual-edge-node
           path: virtual-edge-node
@@ -256,7 +256,7 @@ jobs:
             ${{ github.workspace }}/virtual-edge-node/edge-node-simulator/ensim.logs.txt
 
       - name: Checkout infra-core/api repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10     # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0     # v7.0.0
         with:
           repository: open-edge-platform/infra-core
           path: infra-core
